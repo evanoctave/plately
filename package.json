@@ -23,6 +23,7 @@
     "expo": "~52.0.27",
     "expo-camera": "~16.0.14",
     "expo-file-system": "~18.0.7",
+    "expo-font": "~13.0.3",
     "expo-haptics": "~14.0.1",
     "expo-image": "~2.0.4",
     "expo-image-manipulator": "~13.0.6",
@@ -53,18 +54,27 @@
   "expo": {
     "doctor": {
       "reactNativeDirectoryCheck": {
-        "exclude": ["jpeg-js"],
+        "exclude": [
+          "jpeg-js"
+        ],
         "listUnknownPackages": false
       }
     }
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/__tests__/**/*.test.ts"],
+    "testMatch": [
+      "**/__tests__/**/*.test.ts"
+    ],
     "transform": {
       "^.+\\.(js|jsx|ts|tsx)$": [
         "babel-jest",
-        { "presets": ["babel-preset-expo"], "plugins": [] }
+        {
+          "presets": [
+            "babel-preset-expo"
+          ],
+          "plugins": []
+        }
       ]
     }
   },
