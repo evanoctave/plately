@@ -1,4 +1,4 @@
-import { buildCsv } from '../export';
+import { buildCsv } from '../csv';
 import type { FoodEntry } from '../../db/database';
 import { ZERO_NUTRITION } from '../../data/nutrients';
 

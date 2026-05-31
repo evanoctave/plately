@@ -26,7 +26,9 @@ export function InsightsScreen() {
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  // `revision` is included so insights refetch whenever the diary changes.
   const load = useCallback(async () => {
+    void revision;
     setLoading(true);
     try {
       const days = lastNDays(RANGE_DAYS);
@@ -36,12 +38,12 @@ export function InsightsScreen() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [revision]);
 
   useFocusEffect(
     useCallback(() => {
       void load();
-    }, [load, revision]),
+    }, [load]),
   );
 
   const loggedDays = totals.filter((d) => d.itemCount > 0 || d.water > 0);

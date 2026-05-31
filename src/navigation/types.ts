@@ -19,6 +19,7 @@ export type RootStackParamList = {
   DayDetail: { day: string };
   AddCustomFood: undefined;
   MyFoods: undefined;
+  BarcodeScan: undefined;
 };
 
 export type TabParamList = {

@@ -41,7 +41,10 @@ References are to Apple's App Store Review Guidelines.
   within the app (Settings) and App Store Connect.
 - **5.1.1(v) Account deletion** — no account exists; "Erase all data" removes
   all local data, and deleting the app removes everything.
-- **5.1.2 Data use & sharing** — nothing is shared; no third-party SDKs.
+- **5.1.2 Data use & sharing** — nothing is shared; no third-party SDKs. The
+  only outbound calls are (a) a one-time model-weights download and (b)
+  user-initiated barcode lookups that send just the barcode digits to Open
+  Food Facts. Neither transmits personal data.
 - **5.1.5 Location** — not used.
 
 ## Permissions (Info.plist)
@@ -70,5 +73,7 @@ so no ATT prompt is required.
 
 > NutriSnap is free, account-free, and works offline. Food recognition runs
 > on-device via a TensorFlow Lite model whose weights download once from a
-> public CDN (data only, no code). No data is collected or transmitted.
-> Nutrition values are approximate and the app is not a medical device.
+> public CDN (data only, no code). Optional barcode scanning sends only the
+> scanned barcode number to Open Food Facts (a free public database) to fetch
+> nutrition facts. No personal data is collected or transmitted. Nutrition
+> values are approximate and the app is not a medical device.

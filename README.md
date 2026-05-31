@@ -17,6 +17,7 @@ Built with **Expo / React Native** and structured to pass App Store review.
 | Concern | How NutriSnap stays $0 |
 |---------|------------------------|
 | Image recognition | Runs **on-device** with a TensorFlow Lite model (no inference servers, no per-call cost). |
+| Barcode lookups | **Open Food Facts** — free, open, key-less product API. |
 | Nutrition data | Bundled database derived from **USDA FoodData Central** (public domain). |
 | Storage / sync | Local-only SQLite. No backend, no cloud bill. |
 | Model hosting | One-time download of static weights from a free CDN (GitHub Releases / Hugging Face). |
@@ -27,15 +28,36 @@ developer fee — that's Apple's, not the app's, and end users pay nothing.
 ## Features
 
 - 📷 **Snap a meal** — on-device food recognition with top-3 suggestions.
+- 🏷️ **Barcode scanning** — free product lookup via Open Food Facts (no key).
 - 🔎 **Manual search** — fast fuzzy search over the food database (works even
   offline / before the model downloads).
+- ✏️ **Custom foods** — create your own foods once and reuse them forever.
+- ⭐ **Favorites & recents** — one-tap quick-add of foods you log often.
 - 🍽️ **Full breakdown** — calories, macros, fiber, sugar, water, and 8
   micronutrients with % of Daily Value.
+- 📊 **Insights** — 14-day trends, logging streak, and daily averages.
 - 🎯 **Daily goals** — calories, macros, and water, all editable.
 - 💧 **Water tracking** — quick-add with mL/oz units.
 - 📅 **History** — per-day totals and detail view.
+- 📤 **CSV export** — your data is yours; export the whole diary any time.
 - 🔒 **Private** — no account, no analytics, no tracking. "Erase all data" any
   time.
+
+## How it's different from the paid trackers
+
+Mainstream trackers (MyFitnessPal, Lose It!, etc.) gate core features behind
+subscriptions. NutriSnap gives them all away — free, offline, account-free:
+
+| Feature | Typical paid app | NutriSnap |
+|---------|------------------|-----------|
+| Photo food recognition | Premium | **Free** (on-device) |
+| Barcode scanning | Often premium | **Free** (Open Food Facts) |
+| Create custom foods | Limited / premium | **Free, unlimited** |
+| Macro + micro goals | Premium | **Free** |
+| Trends & insights | Premium | **Free** |
+| Export your data | Premium | **Free** (CSV) |
+| Ads | Yes | **None** |
+| Account required | Yes | **No** |
 
 ## Tech stack
 

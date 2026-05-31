@@ -1,48 +1,17 @@
 /**
  * CSV export of the full food diary. Data ownership is a first-class feature:
  * your log is yours, exportable any time, free — no premium tier, no lock-in.
+ *
+ * The pure serialization lives in `csv.ts` (unit-tested); this module only adds
+ * the file-writing + share-sheet wrapper that needs native modules.
  */
 
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
-import { getAllEntries, type FoodEntry } from '../db/database';
-import { ZERO_NUTRITION, type Nutrition } from '../data/nutrients';
+import { getAllEntries } from '../db/database';
+import { buildCsv } from './csv';
 import { dayKey } from './date';
-
-const NUTRITION_KEYS = Object.keys(ZERO_NUTRITION) as (keyof Nutrition)[];
-
-const HEADER = [
-  'day',
-  'time_iso',
-  'name',
-  'source',
-  'grams',
-  ...NUTRITION_KEYS,
-];
-
-function escapeCsv(value: string | number): string {
-  const s = String(value);
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
-
-function entryToRow(e: FoodEntry): string {
-  const cells: (string | number)[] = [
-    e.day,
-    new Date(e.createdAt).toISOString(),
-    e.name,
-    e.source,
-    e.grams,
-    ...NUTRITION_KEYS.map((k) => e[k]),
-  ];
-  return cells.map(escapeCsv).join(',');
-}
-
-/** Builds the CSV text for all logged entries. */
-export function buildCsv(entries: FoodEntry[]): string {
-  const lines = [HEADER.join(','), ...entries.map(entryToRow)];
-  return lines.join('\n');
-}
 
 export interface ExportResult {
   status: 'shared' | 'empty' | 'unavailable';

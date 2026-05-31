@@ -108,6 +108,14 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
           >
             <Ionicons name="search" size={22} color={palette.text} />
           </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.search, pressed && styles.pressed]}
+            onPress={() => navigation.navigate('BarcodeScan')}
+            accessibilityRole="button"
+            accessibilityLabel="Scan a barcode"
+          >
+            <Ionicons name="barcode-outline" size={22} color={palette.text} />
+          </Pressable>
         </View>
 
         <Card>

@@ -12,8 +12,12 @@ language, what the app does and does not do with your information.
   on-device.
 - **Your food diary is stored only on your device** (local database). There is
   no account and no cloud sync.
-- The app makes **one network request**: a one-time download of the
-  open-source recognition model. No personal data is sent with it.
+- The app makes network requests in only two cases, and **neither sends any
+  personal data**:
+  1. A **one-time download** of the open-source recognition model.
+  2. **Barcode lookups you initiate**, which send only the scanned barcode
+     number to Open Food Facts (a free, open product database) to fetch
+     nutrition facts.
 
 ## What data the app handles
 
@@ -23,6 +27,7 @@ language, what the app does and does not do with your information.
 | Food diary entries (foods, portions, water) | On-device SQLite database | No |
 | Daily goals & preferences | On-device storage | No |
 | Recognition model file | Downloaded once from a public CDN, cached on-device | Download only; no personal data sent |
+| Barcode number (when you scan) | Sent to Open Food Facts for lookup | Only the barcode digits; no personal data |
 
 ## Camera & photo library
 

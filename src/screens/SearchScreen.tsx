@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, FlatList, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -22,7 +22,11 @@ export function SearchScreen({ navigation }: RootStackScreenProps<'Search'>) {
     }, []),
   );
 
-  const results = useMemo(() => searchCatalog(query), [query, version]);
+  // `version` bumps after a custom-food refresh to force a re-query. The
+  // catalog is small, so searching on each render is cheap and avoids stale
+  // memoization across the module-level catalog cache.
+  void version;
+  const results = searchCatalog(query);
 
   const pick = (food: FoodItem) =>
     navigation.replace('ConfirmFood', {
@@ -79,19 +83,34 @@ export function SearchScreen({ navigation }: RootStackScreenProps<'Search'>) {
         ItemSeparatorComponent={() => <View style={styles.divider} />}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
-          <Pressable
-            onPress={() => navigation.navigate('AddCustomFood')}
-            style={({ pressed }) => [styles.createRow, pressed && styles.pressed]}
-          >
-            <View style={styles.createIcon}>
-              <Ionicons name="add" size={22} color={palette.green} />
-            </View>
-            <View style={styles.rowBody}>
-              <Text style={styles.name}>Create a custom food</Text>
-              <Text style={styles.meta}>Add your own — free, no account</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
-          </Pressable>
+          <View>
+            <Pressable
+              onPress={() => navigation.navigate('BarcodeScan')}
+              style={({ pressed }) => [styles.createRow, pressed && styles.pressed]}
+            >
+              <View style={styles.createIcon}>
+                <Ionicons name="barcode-outline" size={22} color={palette.teal} />
+              </View>
+              <View style={styles.rowBody}>
+                <Text style={styles.name}>Scan a barcode</Text>
+                <Text style={styles.meta}>Free lookup via Open Food Facts</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+            </Pressable>
+            <Pressable
+              onPress={() => navigation.navigate('AddCustomFood')}
+              style={({ pressed }) => [styles.createRow, pressed && styles.pressed]}
+            >
+              <View style={styles.createIcon}>
+                <Ionicons name="add" size={22} color={palette.green} />
+              </View>
+              <View style={styles.rowBody}>
+                <Text style={styles.name}>Create a custom food</Text>
+                <Text style={styles.meta}>Add your own — free, no account</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+            </Pressable>
+          </View>
         }
         ListEmptyComponent={
           <View style={styles.empty}>

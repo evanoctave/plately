@@ -34,6 +34,16 @@ export function getFood(id: string): FoodItem | undefined {
   return index.get(id);
 }
 
+/**
+ * Registers a food that isn't persisted in the database (e.g. a product scanned
+ * from Open Food Facts) so screens can resolve it by id during this session.
+ * If the user logs it, the entry stores a full nutrition snapshot, so the data
+ * survives even though the transient catalog entry does not.
+ */
+export function registerTransientFood(food: FoodItem): void {
+  index.set(food.id, food);
+}
+
 /** Searches the combined catalog; custom foods are ranked first on ties. */
 export function searchCatalog(query: string, limit = 30): FoodItem[] {
   const q = query.trim().toLowerCase();

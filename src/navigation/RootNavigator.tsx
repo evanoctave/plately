@@ -18,6 +18,7 @@ import { ConfirmFoodScreen } from '../screens/ConfirmFoodScreen';
 import { DayDetailScreen } from '../screens/DayDetailScreen';
 import { AddCustomFoodScreen } from '../screens/AddCustomFoodScreen';
 import { MyFoodsScreen } from '../screens/MyFoodsScreen';
+import { BarcodeScanScreen } from '../screens/BarcodeScanScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -107,6 +108,11 @@ export function RootNavigator() {
           options={{ title: 'Create food' }}
         />
         <Stack.Screen name="MyFoods" component={MyFoodsScreen} options={{ title: 'My foods' }} />
+        <Stack.Screen
+          name="BarcodeScan"
+          component={BarcodeScanScreen}
+          options={{ headerShown: false, presentation: 'fullScreenModal' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
