@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { useSettings } from './src/state/useSettings';
 import { loadModel } from './src/ml/recognizer';
+import { refreshCustomFoods } from './src/data/catalog';
 import { palette } from './src/theme';
 
 export default function App() {
@@ -16,6 +17,8 @@ export default function App() {
   // Safe to call early: it fails soft and never throws.
   useEffect(() => {
     void loadModel().catch(() => undefined);
+    // Load any user-created foods into the in-memory catalog.
+    void refreshCustomFoods().catch(() => undefined);
   }, []);
 
   return (

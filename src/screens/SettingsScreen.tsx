@@ -11,6 +11,7 @@ import { palette, spacing, font, radius } from '../theme';
 import { useSettings } from '../state/useSettings';
 import { useDiaryRevision } from '../state/useDiary';
 import { clearAllEntries } from '../db/database';
+import { exportDiaryCsv } from '../utils/export';
 import { isModelReady, getModelStatus, loadModel } from '../ml/recognizer';
 import type { Goals } from '../data/nutrients';
 import type { TabScreenProps } from '../navigation/types';
@@ -25,7 +26,16 @@ const GOAL_FIELDS: { key: keyof Goals; label: string; unit: string }[] = [
   { key: 'water', label: 'Water', unit: 'mL' },
 ];
 
-export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
+/** Things competitors commonly charge for that NutriSnap gives away free. */
+const FREE_PERKS = [
+  'Photo food recognition (on-device)',
+  'Create unlimited custom foods',
+  'Trends, streaks & insights',
+  'Export your data (CSV)',
+  'No ads, no account, no tracking',
+];
+
+export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
   const { goals, setGoals, waterUnit, setWaterUnit } = useSettings();
   const bump = useDiaryRevision((s) => s.bump);
   const [modelStatus, setModelStatus] = useState(getModelStatus());
@@ -39,6 +49,15 @@ export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
     setModelStatus('loading');
     await loadModel();
     setModelStatus(getModelStatus());
+  };
+
+  const onExport = async () => {
+    const result = await exportDiaryCsv();
+    if (result.status === 'empty') {
+      Alert.alert('Nothing to export', 'Log some meals first, then export your diary.');
+    } else if (result.status === 'unavailable') {
+      Alert.alert('Export unavailable', 'Sharing is not available on this device.');
+    }
   };
 
   const eraseAll = () => {
@@ -71,6 +90,23 @@ export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title}>Settings</Text>
+
+        <Card style={styles.freeCard}>
+          <View style={styles.freeHeader}>
+            <Ionicons name="heart" size={18} color={palette.green} />
+            <Text style={styles.freeTitle}>Free forever — really</Text>
+          </View>
+          <Text style={styles.freeSub}>
+            Everything other trackers lock behind a subscription, NutriSnap gives you free:
+          </Text>
+          {FREE_PERKS.map((perk) => (
+            <View key={perk} style={styles.perkRow}>
+              <Ionicons name="checkmark-circle" size={16} color={palette.green} />
+              <Text style={styles.perkText}>{perk}</Text>
+            </View>
+          ))}
+          <Text style={styles.freePrice}>$0 · no in-app purchases · no ads</Text>
+        </Card>
 
         <SectionTitle>Daily goals</SectionTitle>
         <Card style={styles.card}>
@@ -133,7 +169,22 @@ export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
           )}
         </Card>
 
-        <SectionTitle>Privacy & data</SectionTitle>
+        <SectionTitle>Your data</SectionTitle>
+        <Card style={styles.card}>
+          <Pressable style={styles.linkRow} onPress={() => navigation.navigate('MyFoods')}>
+            <Ionicons name="restaurant-outline" size={20} color={palette.text} />
+            <Text style={styles.linkText}>My custom foods</Text>
+            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+          </Pressable>
+          <View style={styles.divider} />
+          <Pressable style={styles.linkRow} onPress={() => void onExport()}>
+            <Ionicons name="download-outline" size={20} color={palette.text} />
+            <Text style={styles.linkText}>Export diary (CSV)</Text>
+            <Ionicons name="share-outline" size={18} color={palette.textFaint} />
+          </Pressable>
+        </Card>
+
+        <SectionTitle>Privacy &amp; data</SectionTitle>
         <Card style={styles.card}>
           <Pressable style={styles.linkRow} onPress={() => void Linking.openURL(PRIVACY_URL)}>
             <Ionicons name="shield-checkmark-outline" size={20} color={palette.text} />
@@ -164,6 +215,13 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: palette.bg },
   content: { padding: spacing.lg, paddingBottom: spacing.xxl },
   title: { color: palette.text, fontSize: font.size.xxl, fontWeight: font.weight.bold },
+  freeCard: { gap: spacing.xs, marginTop: spacing.lg, borderColor: palette.greenDark, borderWidth: 1 },
+  freeHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  freeTitle: { color: palette.text, fontSize: font.size.lg, fontWeight: font.weight.bold },
+  freeSub: { color: palette.textMuted, fontSize: font.size.sm, marginBottom: spacing.xs, lineHeight: 18 },
+  perkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 3 },
+  perkText: { color: palette.text, fontSize: font.size.md },
+  freePrice: { color: palette.green, fontSize: font.size.sm, fontWeight: font.weight.semibold, marginTop: spacing.sm },
   card: { paddingVertical: spacing.xs },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.border },
   goalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md },

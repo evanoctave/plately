@@ -1,13 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 
 import { Button } from '../components/Button';
 import { Card, SectionTitle } from '../components/Card';
 import { MicrosGrid } from '../components/MicrosGrid';
 import { palette, spacing, font, radius, macroColors } from '../theme';
-import { getFoodById } from '../data/foods';
+import { getFood } from '../data/catalog';
+import { isFavorite, toggleFavorite } from '../db/favorites';
 import { nutritionForGrams } from '../utils/nutrition';
 import { fmt, fmtInt } from '../utils/format';
 import { logEntry } from '../state/useDiary';
@@ -18,8 +20,22 @@ const STEP_OPTIONS = [0.5, 1, 1.5, 2];
 
 export function ConfirmFoodScreen({ route, navigation }: RootStackScreenProps<'ConfirmFood'>) {
   const { foodId, photoUri, source, suggestedGrams } = route.params;
-  const food = getFoodById(foodId);
+  const food = getFood(foodId);
   const [grams, setGrams] = useState(suggestedGrams ?? food?.servingGrams ?? 100);
+  const [favorite, setFavorite] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void isFavorite(foodId).then((v) => active && setFavorite(v));
+    return () => {
+      active = false;
+    };
+  }, [foodId]);
+
+  const onToggleFavorite = async () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setFavorite(await toggleFavorite(foodId));
+  };
 
   const nutrition = useMemo(
     () => (food ? nutritionForGrams(food, grams) : null),
@@ -59,9 +75,23 @@ export function ConfirmFoodScreen({ route, navigation }: RootStackScreenProps<'C
         <Image source={{ uri: photoUri }} style={styles.photo} contentFit="cover" transition={150} />
       )}
 
-      <View>
-        <Text style={styles.name}>{food.name}</Text>
-        <Text style={styles.category}>{food.category}</Text>
+      <View style={styles.titleRow}>
+        <View style={styles.titleText}>
+          <Text style={styles.name}>{food.name}</Text>
+          <Text style={styles.category}>{food.category}</Text>
+        </View>
+        <Pressable
+          onPress={() => void onToggleFavorite()}
+          accessibilityRole="button"
+          accessibilityLabel={favorite ? 'Remove from favorites' : 'Add to favorites'}
+          style={({ pressed }) => [styles.starBtn, pressed && { opacity: 0.6 }]}
+        >
+          <Ionicons
+            name={favorite ? 'star' : 'star-outline'}
+            size={24}
+            color={favorite ? palette.amber : palette.textMuted}
+          />
+        </Pressable>
       </View>
 
       <Card style={styles.portionCard}>
@@ -143,6 +173,18 @@ const styles = StyleSheet.create({
   photo: { width: '100%', height: 200, borderRadius: radius.lg, backgroundColor: palette.surfaceAlt },
   name: { color: palette.text, fontSize: font.size.xxl, fontWeight: font.weight.bold },
   category: { color: palette.textMuted, fontSize: font.size.md, marginTop: 2 },
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.md },
+  titleText: { flex: 1 },
+  starBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
+    backgroundColor: palette.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: palette.border,
+  },
   portionCard: { gap: spacing.sm },
   gramRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   stepBtn: {

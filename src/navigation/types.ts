@@ -17,10 +17,13 @@ export type RootStackParamList = {
     suggestedGrams?: number;
   };
   DayDetail: { day: string };
+  AddCustomFood: undefined;
+  MyFoods: undefined;
 };
 
 export type TabParamList = {
   Home: undefined;
+  Insights: undefined;
   History: undefined;
   Settings: undefined;
 };

@@ -28,6 +28,7 @@
     "expo-image": "~2.0.4",
     "expo-image-manipulator": "~13.0.6",
     "expo-image-picker": "~16.0.6",
+    "expo-sharing": "~13.0.1",
     "expo-sqlite": "~15.0.6",
     "expo-status-bar": "~2.0.1",
     "jpeg-js": "^0.4.4",

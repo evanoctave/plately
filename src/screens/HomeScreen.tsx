@@ -8,11 +8,14 @@ import { MacroBars } from '../components/MacroBars';
 import { MicrosGrid } from '../components/MicrosGrid';
 import { WaterTracker } from '../components/WaterTracker';
 import { EntryRow } from '../components/EntryRow';
+import { QuickAdd } from '../components/QuickAdd';
 import { Card, SectionTitle } from '../components/Card';
 import { palette, spacing, font, radius } from '../theme';
 import { ZERO_NUTRITION } from '../data/nutrients';
 import { useSettings } from '../state/useSettings';
 import { logEntry, removeEntry, useDayLog } from '../state/useDiary';
+import { useQuickAdd, type QuickAddItem } from '../state/useQuickAdd';
+import { nutritionForGrams } from '../utils/nutrition';
 import { dayKey, prettyDay } from '../utils/date';
 import type { TabScreenProps } from '../navigation/types';
 
@@ -20,6 +23,22 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
   const today = dayKey();
   const goals = useSettings((s) => s.goals);
   const { entries, totals } = useDayLog(today);
+  const { items: quickAddItems } = useQuickAdd();
+
+  const quickLog = useCallback(
+    (item: QuickAddItem) => {
+      void logEntry({
+        day: today,
+        foodId: item.food.id,
+        name: item.food.name,
+        grams: item.grams,
+        photoUri: null,
+        source: 'search',
+        nutrition: nutritionForGrams(item.food, item.grams),
+      });
+    },
+    [today],
+  );
 
   const addWater = useCallback(
     (ml: number) => {
@@ -94,6 +113,23 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
         <Card>
           <WaterTracker consumedMl={totals.water} goalMl={goals.water} onAdd={addWater} />
         </Card>
+
+        {quickAddItems.length > 0 && (
+          <>
+            <SectionTitle>Quick add</SectionTitle>
+            <QuickAdd
+              items={quickAddItems}
+              onQuickLog={quickLog}
+              onOpen={(item) =>
+                navigation.navigate('ConfirmFood', {
+                  foodId: item.food.id,
+                  source: 'search',
+                  suggestedGrams: item.grams,
+                })
+              }
+            />
+          </>
+        )}
 
         <SectionTitle>Logged today</SectionTitle>
         {entries.length === 0 ? (

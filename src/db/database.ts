@@ -156,6 +156,12 @@ export async function getLoggedDays(limit = 60): Promise<string[]> {
   return rows.map((r) => r.day);
 }
 
+/** All entries across all days, newest first (used for data export). */
+export async function getAllEntries(): Promise<FoodEntry[]> {
+  const db = await getDb();
+  return db.getAllAsync<FoodEntry>('SELECT * FROM entries ORDER BY createdAt DESC');
+}
+
 /** Deletes all logged data. Used by Settings → "Erase all data". */
 export async function clearAllEntries(): Promise<void> {
   const db = await getDb();

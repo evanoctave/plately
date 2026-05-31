@@ -8,6 +8,7 @@ import { useSettings } from '../state/useSettings';
 import type { RootStackParamList, TabParamList } from './types';
 
 import { HomeScreen } from '../screens/HomeScreen';
+import { InsightsScreen } from '../screens/InsightsScreen';
 import { HistoryScreen } from '../screens/HistoryScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { CameraScreen } from '../screens/CameraScreen';
@@ -15,6 +16,8 @@ import { AnalyzeScreen } from '../screens/AnalyzeScreen';
 import { SearchScreen } from '../screens/SearchScreen';
 import { ConfirmFoodScreen } from '../screens/ConfirmFoodScreen';
 import { DayDetailScreen } from '../screens/DayDetailScreen';
+import { AddCustomFoodScreen } from '../screens/AddCustomFoodScreen';
+import { MyFoodsScreen } from '../screens/MyFoodsScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -47,14 +50,17 @@ function Tabs() {
           const icon =
             route.name === 'Home'
               ? 'today'
-              : route.name === 'History'
-                ? 'calendar'
-                : 'settings';
+              : route.name === 'Insights'
+                ? 'stats-chart'
+                : route.name === 'History'
+                  ? 'calendar'
+                  : 'settings';
           return <Ionicons name={icon} size={size} color={color} />;
         },
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Today' }} />
+      <Tab.Screen name="Insights" component={InsightsScreen} />
       <Tab.Screen name="History" component={HistoryScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
@@ -95,6 +101,12 @@ export function RootNavigator() {
           options={{ title: 'Confirm' }}
         />
         <Stack.Screen name="DayDetail" component={DayDetailScreen} options={{ title: 'Day' }} />
+        <Stack.Screen
+          name="AddCustomFood"
+          component={AddCustomFoodScreen}
+          options={{ title: 'Create food' }}
+        />
+        <Stack.Screen name="MyFoods" component={MyFoodsScreen} options={{ title: 'My foods' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
