@@ -179,10 +179,10 @@ function base64ToBytes(base64: string): Uint8Array {
 
   let p = 0;
   for (let i = 0; i < clean.length; i += 4) {
-    const e1 = B64_LOOKUP[clean.charCodeAt(i)];
-    const e2 = B64_LOOKUP[clean.charCodeAt(i + 1)];
-    const e3 = B64_LOOKUP[clean.charCodeAt(i + 2)];
-    const e4 = B64_LOOKUP[clean.charCodeAt(i + 3)];
+    const e1 = B64_LOOKUP[clean.charCodeAt(i)] ?? 0;
+    const e2 = B64_LOOKUP[clean.charCodeAt(i + 1)] ?? 0;
+    const e3 = B64_LOOKUP[clean.charCodeAt(i + 2)] ?? 0;
+    const e4 = B64_LOOKUP[clean.charCodeAt(i + 3)] ?? 0;
     if (p < byteLength) bytes[p++] = (e1 << 2) | (e2 >> 4);
     if (p < byteLength) bytes[p++] = ((e2 & 15) << 4) | (e3 >> 2);
     if (p < byteLength) bytes[p++] = ((e3 & 3) << 6) | e4;
@@ -208,9 +208,9 @@ async function imageToTensor(uri: string): Promise<Float32Array> {
   let t = 0;
   // jpeg-js returns RGBA; drop alpha and normalize.
   for (let i = 0; i < width * height; i++) {
-    const r = data[i * 4];
-    const g = data[i * 4 + 1];
-    const b = data[i * 4 + 2];
+    const r = data[i * 4] ?? 0;
+    const g = data[i * 4 + 1] ?? 0;
+    const b = data[i * 4 + 2] ?? 0;
     if (NORMALIZE === 'zero_one') {
       tensor[t++] = r / 255;
       tensor[t++] = g / 255;
@@ -226,15 +226,15 @@ async function imageToTensor(uri: string): Promise<Float32Array> {
 
 function softmax(logits: ArrayLike<number>): number[] {
   let max = -Infinity;
-  for (let i = 0; i < logits.length; i++) max = Math.max(max, logits[i]);
+  for (let i = 0; i < logits.length; i++) max = Math.max(max, logits[i] ?? 0);
   let sum = 0;
   const exps = new Array<number>(logits.length);
   for (let i = 0; i < logits.length; i++) {
-    const e = Math.exp(logits[i] - max);
+    const e = Math.exp((logits[i] ?? 0) - max);
     exps[i] = e;
     sum += e;
   }
-  for (let i = 0; i < exps.length; i++) exps[i] /= sum || 1;
+  for (let i = 0; i < exps.length; i++) exps[i] = (exps[i] ?? 0) / (sum || 1);
   return exps;
 }
 
@@ -254,7 +254,7 @@ export async function classifyImage(uri: string, topK = 3): Promise<Prediction[]
 
     // If output already looks like probabilities (sums ~1) skip softmax.
     let sum = 0;
-    for (let i = 0; i < raw.length; i++) sum += raw[i];
+    for (let i = 0; i < raw.length; i++) sum += raw[i] ?? 0;
     const probs = sum > 0.99 && sum < 1.01 ? Array.from(raw) : softmax(raw);
 
     const indexed = probs.map((confidence, index) => ({ confidence, index }));

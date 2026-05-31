@@ -54,9 +54,6 @@
         }
       ],
       [
-        "expo-image-manipulator"
-      ],
-      [
         "expo-image-picker",
         {
           "photosPermission": "NutriSnap lets you pick a meal photo from your library to estimate its nutrition."
