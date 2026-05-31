@@ -1,0 +1,278 @@
+/**
+ * On-device food image classifier.
+ *
+ * Design goals
+ * ------------
+ *  • $0 to run: inference happens entirely on the device with a free,
+ *    open-source TensorFlow Lite model. No server, no per-request cost.
+ *  • Privacy-first: photos never leave the device. Only a one-time model
+ *    download (weights, ~a few MB) is fetched from a public CDN on first use,
+ *    then cached for fully offline operation afterwards.
+ *  • Fails soft: if the model can't be downloaded or loaded (e.g. offline on
+ *    first launch, or MODEL_URL not yet configured), the app stays fully usable
+ *    via manual food search — classification simply reports "unavailable".
+ *
+ * Pipeline: photo URI → resize to model input → decode pixels → normalize →
+ *           TFLite inference → softmax → top-K predictions → map to foods.json
+ */
+
+import * as FileSystem from 'expo-file-system';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { decode as decodeJpeg } from 'jpeg-js';
+import { loadTensorflowModel, type TensorflowModel } from 'react-native-fast-tflite';
+
+import { FOOD101_LABELS, LABEL_TO_FOOD_ID, prettyLabel } from './labels';
+import { getFoodById, type FoodItem } from '../data/foods';
+
+/**
+ * Public URL of a Food-101 TensorFlow Lite classifier whose output classes are
+ * ordered to match `FOOD101_LABELS`.
+ *
+ * IMPORTANT (maintainer): point this at a hosted `.tflite` model — e.g. a
+ * GitHub Release asset on this repo, or a Hugging Face resolve URL. Until it is
+ * set to a reachable model, on-device classification stays disabled and the app
+ * runs in manual-entry mode (no crash). See docs/MODEL.md.
+ */
+export const MODEL_URL =
+  'https://github.com/evanoctave/funny-idea/releases/download/model-v1/food101.tflite';
+
+/** Square edge length (px) the model expects. Food-101 mobile models use 224. */
+const INPUT_SIZE = 224;
+
+/**
+ * Pixel normalization. Most ImageNet/Food-101 mobile models expect either
+ * [0,1] (x/255) or [-1,1] ((x/127.5)-1). Override here to match your model.
+ */
+const NORMALIZE: 'zero_one' | 'minus_one_one' = 'zero_one';
+
+const MODEL_FILENAME = 'food101.tflite';
+const MODEL_PATH = `${FileSystem.documentDirectory ?? ''}${MODEL_FILENAME}`;
+
+export interface Prediction {
+  /** Raw model label, e.g. "french_fries". */
+  label: string;
+  /** Human-friendly label, e.g. "French Fries". */
+  displayName: string;
+  /** Softmax probability in [0,1]. */
+  confidence: number;
+  /** Matched curated food, if one exists for this label. */
+  food?: FoodItem;
+}
+
+export type ModelStatus =
+  | 'idle'
+  | 'downloading'
+  | 'loading'
+  | 'ready'
+  | 'unavailable';
+
+let model: TensorflowModel | null = null;
+let loadPromise: Promise<TensorflowModel | null> | null = null;
+let status: ModelStatus = 'idle';
+
+export function getModelStatus(): ModelStatus {
+  return status;
+}
+
+export function isModelReady(): boolean {
+  return status === 'ready' && model !== null;
+}
+
+/** Has the model file already been downloaded and cached on this device? */
+export async function isModelCached(): Promise<boolean> {
+  try {
+    const info = await FileSystem.getInfoAsync(MODEL_PATH);
+    return info.exists && (info.size ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Ensures the model weights are present locally, downloading once if needed.
+ * Returns the local file URI, or null if it could not be obtained.
+ */
+async function ensureModelFile(
+  onProgress?: (fraction: number) => void,
+): Promise<string | null> {
+  try {
+    if (await isModelCached()) return MODEL_PATH;
+    if (!FileSystem.documentDirectory) return null;
+
+    status = 'downloading';
+    const download = FileSystem.createDownloadResumable(
+      MODEL_URL,
+      MODEL_PATH,
+      {},
+      (p) => {
+        if (p.totalBytesExpectedToWrite > 0) {
+          onProgress?.(p.totalBytesWritten / p.totalBytesExpectedToWrite);
+        }
+      },
+    );
+    const result = await download.downloadAsync();
+    if (!result || result.status !== 200) {
+      // Clean up a partial/failed download so we retry cleanly next time.
+      await FileSystem.deleteAsync(MODEL_PATH, { idempotent: true });
+      return null;
+    }
+    return MODEL_PATH;
+  } catch {
+    await FileSystem.deleteAsync(MODEL_PATH, { idempotent: true }).catch(() => undefined);
+    return null;
+  }
+}
+
+/**
+ * Loads the model into memory (downloading first if necessary). Idempotent and
+ * safe to call from multiple screens — concurrent calls share one promise.
+ */
+export async function loadModel(
+  onProgress?: (fraction: number) => void,
+): Promise<TensorflowModel | null> {
+  if (model) return model;
+  if (loadPromise) return loadPromise;
+
+  loadPromise = (async () => {
+    const fileUri = await ensureModelFile(onProgress);
+    if (!fileUri) {
+      status = 'unavailable';
+      return null;
+    }
+    try {
+      status = 'loading';
+      const loaded = await loadTensorflowModel({ url: fileUri });
+      model = loaded;
+      status = 'ready';
+      return loaded;
+    } catch {
+      status = 'unavailable';
+      model = null;
+      return null;
+    }
+  })();
+
+  try {
+    return await loadPromise;
+  } finally {
+    loadPromise = null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Image preprocessing helpers
+// ---------------------------------------------------------------------------
+
+const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+const B64_LOOKUP = (() => {
+  const table = new Uint8Array(256);
+  for (let i = 0; i < B64.length; i++) table[B64.charCodeAt(i)] = i;
+  return table;
+})();
+
+/** Decodes a base64 string to bytes without relying on atob/Buffer. */
+function base64ToBytes(base64: string): Uint8Array {
+  const clean = base64.replace(/[^A-Za-z0-9+/]/g, '');
+  const padding = clean.endsWith('==') ? 2 : clean.endsWith('=') ? 1 : 0;
+  const byteLength = (clean.length * 3) / 4 - padding;
+  const bytes = new Uint8Array(byteLength);
+
+  let p = 0;
+  for (let i = 0; i < clean.length; i += 4) {
+    const e1 = B64_LOOKUP[clean.charCodeAt(i)];
+    const e2 = B64_LOOKUP[clean.charCodeAt(i + 1)];
+    const e3 = B64_LOOKUP[clean.charCodeAt(i + 2)];
+    const e4 = B64_LOOKUP[clean.charCodeAt(i + 3)];
+    if (p < byteLength) bytes[p++] = (e1 << 2) | (e2 >> 4);
+    if (p < byteLength) bytes[p++] = ((e2 & 15) << 4) | (e3 >> 2);
+    if (p < byteLength) bytes[p++] = ((e3 & 3) << 6) | e4;
+  }
+  return bytes;
+}
+
+/** Resizes a photo and returns a normalized Float32 RGB input tensor. */
+async function imageToTensor(uri: string): Promise<Float32Array> {
+  const manipulated = await ImageManipulator.manipulateAsync(
+    uri,
+    [{ resize: { width: INPUT_SIZE, height: INPUT_SIZE } }],
+    { compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true },
+  );
+  if (!manipulated.base64) {
+    throw new Error('Failed to read resized image data');
+  }
+
+  const jpegBytes = base64ToBytes(manipulated.base64);
+  const { data, width, height } = decodeJpeg(jpegBytes, { useTArray: true });
+
+  const tensor = new Float32Array(INPUT_SIZE * INPUT_SIZE * 3);
+  let t = 0;
+  // jpeg-js returns RGBA; drop alpha and normalize.
+  for (let i = 0; i < width * height; i++) {
+    const r = data[i * 4];
+    const g = data[i * 4 + 1];
+    const b = data[i * 4 + 2];
+    if (NORMALIZE === 'zero_one') {
+      tensor[t++] = r / 255;
+      tensor[t++] = g / 255;
+      tensor[t++] = b / 255;
+    } else {
+      tensor[t++] = r / 127.5 - 1;
+      tensor[t++] = g / 127.5 - 1;
+      tensor[t++] = b / 127.5 - 1;
+    }
+  }
+  return tensor;
+}
+
+function softmax(logits: ArrayLike<number>): number[] {
+  let max = -Infinity;
+  for (let i = 0; i < logits.length; i++) max = Math.max(max, logits[i]);
+  let sum = 0;
+  const exps = new Array<number>(logits.length);
+  for (let i = 0; i < logits.length; i++) {
+    const e = Math.exp(logits[i] - max);
+    exps[i] = e;
+    sum += e;
+  }
+  for (let i = 0; i < exps.length; i++) exps[i] /= sum || 1;
+  return exps;
+}
+
+/**
+ * Classifies a food photo. Returns up to `topK` predictions sorted by
+ * confidence. Returns an empty array if the model is unavailable — callers
+ * should fall back to manual search in that case.
+ */
+export async function classifyImage(uri: string, topK = 3): Promise<Prediction[]> {
+  const m = await loadModel();
+  if (!m) return [];
+
+  try {
+    const input = await imageToTensor(uri);
+    const outputs = await m.run([input]);
+    const raw = outputs[0] as ArrayLike<number>;
+
+    // If output already looks like probabilities (sums ~1) skip softmax.
+    let sum = 0;
+    for (let i = 0; i < raw.length; i++) sum += raw[i];
+    const probs = sum > 0.99 && sum < 1.01 ? Array.from(raw) : softmax(raw);
+
+    const indexed = probs.map((confidence, index) => ({ confidence, index }));
+    indexed.sort((a, b) => b.confidence - a.confidence);
+
+    const predictions: Prediction[] = [];
+    for (const { confidence, index } of indexed.slice(0, topK)) {
+      const label = FOOD101_LABELS[index] ?? `class_${index}`;
+      const foodId = LABEL_TO_FOOD_ID[label];
+      predictions.push({
+        label,
+        displayName: prettyLabel(label),
+        confidence,
+        food: foodId ? getFoodById(foodId) : undefined,
+      });
+    }
+    return predictions;
+  } catch {
+    return [];
+  }
+}

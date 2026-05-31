@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+ios/
+android/
+
+# Bundled ML model (downloaded via `npm run fetch-model`; too large / license-bound to commit)
+assets/model/*.tflite
+
+# Environment / secrets
+.env
+.env.*
+
+# Build artifacts
+*.ipa
+*.apk
+*.aab
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Testing
+coverage/

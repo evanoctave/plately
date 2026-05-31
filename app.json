@@ -1,0 +1,78 @@
+{
+  "expo": {
+    "name": "NutriSnap",
+    "slug": "nutrisnap",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "nutrisnap",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0E1116"
+    },
+    "assetBundlePatterns": [
+      "assets/**/*",
+      "src/data/**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.evanoctave.nutrisnap",
+      "buildNumber": "1",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "NutriSnap uses the camera so you can photograph your meals and estimate their nutrition on your device.",
+        "NSPhotoLibraryUsageDescription": "NutriSnap lets you pick a meal photo from your library to estimate its nutrition.",
+        "NSPhotoLibraryAddUsageDescription": "NutriSnap can save a meal photo you capture to your photo library.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.evanoctave.nutrisnap",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0E1116"
+      },
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "NutriSnap uses the camera so you can photograph your meals and estimate their nutrition on your device."
+        }
+      ],
+      [
+        "expo-image-manipulator"
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "NutriSnap lets you pick a meal photo from your library to estimate its nutrition."
+        }
+      ],
+      [
+        "react-native-fast-tflite",
+        {
+          "enableCoreMLDelegate": true
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "00000000-0000-0000-0000-000000000000"
+      }
+    }
+  }
+}

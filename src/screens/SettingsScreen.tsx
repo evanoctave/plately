@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Application from 'expo-application';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import appConfig from '../../app.json';
 
 import { Card, SectionTitle } from '../components/Card';
 import { Button } from '../components/Button';
@@ -152,8 +153,7 @@ export function SettingsScreen(_props: TabScreenProps<'Settings'>) {
           professional for health decisions.
         </Text>
         <Text style={styles.version}>
-          {Application.applicationName ?? 'NutriSnap'} v
-          {Application.nativeApplicationVersion ?? '1.0.0'}
+          {appConfig.expo.name} v{appConfig.expo.version}
         </Text>
       </ScrollView>
     </SafeAreaView>
