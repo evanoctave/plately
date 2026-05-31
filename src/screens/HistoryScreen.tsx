@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
-import { palette, spacing, font, radius } from '../theme';
+import { palette, spacing, font } from '../theme';
 import { getEntriesForDay, getLoggedDays } from '../db/database';
 import { sumNutrition } from '../utils/nutrition';
 import { prettyDay } from '../utils/date';
@@ -26,7 +26,10 @@ export function HistoryScreen({ navigation }: TabScreenProps<'History'>) {
   const [days, setDays] = useState<DaySummary[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // `revision` is included so the list refetches whenever the diary changes
+  // (e.g. an entry added on another screen) while History is focused.
   const load = useCallback(async () => {
+    void revision;
     setLoading(true);
     try {
       const keys = await getLoggedDays();
@@ -41,12 +44,12 @@ export function HistoryScreen({ navigation }: TabScreenProps<'History'>) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [revision]);
 
   useFocusEffect(
     useCallback(() => {
       void load();
-    }, [load, revision]),
+    }, [load]),
   );
 
   const renderItem = ({ item }: { item: DaySummary }) => {
