@@ -28,10 +28,16 @@ const FEATURES = [
 export function OnboardingScreen({ navigation }: RootStackScreenProps<'Onboarding'>) {
   const completeOnboarding = useSettings((s) => s.completeOnboarding);
 
+  // Replacing avoids a back-gesture returning to onboarding.
   const start = () => {
     completeOnboarding();
-    // Replacing avoids a back-gesture returning to onboarding.
     navigation.replace('Tabs');
+  };
+
+  const personalize = () => {
+    completeOnboarding();
+    navigation.replace('Tabs');
+    navigation.navigate('GoalCalculator');
   };
 
   return (
@@ -64,7 +70,8 @@ export function OnboardingScreen({ navigation }: RootStackScreenProps<'Onboardin
         <Text style={styles.disclaimer}>
           Estimates are for general wellness only and are not medical or dietary advice.
         </Text>
-        <Button label="Get started" onPress={start} />
+        <Button label="Personalize my goals" onPress={personalize} />
+        <Button label="Skip — use defaults" variant="ghost" onPress={start} />
       </View>
     </SafeAreaView>
   );

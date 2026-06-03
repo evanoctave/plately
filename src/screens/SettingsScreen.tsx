@@ -109,6 +109,17 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
         </Card>
 
         <SectionTitle>Daily goals</SectionTitle>
+        <Pressable
+          onPress={() => navigation.navigate('GoalCalculator')}
+          style={({ pressed }) => [styles.calcRow, pressed && { opacity: 0.7 }]}
+        >
+          <Ionicons name="calculator-outline" size={20} color={palette.green} />
+          <View style={styles.calcBody}>
+            <Text style={styles.calcTitle}>Calculate my goals</Text>
+            <Text style={styles.calcSub}>Personalize from your body metrics</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+        </Pressable>
         <Card style={styles.card}>
           {GOAL_FIELDS.map((field, i) => (
             <View key={field.key}>
@@ -117,6 +128,7 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
                 <Text style={styles.goalLabel}>{field.label}</Text>
                 <View style={styles.goalInputWrap}>
                   <TextInput
+                    key={`${field.key}-${goals[field.key]}`}
                     style={styles.goalInput}
                     keyboardType="number-pad"
                     defaultValue={String(goals[field.key])}
@@ -223,6 +235,20 @@ const styles = StyleSheet.create({
   perkText: { color: palette.text, fontSize: font.size.md },
   freePrice: { color: palette.green, fontSize: font.size.sm, fontWeight: font.weight.semibold, marginTop: spacing.sm },
   card: { paddingVertical: spacing.xs },
+  calcRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: palette.surface,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: palette.border,
+  },
+  calcBody: { flex: 1, gap: 2 },
+  calcTitle: { color: palette.text, fontSize: font.size.md, fontWeight: font.weight.semibold },
+  calcSub: { color: palette.textMuted, fontSize: font.size.sm },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.border },
   goalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md },
   goalLabel: { color: palette.text, fontSize: font.size.md },

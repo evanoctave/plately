@@ -19,6 +19,7 @@ import { DayDetailScreen } from '../screens/DayDetailScreen';
 import { AddCustomFoodScreen } from '../screens/AddCustomFoodScreen';
 import { MyFoodsScreen } from '../screens/MyFoodsScreen';
 import { BarcodeScanScreen } from '../screens/BarcodeScanScreen';
+import { GoalCalculatorScreen } from '../screens/GoalCalculatorScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -112,6 +113,11 @@ export function RootNavigator() {
           name="BarcodeScan"
           component={BarcodeScanScreen}
           options={{ headerShown: false, presentation: 'fullScreenModal' }}
+        />
+        <Stack.Screen
+          name="GoalCalculator"
+          component={GoalCalculatorScreen}
+          options={{ title: 'Goal calculator' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

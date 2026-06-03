@@ -20,6 +20,7 @@ export type RootStackParamList = {
   AddCustomFood: undefined;
   MyFoods: undefined;
   BarcodeScan: undefined;
+  GoalCalculator: undefined;
 };
 
 export type TabParamList = {

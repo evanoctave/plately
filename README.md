@@ -36,6 +36,8 @@ developer fee — that's Apple's, not the app's, and end users pay nothing.
 - 🍽️ **Full breakdown** — calories, macros, fiber, sugar, water, and 8
   micronutrients with % of Daily Value.
 - 📊 **Insights** — 14-day trends, logging streak, and daily averages.
+- 🧮 **Personalized goals** — calorie/macro/water targets from your body
+  metrics (Mifflin–St Jeor), or set them manually.
 - 🎯 **Daily goals** — calories, macros, and water, all editable.
 - 💧 **Water tracking** — quick-add with mL/oz units.
 - 📅 **History** — per-day totals and detail view.

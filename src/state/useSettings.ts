@@ -6,11 +6,9 @@ import { DEFAULT_GOALS, type Goals } from '../data/nutrients';
 
 interface SettingsState {
   goals: Goals;
-  /** Water display/entry unit. */
-  waterUnit: 'ml' | 'oz';
+  waterUnit: 'ml' | 'oz'; // display/entry unit
   onboardingComplete: boolean;
-  /** True once persisted settings have loaded from disk. */
-  hydrated: boolean;
+  hydrated: boolean; // persisted settings loaded
   setGoals: (goals: Partial<Goals>) => void;
   setWaterUnit: (unit: 'ml' | 'oz') => void;
   completeOnboarding: () => void;
@@ -42,7 +40,6 @@ export const useSettings = create<SettingsState>()(
   ),
 );
 
-/** 1 fluid ounce ≈ 29.5735 mL. */
 export const ML_PER_OZ = 29.5735;
 
 export function mlToDisplay(ml: number, unit: 'ml' | 'oz'): number {
