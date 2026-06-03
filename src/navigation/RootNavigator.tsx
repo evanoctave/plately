@@ -21,6 +21,7 @@ import { MyFoodsScreen } from '../screens/MyFoodsScreen';
 import { BarcodeScanScreen } from '../screens/BarcodeScanScreen';
 import { GoalCalculatorScreen } from '../screens/GoalCalculatorScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
+import { PrivacyPolicyScreen } from '../screens/PrivacyPolicyScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -118,6 +119,11 @@ export function RootNavigator() {
           name="GoalCalculator"
           component={GoalCalculatorScreen}
           options={{ title: 'Goal calculator' }}
+        />
+        <Stack.Screen
+          name="PrivacyPolicy"
+          component={PrivacyPolicyScreen}
+          options={{ title: 'Privacy Policy' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

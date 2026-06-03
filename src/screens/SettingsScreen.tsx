@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,8 +15,6 @@ import { exportDiaryCsv } from '../utils/export';
 import { isModelReady, getModelStatus, loadModel } from '../ml/recognizer';
 import type { Goals } from '../data/nutrients';
 import type { TabScreenProps } from '../navigation/types';
-
-const PRIVACY_URL = 'https://github.com/evanoctave/plately/blob/main/docs/PRIVACY_POLICY.md';
 
 const GOAL_FIELDS: { key: keyof Goals; label: string; unit: string }[] = [
   { key: 'calories', label: 'Calories', unit: 'kcal' },
@@ -198,10 +196,10 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
 
         <SectionTitle>Privacy &amp; data</SectionTitle>
         <Card style={styles.card}>
-          <Pressable style={styles.linkRow} onPress={() => void Linking.openURL(PRIVACY_URL)}>
+          <Pressable style={styles.linkRow} onPress={() => navigation.navigate('PrivacyPolicy')}>
             <Ionicons name="shield-checkmark-outline" size={20} color={palette.text} />
             <Text style={styles.linkText}>Privacy Policy</Text>
-            <Ionicons name="open-outline" size={18} color={palette.textFaint} />
+            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
           </Pressable>
           <View style={styles.divider} />
           <Pressable style={styles.linkRow} onPress={eraseAll}>

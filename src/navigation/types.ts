@@ -21,6 +21,7 @@ export type RootStackParamList = {
   MyFoods: undefined;
   BarcodeScan: undefined;
   GoalCalculator: undefined;
+  PrivacyPolicy: undefined;
 };
 
 export type TabParamList = {

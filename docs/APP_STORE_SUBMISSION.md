@@ -56,8 +56,36 @@ eas submit --platform ios --latest
 ## 6. Required assets
 
 - App icon `1024×1024` (no alpha) — `assets/icon.png`.
-- Screenshots for required device sizes (6.7", 6.5", 5.5" as applicable).
-  Generate by running the app and capturing the Home, Camera, Analyze, and
-  Confirm screens.
+- Screenshots for required device sizes. As of 2024+ App Store Connect accepts a
+  single **6.9"/6.7"** set (iPhone 17/15 Pro Max); add a **6.5"** set only if
+  you target older hardware.
+
+### Capturing screenshots
+
+A helper drives the iOS Simulator and saves device-native PNGs into
+`assets/store/screenshots/` (exactly the resolution App Store Connect wants):
+
+```bash
+npx expo run:ios                              # build + boot the simulator once
+scripts/screenshots.sh boot "iPhone 17 Pro Max"
+# tap through to each screen, then:
+scripts/screenshots.sh shot home
+scripts/screenshots.sh shot confirm
+scripts/screenshots.sh shot insights
+scripts/screenshots.sh shot privacy
+```
+
+`scripts/screenshots.sh tap <fx> <fy>` can click the Simulator by fractional
+coordinates if you want to script the walkthrough (keep Simulator frontmost).
+
+### Suggested screens + captions
+
+| Screen | Caption |
+|--------|---------|
+| Home (a few meals + water logged) | "Your whole day at a glance" |
+| Camera / Analyze | "Snap a meal — recognized on your device" |
+| Confirm food (macros + micros) | "Calories, macros & micros for every food" |
+| Insights | "Trends, streaks & daily averages — free" |
+| Settings ("Free forever") | "Everything other apps charge for — $0" |
 
 See `docs/APP_STORE_REVIEW_CHECKLIST.md` for the guideline-by-guideline review.
