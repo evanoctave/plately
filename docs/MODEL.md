@@ -43,6 +43,36 @@ Recommended, license-friendly options (all free):
 4. Confirm the input normalization in `recognizer.ts` (`NORMALIZE`) matches how
    your model was trained (`[0,1]` vs `[-1,1]`).
 
+### Uploading the model (one-time)
+
+```bash
+# From the repo root, with the .tflite built/downloaded locally:
+gh release create model-v1 ./food101.tflite \
+  --repo evanoctave/plately --title "Recognition model v1" --notes "Food-101 tflite"
+```
+
+After the release exists, the app downloads it automatically on first photo.
+
+## Hardening: integrity & transport
+
+The loader is defensive by design:
+
+- **HTTPS only** — `ensureModelFile` refuses any `MODEL_URL` that isn't
+  `https://`, so weights are never fetched over cleartext.
+- **Size floor** — a download under `MIN_MODEL_BYTES` (≈1 MB) is rejected and
+  deleted, catching truncated files and HTML error pages.
+- **Functional validation** — if the file isn't a loadable TFLite model, status
+  becomes `unavailable` and the app falls back to manual search.
+- **Optional SHA-256 pinning** — set `MODEL_SHA256` in `recognizer.ts` to the
+  model's hash and any tampered or substituted file is rejected before it loads:
+
+  ```bash
+  shasum -a 256 food101.tflite   # paste the 64-char hex into MODEL_SHA256
+  ```
+
+Leaving `MODEL_SHA256` empty keeps the first three checks; setting it adds
+end-to-end integrity verification against host compromise or a swapped asset.
+
 ## Why this keeps the app free
 
 - **No inference servers**: classification happens on the user's device.

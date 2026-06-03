@@ -38,4 +38,17 @@ describe('buildCsv', () => {
     const csv = buildCsv([]);
     expect(csv.split('\n')).toHaveLength(1);
   });
+
+  it('neutralizes spreadsheet formula injection in names', () => {
+    const csv = buildCsv([makeEntry({ name: '=HYPERLINK("http://evil")' })]);
+    // Leading "=" is prefixed with a single quote so it cannot execute.
+    expect(csv).toContain("'=HYPERLINK");
+    expect(csv).not.toMatch(/,=HYPERLINK/);
+  });
+
+  it('does not corrupt numeric cells', () => {
+    const csv = buildCsv([makeEntry({ calories: 52, grams: 100 })]);
+    expect(csv).toContain(',52');
+    expect(csv).not.toContain("'52");
+  });
 });

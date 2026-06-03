@@ -7,9 +7,16 @@ const NUTRITION_KEYS = Object.keys(ZERO_NUTRITION) as (keyof Nutrition)[];
 
 export const CSV_HEADER = ['day', 'time_iso', 'name', 'source', 'grams', ...NUTRITION_KEYS];
 
-function escapeCsv(value: string | number): string {
-  const s = String(value);
+function quoteIfNeeded(s: string): string {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function escapeCsv(value: string | number): string {
+  if (typeof value === 'number') return quoteIfNeeded(String(value));
+  // Neutralize spreadsheet formula injection: a user-supplied food name like
+  // "=HYPERLINK(...)" would otherwise execute when the CSV opens in Excel/Sheets.
+  const s = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  return quoteIfNeeded(s);
 }
 
 function entryToRow(e: FoodEntry): string {

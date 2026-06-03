@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
+import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -21,6 +22,7 @@ export function CameraScreen({ navigation }: RootStackScreenProps<'Camera'>) {
     if (!cameraRef.current || busy) return;
     setBusy(true);
     try {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
       const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
       if (photo?.uri) goAnalyze(photo.uri);
     } finally {

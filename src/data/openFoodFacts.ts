@@ -108,17 +108,22 @@ export type BarcodeLookup =
 
 // Fetches and maps a product by barcode. Never throws.
 export async function lookupBarcode(barcode: string): Promise<BarcodeLookup> {
+  // Only digits, GTIN-range length. Rejects malformed/oversized scanner input
+  // before it ever reaches the network.
+  const code = barcode.replace(/\D/g, '');
+  if (code.length < 6 || code.length > 14) return { status: 'not_found' };
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(`${ENDPOINT}/${encodeURIComponent(barcode)}.json?fields=${FIELDS}`, {
+    const res = await fetch(`${ENDPOINT}/${encodeURIComponent(code)}.json?fields=${FIELDS}`, {
       signal: controller.signal,
       headers: { 'User-Agent': 'Plately/1.0 (open-source nutrition app)' },
     });
     if (!res.ok) return { status: 'error' };
     const data = (await res.json()) as OffResponse;
     if (data.status !== 1 || !data.product) return { status: 'not_found' };
-    const food = mapProductToFood(barcode, data.product);
+    const food = mapProductToFood(code, data.product);
     return food ? { status: 'found', food } : { status: 'not_found' };
   } catch {
     return { status: 'error' };

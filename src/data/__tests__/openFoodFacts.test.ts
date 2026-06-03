@@ -1,4 +1,4 @@
-import { mapProductToFood, OFF_PREFIX } from '../openFoodFacts';
+import { lookupBarcode, mapProductToFood, OFF_PREFIX } from '../openFoodFacts';
 
 describe('mapProductToFood', () => {
   it('maps energy/macros and converts micro units', () => {
@@ -48,5 +48,18 @@ describe('mapProductToFood', () => {
 
   it('returns null with no usable nutrition', () => {
     expect(mapProductToFood('4', { product_name: 'Empty', nutriments: {} })).toBeNull();
+  });
+});
+
+describe('lookupBarcode input validation', () => {
+  it('rejects malformed barcodes without hitting the network', async () => {
+    const fetchSpy = jest
+      .spyOn(global, 'fetch')
+      .mockRejectedValue(new Error('network should not be called'));
+    for (const bad of ['', '123', 'abc', '1'.repeat(20), 'DROP TABLE']) {
+      await expect(lookupBarcode(bad)).resolves.toEqual({ status: 'not_found' });
+    }
+    expect(fetchSpy).not.toHaveBeenCalled();
+    fetchSpy.mockRestore();
   });
 });

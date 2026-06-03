@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { palette, spacing, font, radius } from '../theme';
-import { classifyImage, getModelStatus, type Prediction } from '../ml/recognizer';
+import { classifyImage, getModelStatus, loadModel, type Prediction } from '../ml/recognizer';
 import type { RootStackScreenProps } from '../navigation/types';
 
 export function AnalyzeScreen({ route, navigation }: RootStackScreenProps<'Analyze'>) {
@@ -14,6 +14,23 @@ export function AnalyzeScreen({ route, navigation }: RootStackScreenProps<'Analy
   const [loading, setLoading] = useState(true);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [modelMissing, setModelMissing] = useState(false);
+  const [downloadPct, setDownloadPct] = useState<number | null>(null);
+
+  const analyze = useCallback(async () => {
+    setLoading(true);
+    const results = await classifyImage(photoUri, 3);
+    setPredictions(results);
+    setModelMissing(results.length === 0 && getModelStatus() !== 'ready');
+    setLoading(false);
+  }, [photoUri]);
+
+  const downloadAndRetry = useCallback(async () => {
+    setModelMissing(false);
+    setDownloadPct(0);
+    await loadModel((f) => setDownloadPct(Math.round(f * 100)));
+    setDownloadPct(null);
+    await analyze();
+  }, [analyze]);
 
   useEffect(() => {
     let active = true;
@@ -47,20 +64,31 @@ export function AnalyzeScreen({ route, navigation }: RootStackScreenProps<'Analy
     <ScrollView contentContainerStyle={styles.content}>
       <Image source={{ uri: photoUri }} style={styles.photo} contentFit="cover" transition={150} />
 
-      {loading ? (
+      {downloadPct !== null ? (
+        <Card style={styles.loadingCard}>
+          <ActivityIndicator color={palette.green} />
+          <Text style={styles.loadingText}>Downloading model… {downloadPct}%</Text>
+          <Text style={styles.noticeBody}>One-time download. Then it works fully offline.</Text>
+        </Card>
+      ) : loading ? (
         <Card style={styles.loadingCard}>
           <ActivityIndicator color={palette.green} />
           <Text style={styles.loadingText}>Analyzing on your device…</Text>
         </Card>
       ) : modelMissing ? (
         <Card style={styles.notice}>
-          <Ionicons name="cloud-offline-outline" size={28} color={palette.amber} />
+          <Ionicons name="cloud-download-outline" size={28} color={palette.amber} />
           <Text style={styles.noticeTitle}>On-device model not ready</Text>
           <Text style={styles.noticeBody}>
-            The recognition model hasn’t downloaded yet (it fetches once over Wi-Fi, then works
-            offline). You can still add this meal by searching.
+            The recognition model fetches once over the network, then works offline and private.
+            Download it now to identify this meal, or add it by searching.
           </Text>
-          <Button label="Search for this food" onPress={() => navigation.replace('Search')} />
+          <Button label="Download model & retry" onPress={() => void downloadAndRetry()} />
+          <Button
+            label="Search instead"
+            variant="secondary"
+            onPress={() => navigation.replace('Search')}
+          />
         </Card>
       ) : predictions.length === 0 ? (
         <Card style={styles.notice}>

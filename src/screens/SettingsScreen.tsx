@@ -16,7 +16,7 @@ import { isModelReady, getModelStatus, loadModel } from '../ml/recognizer';
 import type { Goals } from '../data/nutrients';
 import type { TabScreenProps } from '../navigation/types';
 
-const PRIVACY_URL = 'https://github.com/evanoctave/funny-idea/blob/main/docs/PRIVACY_POLICY.md';
+const PRIVACY_URL = 'https://github.com/evanoctave/plately/blob/main/docs/PRIVACY_POLICY.md';
 
 const GOAL_FIELDS: { key: keyof Goals; label: string; unit: string }[] = [
   { key: 'calories', label: 'Calories', unit: 'kcal' },

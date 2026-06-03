@@ -1,6 +1,7 @@
 // On-device Food-101 image classifier (TensorFlow Lite). Fails soft to manual
 // search if the model can't be downloaded or loaded.
 
+import * as Crypto from 'expo-crypto';
 import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { decode as decodeJpeg } from 'jpeg-js';
@@ -10,8 +11,17 @@ import { FOOD101_LABELS, LABEL_TO_FOOD_ID, prettyLabel } from './labels';
 import { getFoodById, type FoodItem } from '../data/foods';
 
 // Hosted .tflite whose output classes match FOOD101_LABELS. See docs/MODEL.md.
+// Must be HTTPS — the loader refuses any other scheme.
 export const MODEL_URL =
-  'https://github.com/evanoctave/funny-idea/releases/download/model-v1/food101.tflite';
+  'https://github.com/evanoctave/plately/releases/download/model-v1/food101.tflite';
+
+// Optional integrity pin. Set to the model's lowercase 64-char hex SHA-256 to
+// reject any tampered or substituted download. Empty = skip hash check (TLS +
+// size + functional-load validation still apply). See docs/MODEL.md.
+export const MODEL_SHA256: string = '';
+
+// Reject truncated downloads / HTML error pages masquerading as the model.
+const MIN_MODEL_BYTES = 1_000_000;
 
 const INPUT_SIZE = 224;
 const NORMALIZE: 'zero_one' | 'minus_one_one' = 'zero_one';
@@ -54,12 +64,42 @@ export async function isModelCached(): Promise<boolean> {
   }
 }
 
+// Verifies the cached file is a plausible, untampered model. Deletes it and
+// returns false on any failure so the next load re-downloads cleanly.
+async function verifyModelFile(): Promise<boolean> {
+  try {
+    const info = await FileSystem.getInfoAsync(MODEL_PATH);
+    if (!info.exists || (info.size ?? 0) < MIN_MODEL_BYTES) return false;
+
+    if (MODEL_SHA256) {
+      const b64 = await FileSystem.readAsStringAsync(MODEL_PATH, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      const digest = await Crypto.digest(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        base64ToBytes(b64),
+      );
+      const hex = Array.from(new Uint8Array(digest))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+      if (hex !== MODEL_SHA256.toLowerCase()) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // Downloads the model once if needed; returns the local URI or null.
 async function ensureModelFile(
   onProgress?: (fraction: number) => void,
 ): Promise<string | null> {
   try {
-    if (await isModelCached()) return MODEL_PATH;
+    // Defense in depth: never fetch model weights over a cleartext channel.
+    if (!MODEL_URL.startsWith('https://')) return null;
+    if (await isModelCached()) {
+      return (await verifyModelFile()) ? MODEL_PATH : null;
+    }
     if (!FileSystem.documentDirectory) return null;
 
     status = 'downloading';
@@ -74,7 +114,7 @@ async function ensureModelFile(
       },
     );
     const result = await download.downloadAsync();
-    if (!result || result.status !== 200) {
+    if (!result || result.status !== 200 || !(await verifyModelFile())) {
       await FileSystem.deleteAsync(MODEL_PATH, { idempotent: true });
       return null;
     }
@@ -152,6 +192,10 @@ async function imageToTensor(uri: string): Promise<Float32Array> {
     [{ resize: { width: INPUT_SIZE, height: INPUT_SIZE } }],
     { compress: 1, format: ImageManipulator.SaveFormat.JPEG, base64: true },
   );
+  // Free the temp resized file as soon as we've read its bytes — these pile up
+  // in the cache dir across many captures otherwise.
+  void FileSystem.deleteAsync(manipulated.uri, { idempotent: true }).catch(() => undefined);
+
   if (!manipulated.base64) {
     throw new Error('Failed to read resized image data');
   }

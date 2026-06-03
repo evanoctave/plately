@@ -25,7 +25,7 @@ const OUT_FILE = join(OUT_DIR, 'food101.tflite');
 
 const MODEL_URL =
   process.env.MODEL_URL ||
-  'https://github.com/evanoctave/funny-idea/releases/download/model-v1/food101.tflite';
+  'https://github.com/evanoctave/plately/releases/download/model-v1/food101.tflite';
 
 async function main() {
   console.log(`Fetching model:\n  ${MODEL_URL}`);

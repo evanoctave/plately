@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
+import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -32,6 +33,7 @@ export function BarcodeScanScreen({ navigation }: RootStackScreenProps<'BarcodeS
 
     const lookup = await lookupBarcode(code);
     if (lookup.status === 'found') {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
       registerTransientFood(lookup.food);
       navigation.replace('ConfirmFood', {
         foodId: lookup.food.id,
