@@ -1,13 +1,4 @@
-/**
- * Barcode → food lookup via Open Food Facts (https://openfoodfacts.org).
- *
- * Open Food Facts is a free, open, crowd-sourced product database with no API
- * key and no usage cost — a perfect fit for a $0 app. Barcode scanning is a
- * paid/premium feature in several mainstream trackers; here it's free.
- *
- * Network is only touched when the user actively scans a barcode. Lookups fail
- * soft (return null) so the app stays usable offline.
- */
+// Barcode → food lookup via Open Food Facts (free, key-less). Lookups fail soft.
 
 import { ZERO_NUTRITION, type Nutrition } from './nutrients';
 import type { FoodItem } from './foods';
@@ -19,7 +10,6 @@ const FIELDS =
   'product_name,brands,serving_quantity,nutriments';
 const TIMEOUT_MS = 8000;
 
-/** Subset of the Open Food Facts product shape we consume. */
 interface OffNutriments {
   ['energy-kcal_100g']?: number;
   proteins_100g?: number;
@@ -27,8 +17,7 @@ interface OffNutriments {
   fat_100g?: number;
   fiber_100g?: number;
   sugars_100g?: number;
-  /** grams per 100 g */
-  sodium_100g?: number;
+  sodium_100g?: number; // g per 100 g
   salt_100g?: number;
   potassium_100g?: number;
   calcium_100g?: number;
@@ -56,10 +45,7 @@ function n(value: number | undefined): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
 
-/**
- * Maps an Open Food Facts product to our `FoodItem` (per-100g). Returns null if
- * the product lacks even a name or any usable energy/macro data.
- */
+// Maps an OFF product to a per-100g FoodItem; null if it lacks name/nutrition.
 export function mapProductToFood(barcode: string, product: OffProduct): FoodItem | null {
   const name = (product.product_name ?? '').trim();
   if (!name) return null;
@@ -120,14 +106,14 @@ export type BarcodeLookup =
   | { status: 'not_found' }
   | { status: 'error' };
 
-/** Fetches and maps a product by barcode. Never throws. */
+// Fetches and maps a product by barcode. Never throws.
 export async function lookupBarcode(barcode: string): Promise<BarcodeLookup> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
     const res = await fetch(`${ENDPOINT}/${encodeURIComponent(barcode)}.json?fields=${FIELDS}`, {
       signal: controller.signal,
-      headers: { 'User-Agent': 'NutriSnap/1.0 (open-source nutrition app)' },
+      headers: { 'User-Agent': 'Plately/1.0 (open-source nutrition app)' },
     });
     if (!res.ok) return { status: 'error' };
     const data = (await res.json()) as OffResponse;

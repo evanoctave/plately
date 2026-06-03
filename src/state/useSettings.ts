@@ -30,7 +30,7 @@ export const useSettings = create<SettingsState>()(
       markHydrated: () => set({ hydrated: true }),
     }),
     {
-      name: 'nutrisnap-settings',
+      name: 'plately-settings',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: ({ goals, waterUnit, onboardingComplete }) => ({
         goals,

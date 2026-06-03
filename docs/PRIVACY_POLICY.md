@@ -1,8 +1,8 @@
-# NutriSnap Privacy Policy
+# Plately Privacy Policy
 
 _Last updated: 2026-05-31_
 
-NutriSnap is designed to be private by default. This policy explains, in plain
+Plately is designed to be private by default. This policy explains, in plain
 language, what the app does and does not do with your information.
 
 ## The short version
@@ -31,14 +31,14 @@ language, what the app does and does not do with your information.
 
 ## Camera & photo library
 
-NutriSnap requests camera access so you can photograph meals, and (optionally)
+Plately requests camera access so you can photograph meals, and (optionally)
 photo-library access so you can analyze an existing photo. These images are
 processed on your device to estimate nutrition and are stored locally only if
 you save the corresponding diary entry. They are never uploaded.
 
 ## No tracking, no analytics, no ads
 
-NutriSnap contains no third-party analytics SDKs, no advertising SDKs, and no
+Plately contains no third-party analytics SDKs, no advertising SDKs, and no
 tracking technologies. We do not use the Advertising Identifier (IDFA) and do
 not engage in App Tracking Transparency–covered tracking.
 
@@ -50,12 +50,12 @@ data, including cached photos and the downloaded model.
 
 ## Children's privacy
 
-NutriSnap does not knowingly collect personal information from anyone,
+Plately does not knowingly collect personal information from anyone,
 including children under 13.
 
 ## Medical disclaimer
 
-NutriSnap provides **approximate** nutrition estimates for general wellness and
+Plately provides **approximate** nutrition estimates for general wellness and
 informational purposes only. It is **not a medical device** and does not
 provide medical, dietary, or nutritional advice, diagnosis, or treatment.
 Always consult a qualified healthcare professional regarding your diet and

@@ -1,12 +1,12 @@
 # App Store Review Guidelines — compliance checklist
 
-How NutriSnap addresses the guidelines most relevant to a photo + health app.
+How Plately addresses the guidelines most relevant to a photo + health app.
 References are to Apple's App Store Review Guidelines.
 
 ## 1. Safety
 
 - **1.1 Objectionable content** — none; the app only logs food.
-- **1.4 Physical harm / health** — NutriSnap is explicitly **not** a medical
+- **1.4 Physical harm / health** — Plately is explicitly **not** a medical
   device. A medical disclaimer appears in onboarding, Settings, and the privacy
   policy. It gives approximate estimates only and never diagnoses or prescribes.
 - **1.5 Developer information** — support contact provided (email).
@@ -71,7 +71,7 @@ so no ATT prompt is required.
 
 ## Known reviewer notes to include
 
-> NutriSnap is free, account-free, and works offline. Food recognition runs
+> Plately is free, account-free, and works offline. Food recognition runs
 > on-device via a TensorFlow Lite model whose weights download once from a
 > public CDN (data only, no code). Optional barcode scanning sends only the
 > scanned barcode number to Open Food Facts (a free public database) to fetch

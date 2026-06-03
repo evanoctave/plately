@@ -1,7 +1,4 @@
-/**
- * Central design tokens. A single source of truth keeps every screen visually
- * consistent and makes light/dark theming trivial.
- */
+// Design tokens.
 
 export const palette = {
   // Brand

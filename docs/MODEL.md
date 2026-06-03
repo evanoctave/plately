@@ -1,6 +1,6 @@
 # On-device recognition model
 
-NutriSnap classifies meal photos **on the device** using a TensorFlow Lite
+Plately classifies meal photos **on the device** using a TensorFlow Lite
 image classifier, via [`react-native-fast-tflite`](https://github.com/mrousavy/react-native-fast-tflite).
 There is no server and no per-request cost — inference is free and private.
 

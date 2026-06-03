@@ -1,7 +1,4 @@
-/**
- * Aggregate queries powering the Insights screen. Everything is computed
- * on-device from the local diary — no cloud, no premium tier.
- */
+// Aggregate diary queries for the Insights screen.
 
 import * as SQLite from 'expo-sqlite';
 
@@ -11,7 +8,7 @@ let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 async function getDb(): Promise<SQLite.SQLiteDatabase> {
   if (!dbPromise) {
-    dbPromise = SQLite.openDatabaseAsync('nutrisnap.db');
+    dbPromise = SQLite.openDatabaseAsync('plately.db');
   }
   return dbPromise;
 }
@@ -20,14 +17,10 @@ const NUTRITION_KEYS = Object.keys(ZERO_NUTRITION) as (keyof Nutrition)[];
 
 export interface DayTotals extends Nutrition {
   day: string;
-  /** Number of (non-water) food entries that day. */
-  itemCount: number;
+  itemCount: number; // non-water entries that day
 }
 
-/**
- * Returns summed nutrition per day for the given day-keys. Days with no entries
- * are returned as zeroes so charts have a continuous x-axis.
- */
+// Summed nutrition per day. Missing days return zeroes for a continuous x-axis.
 export async function getDailyTotals(days: string[]): Promise<DayTotals[]> {
   if (days.length === 0) return [];
   const db = await getDb();
@@ -55,7 +48,7 @@ export async function getDailyTotals(days: string[]): Promise<DayTotals[]> {
   });
 }
 
-/** All distinct day-keys that have at least one entry (for streak math). */
+// All distinct logged day-keys (for streak math).
 export async function getAllLoggedDayKeys(): Promise<string[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<{ day: string }>('SELECT DISTINCT day FROM entries');
@@ -69,9 +62,7 @@ export interface RecentFood {
   lastUsed: number;
 }
 
-/**
- * Most-recently logged distinct foods (excluding water), for quick re-logging.
- */
+// Most-recently logged distinct foods (excluding water), for quick re-logging.
 export async function getRecentFoods(limit = 8): Promise<RecentFood[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<RecentFood>(

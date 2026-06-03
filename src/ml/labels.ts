@@ -1,15 +1,5 @@
-/**
- * Label space for the on-device classifier.
- *
- * The bundled model (fetched via `npm run fetch-model`) is a Food-101 image
- * classifier. Its output layer produces one score per class, in the exact
- * order of `FOOD101_LABELS` below (the canonical Food-101 ordering).
- *
- * `LABEL_TO_FOOD_ID` maps each model class to an entry in our curated
- * nutrition database (`foods.json`). Classes without a curated match fall back
- * to manual search — the predicted name is still shown to the user so they can
- * confirm and search for the closest item.
- */
+// Classifier label space. FOOD101_LABELS is the canonical Food-101 class order
+// (matches the model's output layer); LABEL_TO_FOOD_ID maps classes to foods.json.
 
 export const FOOD101_LABELS: string[] = [
   'apple_pie', 'baby_back_ribs', 'baklava', 'beef_carpaccio', 'beef_tartare',
@@ -34,7 +24,7 @@ export const FOOD101_LABELS: string[] = [
   'sushi', 'tacos', 'takoyaki', 'tiramisu', 'tuna_tartare', 'waffles',
 ];
 
-/** Maps a model class label to a curated food id in foods.json (when available). */
+// Model class → curated food id (when a match exists).
 export const LABEL_TO_FOOD_ID: Record<string, string> = {
   apple_pie: 'apple_pie',
   breakfast_burrito: 'burrito',
@@ -73,7 +63,7 @@ export const LABEL_TO_FOOD_ID: Record<string, string> = {
   waffles: 'pancakes',
 };
 
-/** Turns a raw model label like "french_fries" into "French Fries". */
+// "french_fries" → "French Fries".
 export function prettyLabel(label: string): string {
   return label
     .split('_')

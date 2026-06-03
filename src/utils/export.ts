@@ -1,10 +1,5 @@
-/**
- * CSV export of the full food diary. Data ownership is a first-class feature:
- * your log is yours, exportable any time, free — no premium tier, no lock-in.
- *
- * The pure serialization lives in `csv.ts` (unit-tested); this module only adds
- * the file-writing + share-sheet wrapper that needs native modules.
- */
+// CSV diary export. Pure serialization lives in csv.ts; this adds the
+// file-write + share-sheet wrapper.
 
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -18,10 +13,7 @@ export interface ExportResult {
   count: number;
 }
 
-/**
- * Writes the diary to a CSV file and opens the share sheet. Returns a status so
- * the UI can give feedback.
- */
+// Writes the diary to a CSV file and opens the share sheet.
 export async function exportDiaryCsv(): Promise<ExportResult> {
   const entries = await getAllEntries();
   if (entries.length === 0) return { status: 'empty', count: 0 };
@@ -30,7 +22,7 @@ export async function exportDiaryCsv(): Promise<ExportResult> {
   const dir = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
   if (!dir) return { status: 'unavailable', count: entries.length };
 
-  const uri = `${dir}nutrisnap-export-${dayKey()}.csv`;
+  const uri = `${dir}plately-export-${dayKey()}.csv`;
   await FileSystem.writeAsStringAsync(uri, csv, {
     encoding: FileSystem.EncodingType.UTF8,
   });
@@ -41,7 +33,7 @@ export async function exportDiaryCsv(): Promise<ExportResult> {
 
   await Sharing.shareAsync(uri, {
     mimeType: 'text/csv',
-    dialogTitle: 'Export NutriSnap diary',
+    dialogTitle: 'Export Plately diary',
     UTI: 'public.comma-separated-values-text',
   });
   return { status: 'shared', count: entries.length };

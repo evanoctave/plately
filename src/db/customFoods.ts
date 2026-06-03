@@ -1,10 +1,5 @@
-/**
- * User-created custom foods (stored locally in SQLite).
- *
- * Many tracking apps put "create your own food" behind a paywall. NutriSnap
- * keeps it free and offline. Custom foods share the `FoodItem` shape used by
- * the bundled database and are referenced by an id prefixed with `custom:`.
- */
+// User-created custom foods (local SQLite). Share the FoodItem shape; ids are
+// prefixed with `custom:`.
 
 import * as SQLite from 'expo-sqlite';
 
@@ -22,7 +17,7 @@ let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 async function getDb(): Promise<SQLite.SQLiteDatabase> {
   if (!dbPromise) {
     dbPromise = (async () => {
-      const db = await SQLite.openDatabaseAsync('nutrisnap.db');
+      const db = await SQLite.openDatabaseAsync('plately.db');
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS custom_foods (
           id TEXT PRIMARY KEY NOT NULL,

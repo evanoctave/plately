@@ -2,7 +2,7 @@ import { format, subDays } from 'date-fns';
 
 import { dayKey } from './date';
 
-/** Builds the last `n` day-keys ending today (oldest first). */
+// Last n day-keys ending today, oldest first.
 export function lastNDays(n: number, today: Date = new Date()): string[] {
   const out: string[] = [];
   for (let i = n - 1; i >= 0; i--) {
@@ -11,24 +11,19 @@ export function lastNDays(n: number, today: Date = new Date()): string[] {
   return out;
 }
 
-/** Mean of a list of numbers (0 for empty). */
+// Mean (0 for empty).
 export function average(values: number[]): number {
   if (values.length === 0) return 0;
   const sum = values.reduce((a, b) => a + b, 0);
   return sum / values.length;
 }
 
-/**
- * Longest run of consecutive logged days ending today (or yesterday, so the
- * streak doesn't visually "break" before you've eaten today).
- *
- * @param loggedDays  Set/array of "yyyy-MM-dd" keys that have ≥1 entry.
- */
+// Consecutive logged days ending today (or yesterday, so the streak doesn't
+// break before you've eaten today).
 export function computeStreak(loggedDays: Iterable<string>, today: Date = new Date()): number {
   const set = loggedDays instanceof Set ? loggedDays : new Set(loggedDays);
   if (set.size === 0) return 0;
 
-  // Allow the streak to count from today if logged, else start at yesterday.
   let cursor = today;
   if (!set.has(format(today, 'yyyy-MM-dd'))) {
     cursor = subDays(today, 1);
@@ -43,12 +38,10 @@ export function computeStreak(loggedDays: Iterable<string>, today: Date = new Da
   return streak;
 }
 
-/** Short weekday label for a day-key, e.g. "Mon". */
 export function weekdayShort(key: string): string {
-  return format(new Date(`${key}T00:00:00`), 'EEEEE'); // single letter
+  return format(new Date(`${key}T00:00:00`), 'EEEEE');
 }
 
-/** Day-of-month number for a day-key. */
 export function dayOfMonth(key: string): string {
   return format(new Date(`${key}T00:00:00`), 'd');
 }

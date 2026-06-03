@@ -50,7 +50,7 @@ export function CameraScreen({ navigation }: RootStackScreenProps<'Camera'>) {
         <Ionicons name="camera-outline" size={56} color={palette.textMuted} />
         <Text style={styles.permTitle}>Camera access needed</Text>
         <Text style={styles.permBody}>
-          NutriSnap analyzes meal photos on your device. Grant camera access to snap a meal, or pick
+          Plately analyzes meal photos on your device. Grant camera access to snap a meal, or pick
           an existing photo instead.
         </Text>
         <Button label="Allow camera" onPress={() => void requestPermission()} />

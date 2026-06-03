@@ -31,11 +31,8 @@ export function getFoodById(id: string): FoodItem | undefined {
   return byId.get(id);
 }
 
-/**
- * Case-insensitive fuzzy search over names, aliases and category.
- * Ranks exact-prefix matches above substring matches so typing "ap"
- * surfaces "Apple" before "Pineapple".
- */
+// Case-insensitive fuzzy search over name/aliases/category; prefix matches
+// rank above substring matches.
 export function searchFoods(query: string, limit = 30): FoodItem[] {
   const q = query.trim().toLowerCase();
   if (!q) return FOODS.slice(0, limit);

@@ -1,8 +1,4 @@
-/**
- * Favorite foods for one-tap re-logging. Stored locally; just a set of food ids
- * (built-in or custom). Free quick-logging is a paywalled "quick tools" feature
- * in several competitors.
- */
+// Favorite food ids for one-tap re-logging (local SQLite).
 
 import * as SQLite from 'expo-sqlite';
 
@@ -11,7 +7,7 @@ let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 async function getDb(): Promise<SQLite.SQLiteDatabase> {
   if (!dbPromise) {
     dbPromise = (async () => {
-      const db = await SQLite.openDatabaseAsync('nutrisnap.db');
+      const db = await SQLite.openDatabaseAsync('plately.db');
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS favorites (
           foodId TEXT PRIMARY KEY NOT NULL,

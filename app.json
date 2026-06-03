@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "NutriSnap",
-    "slug": "nutrisnap",
+    "name": "Plately",
+    "slug": "plately",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "nutrisnap",
+    "scheme": "plately",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -19,20 +19,20 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.evanoctave.nutrisnap",
+      "bundleIdentifier": "com.evanoctave.plately",
       "buildNumber": "1",
       "config": {
         "usesNonExemptEncryption": false
       },
       "infoPlist": {
-        "NSCameraUsageDescription": "NutriSnap uses the camera so you can photograph your meals and estimate their nutrition on your device.",
-        "NSPhotoLibraryUsageDescription": "NutriSnap lets you pick a meal photo from your library to estimate its nutrition.",
-        "NSPhotoLibraryAddUsageDescription": "NutriSnap can save a meal photo you capture to your photo library.",
+        "NSCameraUsageDescription": "Plately uses the camera so you can photograph your meals and estimate their nutrition on your device.",
+        "NSPhotoLibraryUsageDescription": "Plately lets you pick a meal photo from your library to estimate its nutrition.",
+        "NSPhotoLibraryAddUsageDescription": "Plately can save a meal photo you capture to your photo library.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.evanoctave.nutrisnap",
+      "package": "com.evanoctave.plately",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -50,13 +50,13 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "NutriSnap uses the camera so you can photograph your meals and estimate their nutrition on your device."
+          "cameraPermission": "Plately uses the camera so you can photograph your meals and estimate their nutrition on your device."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "NutriSnap lets you pick a meal photo from your library to estimate its nutrition."
+          "photosPermission": "Plately lets you pick a meal photo from your library to estimate its nutrition."
         }
       ],
       [

@@ -1,8 +1,4 @@
-/**
- * Pure CSV serialization for the food diary — no native/Expo imports, so it is
- * unit-testable in a plain Node environment. The file-writing/sharing wrapper
- * lives in `export.ts`.
- */
+// Pure CSV serialization for the diary (no native imports; unit-testable).
 
 import { ZERO_NUTRITION, type Nutrition } from '../data/nutrients';
 import type { FoodEntry } from '../db/database';

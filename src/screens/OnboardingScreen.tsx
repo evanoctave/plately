@@ -41,7 +41,7 @@ export function OnboardingScreen({ navigation }: RootStackScreenProps<'Onboardin
           <View style={styles.logo}>
             <Ionicons name="restaurant" size={40} color={palette.black} />
           </View>
-          <Text style={styles.appName}>NutriSnap</Text>
+          <Text style={styles.appName}>Plately</Text>
           <Text style={styles.tagline}>Photo-first nutrition tracking</Text>
         </View>
 

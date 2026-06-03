@@ -1,20 +1,5 @@
-/**
- * On-device food image classifier.
- *
- * Design goals
- * ------------
- *  • $0 to run: inference happens entirely on the device with a free,
- *    open-source TensorFlow Lite model. No server, no per-request cost.
- *  • Privacy-first: photos never leave the device. Only a one-time model
- *    download (weights, ~a few MB) is fetched from a public CDN on first use,
- *    then cached for fully offline operation afterwards.
- *  • Fails soft: if the model can't be downloaded or loaded (e.g. offline on
- *    first launch, or MODEL_URL not yet configured), the app stays fully usable
- *    via manual food search — classification simply reports "unavailable".
- *
- * Pipeline: photo URI → resize to model input → decode pixels → normalize →
- *           TFLite inference → softmax → top-K predictions → map to foods.json
- */
+// On-device Food-101 image classifier (TensorFlow Lite). Fails soft to manual
+// search if the model can't be downloaded or loaded.
 
 import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -24,38 +9,20 @@ import { loadTensorflowModel, type TensorflowModel } from 'react-native-fast-tfl
 import { FOOD101_LABELS, LABEL_TO_FOOD_ID, prettyLabel } from './labels';
 import { getFoodById, type FoodItem } from '../data/foods';
 
-/**
- * Public URL of a Food-101 TensorFlow Lite classifier whose output classes are
- * ordered to match `FOOD101_LABELS`.
- *
- * IMPORTANT (maintainer): point this at a hosted `.tflite` model — e.g. a
- * GitHub Release asset on this repo, or a Hugging Face resolve URL. Until it is
- * set to a reachable model, on-device classification stays disabled and the app
- * runs in manual-entry mode (no crash). See docs/MODEL.md.
- */
+// Hosted .tflite whose output classes match FOOD101_LABELS. See docs/MODEL.md.
 export const MODEL_URL =
   'https://github.com/evanoctave/funny-idea/releases/download/model-v1/food101.tflite';
 
-/** Square edge length (px) the model expects. Food-101 mobile models use 224. */
 const INPUT_SIZE = 224;
-
-/**
- * Pixel normalization. Most ImageNet/Food-101 mobile models expect either
- * [0,1] (x/255) or [-1,1] ((x/127.5)-1). Override here to match your model.
- */
 const NORMALIZE: 'zero_one' | 'minus_one_one' = 'zero_one';
 
 const MODEL_FILENAME = 'food101.tflite';
 const MODEL_PATH = `${FileSystem.documentDirectory ?? ''}${MODEL_FILENAME}`;
 
 export interface Prediction {
-  /** Raw model label, e.g. "french_fries". */
   label: string;
-  /** Human-friendly label, e.g. "French Fries". */
   displayName: string;
-  /** Softmax probability in [0,1]. */
   confidence: number;
-  /** Matched curated food, if one exists for this label. */
   food?: FoodItem;
 }
 
@@ -78,7 +45,6 @@ export function isModelReady(): boolean {
   return status === 'ready' && model !== null;
 }
 
-/** Has the model file already been downloaded and cached on this device? */
 export async function isModelCached(): Promise<boolean> {
   try {
     const info = await FileSystem.getInfoAsync(MODEL_PATH);
@@ -88,10 +54,7 @@ export async function isModelCached(): Promise<boolean> {
   }
 }
 
-/**
- * Ensures the model weights are present locally, downloading once if needed.
- * Returns the local file URI, or null if it could not be obtained.
- */
+// Downloads the model once if needed; returns the local URI or null.
 async function ensureModelFile(
   onProgress?: (fraction: number) => void,
 ): Promise<string | null> {
@@ -112,7 +75,6 @@ async function ensureModelFile(
     );
     const result = await download.downloadAsync();
     if (!result || result.status !== 200) {
-      // Clean up a partial/failed download so we retry cleanly next time.
       await FileSystem.deleteAsync(MODEL_PATH, { idempotent: true });
       return null;
     }
@@ -123,10 +85,7 @@ async function ensureModelFile(
   }
 }
 
-/**
- * Loads the model into memory (downloading first if necessary). Idempotent and
- * safe to call from multiple screens — concurrent calls share one promise.
- */
+// Loads the model into memory. Idempotent; concurrent calls share one promise.
 export async function loadModel(
   onProgress?: (fraction: number) => void,
 ): Promise<TensorflowModel | null> {
@@ -159,9 +118,7 @@ export async function loadModel(
   }
 }
 
-// ---------------------------------------------------------------------------
-// Image preprocessing helpers
-// ---------------------------------------------------------------------------
+// --- Image preprocessing ---
 
 const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 const B64_LOOKUP = (() => {
@@ -170,7 +127,6 @@ const B64_LOOKUP = (() => {
   return table;
 })();
 
-/** Decodes a base64 string to bytes without relying on atob/Buffer. */
 function base64ToBytes(base64: string): Uint8Array {
   const clean = base64.replace(/[^A-Za-z0-9+/]/g, '');
   const padding = clean.endsWith('==') ? 2 : clean.endsWith('=') ? 1 : 0;
@@ -190,7 +146,6 @@ function base64ToBytes(base64: string): Uint8Array {
   return bytes;
 }
 
-/** Resizes a photo and returns a normalized Float32 RGB input tensor. */
 async function imageToTensor(uri: string): Promise<Float32Array> {
   const manipulated = await ImageManipulator.manipulateAsync(
     uri,
@@ -238,11 +193,7 @@ function softmax(logits: ArrayLike<number>): number[] {
   return exps;
 }
 
-/**
- * Classifies a food photo. Returns up to `topK` predictions sorted by
- * confidence. Returns an empty array if the model is unavailable — callers
- * should fall back to manual search in that case.
- */
+// Returns up to topK predictions, or [] if the model is unavailable.
 export async function classifyImage(uri: string, topK = 3): Promise<Prediction[]> {
   const m = await loadModel();
   if (!m) return [];
@@ -252,7 +203,6 @@ export async function classifyImage(uri: string, topK = 3): Promise<Prediction[]
     const outputs = await m.run([input]);
     const raw = outputs[0] as ArrayLike<number>;
 
-    // If output already looks like probabilities (sums ~1) skip softmax.
     let sum = 0;
     for (let i = 0; i < raw.length; i++) sum += raw[i] ?? 0;
     const probs = sum > 0.99 && sum < 1.01 ? Array.from(raw) : softmax(raw);

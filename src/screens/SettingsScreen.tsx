@@ -26,7 +26,7 @@ const GOAL_FIELDS: { key: keyof Goals; label: string; unit: string }[] = [
   { key: 'water', label: 'Water', unit: 'mL' },
 ];
 
-/** Things competitors commonly charge for that NutriSnap gives away free. */
+/** Things competitors commonly charge for that Plately gives away free. */
 const FREE_PERKS = [
   'Photo food recognition (on-device)',
   'Create unlimited custom foods',
@@ -97,7 +97,7 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
             <Text style={styles.freeTitle}>Free forever — really</Text>
           </View>
           <Text style={styles.freeSub}>
-            Everything other trackers lock behind a subscription, NutriSnap gives you free:
+            Everything other trackers lock behind a subscription, Plately gives you free:
           </Text>
           {FREE_PERKS.map((perk) => (
             <View key={perk} style={styles.perkRow}>
@@ -199,7 +199,7 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
         </Card>
 
         <Text style={styles.disclaimer}>
-          NutriSnap provides approximate estimates for general wellness and is not a medical device.
+          Plately provides approximate estimates for general wellness and is not a medical device.
           It does not provide medical, dietary, or nutritional advice. Consult a qualified
           professional for health decisions.
         </Text>

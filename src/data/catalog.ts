@@ -1,10 +1,5 @@
-/**
- * Unified food catalog: the bundled USDA database plus the user's custom foods.
- *
- * Screens resolve foods through this module so a `custom:` id works exactly like
- * a built-in one. The custom layer is cached in memory and refreshed from
- * SQLite at startup (and after any create/delete).
- */
+// Unified catalog: bundled USDA foods + the user's custom foods (cached in
+// memory, refreshed from SQLite). Lets a `custom:` id resolve like a built-in.
 
 import { FOODS, searchFoods as searchStatic, type FoodItem } from './foods';
 import { getCustomFoods } from '../db/customFoods';
@@ -19,7 +14,7 @@ function rebuildIndex() {
 }
 rebuildIndex();
 
-/** Loads custom foods from the DB into the in-memory catalog. */
+// Loads custom foods from the DB into the in-memory catalog.
 export async function refreshCustomFoods(): Promise<void> {
   customFoods = await getCustomFoods();
   rebuildIndex();
@@ -29,22 +24,17 @@ export function getCachedCustomFoods(): FoodItem[] {
   return customFoods;
 }
 
-/** Resolves a food by id across both built-in and custom foods. */
 export function getFood(id: string): FoodItem | undefined {
   return index.get(id);
 }
 
-/**
- * Registers a food that isn't persisted in the database (e.g. a product scanned
- * from Open Food Facts) so screens can resolve it by id during this session.
- * If the user logs it, the entry stores a full nutrition snapshot, so the data
- * survives even though the transient catalog entry does not.
- */
+// Registers a non-persisted food (e.g. a scanned product) for this session.
+// Logging it stores a full nutrition snapshot, so the data survives regardless.
 export function registerTransientFood(food: FoodItem): void {
   index.set(food.id, food);
 }
 
-/** Searches the combined catalog; custom foods are ranked first on ties. */
+// Searches the combined catalog; custom foods rank first on ties.
 export function searchCatalog(query: string, limit = 30): FoodItem[] {
   const q = query.trim().toLowerCase();
   const staticHits = searchStatic(query, limit);

@@ -19,7 +19,7 @@ Build in the cloud). This guide walks through it.
 
 ## 2. Configure identifiers
 
-- `app.json` → `expo.ios.bundleIdentifier` (`com.evanoctave.nutrisnap`). Change
+- `app.json` → `expo.ios.bundleIdentifier` (`com.evanoctave.plately`). Change
   to a bundle ID you own.
 - Create the App ID and an app record in App Store Connect.
 - Run `eas init` to set `expo.extra.eas.projectId`.

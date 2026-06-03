@@ -1,13 +1,5 @@
-/**
- * Local-only persistence using expo-sqlite.
- *
- * Everything the user logs lives on-device in SQLite. There is no account,
- * no sign-in, and no network sync — which keeps the app free to run and makes
- * App Store privacy review straightforward (no data collection).
- *
- * Each entry stores a *snapshot* of its computed nutrition so historical logs
- * remain stable even if the food database is later updated.
- */
+// Local-only diary persistence (expo-sqlite). Each entry stores a nutrition
+// snapshot so historical logs stay stable if the food database changes.
 
 import * as SQLite from 'expo-sqlite';
 
@@ -17,15 +9,11 @@ export type EntrySource = 'photo' | 'search' | 'manual' | 'water';
 
 export interface FoodEntry extends Nutrition {
   id: string;
-  /** Local calendar day, "yyyy-MM-dd". */
-  day: string;
-  /** Epoch milliseconds. */
-  createdAt: number;
-  /** Curated food id, when applicable. */
+  day: string; // "yyyy-MM-dd"
+  createdAt: number; // epoch ms
   foodId: string | null;
   name: string;
   grams: number;
-  /** Local file URI of the captured photo, when applicable. */
   photoUri: string | null;
   source: EntrySource;
 }
@@ -41,7 +29,7 @@ let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 async function getDb(): Promise<SQLite.SQLiteDatabase> {
   if (!dbPromise) {
     dbPromise = (async () => {
-      const db = await SQLite.openDatabaseAsync('nutrisnap.db');
+      const db = await SQLite.openDatabaseAsync('plately.db');
       await db.execAsync(`
         PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS entries (
@@ -146,7 +134,7 @@ export async function updateEntryGrams(id: string, grams: number, nutrition: Nut
   );
 }
 
-/** Returns distinct days that have at least one entry, most recent first. */
+// Distinct days with at least one entry, most recent first.
 export async function getLoggedDays(limit = 60): Promise<string[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<{ day: string }>(
@@ -156,13 +144,12 @@ export async function getLoggedDays(limit = 60): Promise<string[]> {
   return rows.map((r) => r.day);
 }
 
-/** All entries across all days, newest first (used for data export). */
+// All entries, newest first (used for CSV export).
 export async function getAllEntries(): Promise<FoodEntry[]> {
   const db = await getDb();
   return db.getAllAsync<FoodEntry>('SELECT * FROM entries ORDER BY createdAt DESC');
 }
 
-/** Deletes all logged data. Used by Settings → "Erase all data". */
 export async function clearAllEntries(): Promise<void> {
   const db = await getDb();
   await db.runAsync('DELETE FROM entries');

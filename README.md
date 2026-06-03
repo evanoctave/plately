@@ -1,4 +1,4 @@
-# 📸 NutriSnap
+# 📸 Plately
 
 Photo-first nutrition tracking that costs **$0 to run** — including the AI.
 
@@ -14,7 +14,7 @@ Built with **Expo / React Native** and structured to pass App Store review.
 
 ## Why it's free (including the AI)
 
-| Concern | How NutriSnap stays $0 |
+| Concern | How Plately stays $0 |
 |---------|------------------------|
 | Image recognition | Runs **on-device** with a TensorFlow Lite model (no inference servers, no per-call cost). |
 | Barcode lookups | **Open Food Facts** — free, open, key-less product API. |
@@ -46,9 +46,9 @@ developer fee — that's Apple's, not the app's, and end users pay nothing.
 ## How it's different from the paid trackers
 
 Mainstream trackers (MyFitnessPal, Lose It!, etc.) gate core features behind
-subscriptions. NutriSnap gives them all away — free, offline, account-free:
+subscriptions. Plately gives them all away — free, offline, account-free:
 
-| Feature | Typical paid app | NutriSnap |
+| Feature | Typical paid app | Plately |
 |---------|------------------|-----------|
 | Photo food recognition | Premium | **Free** (on-device) |
 | Barcode scanning | Often premium | **Free** (Open Food Facts) |
@@ -107,7 +107,7 @@ guideline-by-guideline **[review checklist](docs/APP_STORE_REVIEW_CHECKLIST.md)*
 
 ## Disclaimer
 
-NutriSnap gives **approximate** estimates for general wellness only. It is not a
+Plately gives **approximate** estimates for general wellness only. It is not a
 medical device and does not provide medical, dietary, or nutritional advice.
 Consult a qualified professional for health decisions.
 

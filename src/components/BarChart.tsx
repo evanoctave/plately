@@ -7,22 +7,19 @@ import { clamp01 } from '../utils/nutrition';
 export interface BarDatum {
   label: string;
   value: number;
-  /** Optional highlight (e.g. today). */
   highlight?: boolean;
 }
 
 interface BarChartProps {
   data: BarDatum[];
-  /** Optional reference line (e.g. daily goal). */
-  goal?: number;
+  goal?: number; // optional reference line
   height?: number;
   color?: string;
   unit?: string;
 }
 
 /**
- * Minimal, dependency-light bar chart (SVG). Designed for ~14 bars of daily
- * totals with an optional goal line.
+ * SVG bar chart for ~14 bars of daily totals with an optional goal line.
  */
 export function BarChart({ data, goal, height = 160, color = palette.green, unit }: BarChartProps) {
   const max = Math.max(goal ?? 0, ...data.map((d) => d.value), 1);
