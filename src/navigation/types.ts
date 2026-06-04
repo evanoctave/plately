@@ -22,6 +22,10 @@ export type RootStackParamList = {
   BarcodeScan: undefined;
   GoalCalculator: undefined;
   PrivacyPolicy: undefined;
+  Achievements: undefined;
+  RecipeBuilder: undefined;
+  Appearance: undefined;
+  PlatelyPlus: undefined;
 };
 
 export type TabParamList = {

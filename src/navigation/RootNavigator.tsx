@@ -22,28 +22,21 @@ import { BarcodeScanScreen } from '../screens/BarcodeScanScreen';
 import { GoalCalculatorScreen } from '../screens/GoalCalculatorScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { PrivacyPolicyScreen } from '../screens/PrivacyPolicyScreen';
+import { AchievementsScreen } from '../screens/AchievementsScreen';
+import { RecipeBuilderScreen } from '../screens/RecipeBuilderScreen';
+import { AppearanceScreen } from '../screens/AppearanceScreen';
+import { PlatelyPlusScreen } from '../screens/PlatelyPlusScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
-const navTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    background: palette.bg,
-    card: palette.surface,
-    text: palette.text,
-    border: palette.border,
-    primary: palette.green,
-  },
-};
-
 function Tabs() {
+  const accent = useSettings((s) => s.accent);
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: palette.green,
+        tabBarActiveTintColor: accent,
         tabBarInactiveTintColor: palette.textFaint,
         tabBarStyle: {
           backgroundColor: palette.surface,
@@ -72,6 +65,19 @@ function Tabs() {
 
 export function RootNavigator() {
   const onboardingComplete = useSettings((s) => s.onboardingComplete);
+  const accent = useSettings((s) => s.accent);
+
+  const navTheme = {
+    ...DarkTheme,
+    colors: {
+      ...DarkTheme.colors,
+      background: palette.bg,
+      card: palette.surface,
+      text: palette.text,
+      border: palette.border,
+      primary: accent,
+    },
+  };
 
   return (
     <NavigationContainer theme={navTheme}>
@@ -125,6 +131,18 @@ export function RootNavigator() {
           component={PrivacyPolicyScreen}
           options={{ title: 'Privacy Policy' }}
         />
+        <Stack.Screen
+          name="Achievements"
+          component={AchievementsScreen}
+          options={{ title: 'Achievements' }}
+        />
+        <Stack.Screen
+          name="RecipeBuilder"
+          component={RecipeBuilderScreen}
+          options={{ title: 'New recipe' }}
+        />
+        <Stack.Screen name="Appearance" component={AppearanceScreen} options={{ title: 'Appearance' }} />
+        <Stack.Screen name="PlatelyPlus" component={PlatelyPlusScreen} options={{ title: 'Plately+' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

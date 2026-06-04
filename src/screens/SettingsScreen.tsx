@@ -34,7 +34,7 @@ const FREE_PERKS = [
 ];
 
 export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
-  const { goals, setGoals, waterUnit, setWaterUnit } = useSettings();
+  const { goals, setGoals, waterUnit, setWaterUnit, accent } = useSettings();
   const bump = useDiaryRevision((s) => s.bump);
   const [modelStatus, setModelStatus] = useState(getModelStatus());
 
@@ -103,7 +103,36 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
               <Text style={styles.perkText}>{perk}</Text>
             </View>
           ))}
-          <Text style={styles.freePrice}>$0 · no in-app purchases · no ads</Text>
+          <Text style={styles.freePrice}>Core features free forever · no ads · no account</Text>
+        </Card>
+
+        <Pressable
+          onPress={() => navigation.navigate('PlatelyPlus')}
+          style={({ pressed }) => [styles.plusRow, { borderColor: accent }, pressed && { opacity: 0.8 }]}
+        >
+          <View style={[styles.plusBadge, { backgroundColor: accent }]}>
+            <Ionicons name="star" size={16} color={palette.black} />
+          </View>
+          <View style={styles.plusBody}>
+            <Text style={styles.plusTitle}>Plately+</Text>
+            <Text style={styles.plusSub}>Optional power features — cloud sync, weight charts & more</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+        </Pressable>
+
+        <SectionTitle>Personalize</SectionTitle>
+        <Card style={styles.card}>
+          <Pressable style={styles.linkRow} onPress={() => navigation.navigate('Achievements')}>
+            <Ionicons name="trophy-outline" size={20} color={palette.text} />
+            <Text style={styles.linkText}>Achievements</Text>
+            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+          </Pressable>
+          <View style={styles.divider} />
+          <Pressable style={styles.linkRow} onPress={() => navigation.navigate('Appearance')}>
+            <Ionicons name="color-palette-outline" size={20} color={palette.text} />
+            <Text style={styles.linkText}>Appearance</Text>
+            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+          </Pressable>
         </Card>
 
         <SectionTitle>Daily goals</SectionTitle>
@@ -181,6 +210,12 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
 
         <SectionTitle>Your data</SectionTitle>
         <Card style={styles.card}>
+          <Pressable style={styles.linkRow} onPress={() => navigation.navigate('RecipeBuilder')}>
+            <Ionicons name="create-outline" size={20} color={palette.text} />
+            <Text style={styles.linkText}>Create a recipe</Text>
+            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+          </Pressable>
+          <View style={styles.divider} />
           <Pressable style={styles.linkRow} onPress={() => navigation.navigate('MyFoods')}>
             <Ionicons name="restaurant-outline" size={20} color={palette.text} />
             <Text style={styles.linkText}>My custom foods</Text>
@@ -232,6 +267,20 @@ const styles = StyleSheet.create({
   perkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 3 },
   perkText: { color: palette.text, fontSize: font.size.md },
   freePrice: { color: palette.green, fontSize: font.size.sm, fontWeight: font.weight.semibold, marginTop: spacing.sm },
+  plusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: palette.surface,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    marginTop: spacing.sm,
+    borderWidth: 1,
+  },
+  plusBadge: { width: 36, height: 36, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  plusBody: { flex: 1, gap: 2 },
+  plusTitle: { color: palette.text, fontSize: font.size.md, fontWeight: font.weight.bold },
+  plusSub: { color: palette.textMuted, fontSize: font.size.sm, lineHeight: 17 },
   card: { paddingVertical: spacing.xs },
   calcRow: {
     flexDirection: 'row',
