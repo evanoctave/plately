@@ -35,9 +35,9 @@ case "${1:-}" in
     FX="${2:?x fraction 0-1}"; FY="${3:?y fraction 0-1}"
     osascript <<OSA
 tell application "Simulator" to activate
-delay 0.2
-tell application "System Events"
-  set win to first window of (first application process whose frontmost is true)
+delay 0.3
+tell application "System Events" to tell process "Simulator"
+  set win to window 1
   set {wx, wy} to position of win
   set {ww, wh} to size of win
   set px to wx + (ww * $FX)

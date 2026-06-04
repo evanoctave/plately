@@ -64,7 +64,8 @@
         {
           "enableCoreMLDelegate": true
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "extra": {
       "eas": {
