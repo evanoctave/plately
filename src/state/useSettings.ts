@@ -9,6 +9,7 @@ export const DEFAULT_ACCENT = '#34C759';
 interface SettingsState {
   goals: Goals;
   waterUnit: 'ml' | 'oz'; // display/entry unit
+  weightUnit: 'kg' | 'lb'; // display/entry unit
   accent: string; // hex; tints nav + active controls
   appIcon: string; // selected alternate app icon key ('default' = stock)
   plusActive: boolean; // Plately+ subscription unlocked
@@ -16,6 +17,7 @@ interface SettingsState {
   hydrated: boolean; // persisted settings loaded
   setGoals: (goals: Partial<Goals>) => void;
   setWaterUnit: (unit: 'ml' | 'oz') => void;
+  setWeightUnit: (unit: 'kg' | 'lb') => void;
   setAccent: (hex: string) => void;
   setAppIcon: (key: string) => void;
   setPlusActive: (active: boolean) => void;
@@ -28,6 +30,7 @@ export const useSettings = create<SettingsState>()(
     (set) => ({
       goals: DEFAULT_GOALS,
       waterUnit: 'ml',
+      weightUnit: 'kg',
       accent: DEFAULT_ACCENT,
       appIcon: 'default',
       plusActive: false,
@@ -35,6 +38,7 @@ export const useSettings = create<SettingsState>()(
       hydrated: false,
       setGoals: (goals) => set((s) => ({ goals: { ...s.goals, ...goals } })),
       setWaterUnit: (waterUnit) => set({ waterUnit }),
+      setWeightUnit: (weightUnit) => set({ weightUnit }),
       setAccent: (accent) => set({ accent }),
       setAppIcon: (appIcon) => set({ appIcon }),
       setPlusActive: (plusActive) => set({ plusActive }),
@@ -44,9 +48,10 @@ export const useSettings = create<SettingsState>()(
     {
       name: 'plately-settings',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: ({ goals, waterUnit, accent, appIcon, plusActive, onboardingComplete }) => ({
+      partialize: ({ goals, waterUnit, weightUnit, accent, appIcon, plusActive, onboardingComplete }) => ({
         goals,
         waterUnit,
+        weightUnit,
         accent,
         appIcon,
         plusActive,
@@ -58,6 +63,15 @@ export const useSettings = create<SettingsState>()(
 );
 
 export const ML_PER_OZ = 29.5735;
+export const KG_PER_LB = 0.45359237;
+
+export function kgToDisplay(kg: number, unit: 'kg' | 'lb'): number {
+  return unit === 'lb' ? kg / KG_PER_LB : kg;
+}
+
+export function displayToKg(value: number, unit: 'kg' | 'lb'): number {
+  return unit === 'lb' ? value * KG_PER_LB : value;
+}
 
 export function mlToDisplay(ml: number, unit: 'ml' | 'oz'): number {
   return unit === 'oz' ? Math.round(ml / ML_PER_OZ) : Math.round(ml);

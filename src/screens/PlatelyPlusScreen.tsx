@@ -39,11 +39,6 @@ const FEATURES: PlusFeature[] = [
     title: 'Photo meal journal',
     description: 'Keep a visual timeline of every meal with the photos you snap.',
   },
-  {
-    icon: 'analytics',
-    title: 'Weight tracking & charts',
-    description: 'Log weight and see it charted against your calories and trend line over time.',
-  },
 ];
 
 export function PlatelyPlusScreen() {

@@ -5,6 +5,7 @@ import type { CompositeScreenProps } from '@react-navigation/native';
 import type { EntrySource } from '../db/database';
 
 export type RootStackParamList = {
+  Weight: undefined;
   Onboarding: undefined;
   Tabs: undefined;
   Camera: undefined;

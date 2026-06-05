@@ -7,6 +7,7 @@ import { palette } from '../theme';
 import { useSettings } from '../state/useSettings';
 import type { RootStackParamList, TabParamList } from './types';
 
+import { WeightScreen } from '../screens/WeightScreen';
 import { HomeScreen } from '../screens/HomeScreen';
 import { InsightsScreen } from '../screens/InsightsScreen';
 import { HistoryScreen } from '../screens/HistoryScreen';
@@ -143,6 +144,7 @@ export function RootNavigator() {
         />
         <Stack.Screen name="Appearance" component={AppearanceScreen} options={{ title: 'Appearance' }} />
         <Stack.Screen name="PlatelyPlus" component={PlatelyPlusScreen} options={{ title: 'Plately+' }} />
+        <Stack.Screen name="Weight" component={WeightScreen} options={{ title: 'Weight' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

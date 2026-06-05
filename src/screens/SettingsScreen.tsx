@@ -34,7 +34,7 @@ const FREE_PERKS = [
 ];
 
 export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
-  const { goals, setGoals, waterUnit, setWaterUnit, accent } = useSettings();
+  const { goals, setGoals, waterUnit, setWaterUnit, weightUnit, setWeightUnit, accent } = useSettings();
   const bump = useDiaryRevision((s) => s.bump);
   const [modelStatus, setModelStatus] = useState(getModelStatus());
 
@@ -133,6 +133,12 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
             <Text style={styles.linkText}>Appearance</Text>
             <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
           </Pressable>
+          <View style={styles.divider} />
+          <Pressable style={styles.linkRow} onPress={() => navigation.navigate('Weight')}>
+            <Ionicons name="scale-outline" size={20} color={palette.text} />
+            <Text style={styles.linkText}>Weight tracking</Text>
+            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+          </Pressable>
         </Card>
 
         <SectionTitle>Daily goals</SectionTitle>
@@ -180,6 +186,23 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
               >
                 <Text style={[styles.toggleText, waterUnit === u && styles.toggleTextActive]}>
                   {u === 'ml' ? 'Milliliters (mL)' : 'Fluid ounces (oz)'}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </Card>
+
+        <SectionTitle>Weight unit</SectionTitle>
+        <Card style={styles.card}>
+          <View style={styles.toggleRow}>
+            {(['kg', 'lb'] as const).map((u) => (
+              <Pressable
+                key={u}
+                onPress={() => setWeightUnit(u)}
+                style={[styles.toggle, weightUnit === u && styles.toggleActive]}
+              >
+                <Text style={[styles.toggleText, weightUnit === u && styles.toggleTextActive]}>
+                  {u === 'kg' ? 'Kilograms (kg)' : 'Pounds (lb)'}
                 </Text>
               </Pressable>
             ))}
