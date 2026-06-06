@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -19,9 +20,12 @@ import { nutritionForGrams } from '../utils/nutrition';
 import { dayKey, prettyDay } from '../utils/date';
 import type { TabScreenProps } from '../navigation/types';
 
+const SPRING = { mass: 0.4, damping: 14, stiffness: 260 };
+
 export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
   const today = dayKey();
   const goals = useSettings((s) => s.goals);
+  const accent = useSettings((s) => s.accent);
   const { entries, totals } = useDayLog(today);
   const { items: quickAddItems } = useQuickAdd();
 
@@ -62,9 +66,14 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
     ]);
   };
 
+  const snapScale = useSharedValue(1);
+  const snapAnimated = useAnimatedStyle(() => ({ transform: [{ scale: snapScale.value }] }));
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+
+        {/* Header */}
         <View style={styles.header}>
           <View>
             <Text style={styles.dateLabel}>{prettyDay(today)}</Text>
@@ -72,15 +81,17 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
           </View>
         </View>
 
-        <Card style={styles.ringCard}>
+        {/* Hero: calorie ring + macro bars — no card wrapper */}
+        <View style={styles.hero}>
           <Ring
             progress={goals.calories > 0 ? totals.calories / goals.calories : 0}
             value={totals.calories}
             goal={goals.calories}
             label="Calories"
             unit="kcal"
+            color={accent}
           />
-          <View style={styles.ringSide}>
+          <View style={styles.macrosBlock}>
             <MacroBars
               protein={totals.protein}
               carbs={totals.carbs}
@@ -88,40 +99,48 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
               goals={goals}
             />
           </View>
-        </Card>
+        </View>
 
+        {/* Actions */}
         <View style={styles.actions}>
+          <Animated.View style={[styles.snapWrap, snapAnimated]}>
+            <Pressable
+              style={[styles.snap, { backgroundColor: accent }]}
+              onPress={() => navigation.navigate('Camera')}
+              onPressIn={() => { snapScale.value = withSpring(0.96, SPRING); }}
+              onPressOut={() => { snapScale.value = withSpring(1, SPRING); }}
+              accessibilityRole="button"
+              accessibilityLabel="Snap a photo of your meal"
+            >
+              <Ionicons name="camera" size={22} color={palette.black} />
+              <Text style={styles.snapText}>Snap a meal</Text>
+            </Pressable>
+          </Animated.View>
+
           <Pressable
-            style={({ pressed }) => [styles.snap, pressed && styles.pressed]}
-            onPress={() => navigation.navigate('Camera')}
-            accessibilityRole="button"
-            accessibilityLabel="Snap a photo of your meal"
-          >
-            <Ionicons name="camera" size={24} color={palette.black} />
-            <Text style={styles.snapText}>Snap a meal</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [styles.search, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
             onPress={() => navigation.navigate('Search')}
             accessibilityRole="button"
             accessibilityLabel="Search for a food to add"
           >
-            <Ionicons name="search" size={22} color={palette.text} />
+            <Ionicons name="search" size={20} color={palette.textMuted} />
           </Pressable>
           <Pressable
-            style={({ pressed }) => [styles.search, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
             onPress={() => navigation.navigate('BarcodeScan')}
             accessibilityRole="button"
             accessibilityLabel="Scan a barcode"
           >
-            <Ionicons name="barcode-outline" size={22} color={palette.text} />
+            <Ionicons name="barcode-outline" size={20} color={palette.textMuted} />
           </Pressable>
         </View>
 
+        {/* Water */}
         <Card>
           <WaterTracker consumedMl={totals.water} goalMl={goals.water} onAdd={addWater} />
         </Card>
 
+        {/* Quick add */}
         {quickAddItems.length > 0 && (
           <>
             <SectionTitle>Quick add</SectionTitle>
@@ -139,14 +158,16 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
           </>
         )}
 
+        {/* Logged today */}
         <SectionTitle>Logged today</SectionTitle>
         {entries.length === 0 ? (
-          <Card style={styles.empty}>
-            <Ionicons name="fast-food-outline" size={28} color={palette.textFaint} />
-            <Text style={styles.emptyText}>Nothing logged yet. Snap your first meal!</Text>
-          </Card>
+          <View style={styles.empty}>
+            <Text style={styles.emptyEmoji}>🍽</Text>
+            <Text style={styles.emptyText}>Nothing logged yet.</Text>
+            <Text style={styles.emptyHint}>Snap your first meal to get started.</Text>
+          </View>
         ) : (
-          <Card>
+          <Card style={styles.entryList}>
             {entries.map((entry, i) => (
               <View key={entry.id}>
                 {i > 0 && <View style={styles.divider} />}
@@ -174,8 +195,6 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
             <MicrosGrid nutrition={totals} />
           </>
         )}
-
-        <Text style={styles.hint}>Tip: long-press an entry to remove it.</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -183,37 +202,96 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  dateLabel: { color: palette.textMuted, fontSize: font.size.sm },
-  title: { color: palette.text, fontSize: font.size.xxl, fontWeight: font.weight.bold },
-  ringCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
-  ringSide: { flex: 1 },
-  actions: { flexDirection: 'row', gap: spacing.md },
-  snap: {
-    flex: 1,
+  content: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xxl + 16,
+    gap: spacing.md,
+  },
+
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
+  },
+  dateLabel: {
+    color: palette.textFaint,
+    fontSize: font.size.sm,
+    fontWeight: font.weight.medium,
+    letterSpacing: 0.3,
+  },
+  title: {
+    color: palette.text,
+    fontSize: font.size.xxl,
+    fontWeight: font.weight.bold,
+    letterSpacing: -0.5,
+  },
+
+  // Hero section — ring + macros, no card
+  hero: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+    gap: spacing.xl,
+  },
+  macrosBlock: {
+    width: '100%',
+    paddingHorizontal: spacing.sm,
+  },
+
+  // Actions row
+  actions: {
     flexDirection: 'row',
     gap: spacing.sm,
-    backgroundColor: palette.green,
-    minHeight: 56,
-    borderRadius: radius.lg,
+    alignItems: 'center',
+  },
+  snapWrap: { flex: 1 },
+  snap: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    minHeight: 58,
+    borderRadius: radius.xl,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  snapText: { color: palette.black, fontSize: font.size.lg, fontWeight: font.weight.bold },
-  search: {
-    width: 56,
-    height: 56,
-    borderRadius: radius.lg,
+  snapText: {
+    color: palette.black,
+    fontSize: font.size.lg,
+    fontWeight: font.weight.bold,
+  },
+  iconBtn: {
+    width: 58,
+    height: 58,
+    borderRadius: radius.xl,
     backgroundColor: palette.surface,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: palette.border,
   },
-  pressed: { opacity: 0.85 },
-  empty: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl },
-  emptyText: { color: palette.textMuted, fontSize: font.size.md, textAlign: 'center' },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.border },
-  hint: { color: palette.textFaint, fontSize: font.size.xs, textAlign: 'center', marginTop: spacing.sm },
+  iconBtnPressed: { opacity: 0.6 },
+
+  // Empty state
+  empty: {
+    alignItems: 'center',
+    paddingVertical: spacing.xxl,
+    gap: spacing.xs,
+  },
+  emptyEmoji: { fontSize: 36, marginBottom: spacing.sm },
+  emptyText: {
+    color: palette.text,
+    fontSize: font.size.lg,
+    fontWeight: font.weight.semibold,
+  },
+  emptyHint: {
+    color: palette.textFaint,
+    fontSize: font.size.sm,
+  },
+
+  entryList: { padding: 0, overflow: 'hidden' },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: palette.border,
+    marginHorizontal: spacing.lg,
+  },
 });

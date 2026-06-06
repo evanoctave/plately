@@ -1,34 +1,34 @@
 // Design tokens.
 
 export const palette = {
-  // Brand
-  green: '#34C759',
-  greenDark: '#248A3D',
-  teal: '#30B0C7',
-  amber: '#FF9F0A',
-  red: '#FF453A',
-  blue: '#0A84FF',
-  water: '#32ADE6',
+  // Brand — more vivid, saturated vs iOS system defaults
+  green: '#1EE07A',
+  greenDark: '#0DB85C',
+  teal: '#26C6D8',
+  amber: '#FFAA00',
+  red: '#FF4040',
+  blue: '#147EFF',
+  water: '#29B6E8',
 
-  // Dark surfaces (default theme)
-  bg: '#0E1116',
-  surface: '#171B22',
-  surfaceAlt: '#1F242D',
-  border: '#2A2F3A',
+  // Surfaces — deep cool-dark with blue-slate character
+  bg: '#0A0C13',
+  surface: '#111420',
+  surfaceAlt: '#181B2A',
+  border: '#222640',
 
-  // Text
-  text: '#F2F4F8',
-  textMuted: '#9AA3B2',
-  textFaint: '#646C7A',
+  // Text — slightly blue-tinted white for crispness
+  text: '#EBF0FF',
+  textMuted: '#7A86A0',
+  textFaint: '#485068',
 
   white: '#FFFFFF',
   black: '#000000',
 } as const;
 
 export const macroColors = {
-  protein: '#FF6B6B',
-  carbs: '#FFB84D',
-  fat: '#4D9DFF',
+  protein: '#FF5A6A',
+  carbs: '#FFB93A',
+  fat: '#5B8FFF',
 } as const;
 
 export const spacing = {

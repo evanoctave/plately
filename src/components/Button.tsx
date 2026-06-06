@@ -1,4 +1,5 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
 import { palette, radius, spacing, font } from '../theme';
@@ -13,6 +14,8 @@ interface ButtonProps {
   style?: StyleProp<ViewStyle>;
 }
 
+const SPRING = { mass: 0.4, damping: 14, stiffness: 260 };
+
 export function Button({
   label,
   onPress,
@@ -23,6 +26,20 @@ export function Button({
   style,
 }: ButtonProps) {
   const isDisabled = disabled || loading;
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    if (isDisabled) return;
+    scale.value = withSpring(0.96, SPRING);
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, SPRING);
+  };
 
   const handlePress = () => {
     if (isDisabled) return;
@@ -31,29 +48,29 @@ export function Button({
   };
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled: !!isDisabled }}
-      accessibilityLabel={label}
-      onPress={handlePress}
-      disabled={isDisabled}
-      style={({ pressed }) => [
-        styles.base,
-        styles[variant],
-        pressed && !isDisabled && styles.pressed,
-        isDisabled && styles.disabled,
-        style,
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? palette.black : palette.text} />
-      ) : (
-        <View style={styles.content}>
-          {icon}
-          <Text style={[styles.label, variant === 'primary' && styles.labelPrimary]}>{label}</Text>
-        </View>
-      )}
-    </Pressable>
+    <Animated.View style={[animatedStyle, isDisabled && styles.disabled, style]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ disabled: !!isDisabled }}
+        accessibilityLabel={label}
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={isDisabled}
+        style={[styles.base, styles[variant]]}
+      >
+        {loading ? (
+          <ActivityIndicator color={variant === 'primary' ? palette.black : palette.text} />
+        ) : (
+          <View style={styles.content}>
+            {icon}
+            <Text style={[styles.label, variant === 'primary' && styles.labelPrimary]}>
+              {label}
+            </Text>
+          </View>
+        )}
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -70,7 +87,6 @@ const styles = StyleSheet.create({
   secondary: { backgroundColor: palette.surfaceAlt },
   ghost: { backgroundColor: 'transparent' },
   danger: { backgroundColor: 'transparent', borderWidth: 1, borderColor: palette.red },
-  pressed: { opacity: 0.85, transform: [{ scale: 0.99 }] },
   disabled: { opacity: 0.4 },
   label: {
     fontSize: font.size.lg,

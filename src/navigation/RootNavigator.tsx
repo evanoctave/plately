@@ -1,9 +1,16 @@
+import { useEffect } from 'react';
+import { View, Text, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { DarkTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator, type BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
-import { palette } from '../theme';
+import { palette, font, spacing, radius } from '../theme';
 import { useSettings } from '../state/useSettings';
 import type { RootStackParamList, TabParamList } from './types';
 
@@ -31,30 +38,124 @@ import { PlatelyPlusScreen } from '../screens/PlatelyPlusScreen';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
-function Tabs() {
+const TAB_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
+  Home: 'today',
+  Insights: 'stats-chart',
+  History: 'calendar',
+  Settings: 'settings',
+};
+
+const TAB_LABELS: Record<string, string> = {
+  Home: 'Today',
+  Insights: 'Insights',
+  History: 'History',
+  Settings: 'Settings',
+};
+
+const SPRING = { mass: 0.5, damping: 18, stiffness: 220 };
+const PILL_W = 64;
+
+function AnimatedTabBar({ state, navigation }: BottomTabBarProps) {
   const accent = useSettings((s) => s.accent);
+  const { width: screenWidth } = useWindowDimensions();
+  const tabW = screenWidth / state.routes.length;
+
+  const pillX = useSharedValue(state.index * tabW + tabW / 2 - PILL_W / 2);
+
+  useEffect(() => {
+    pillX.value = withSpring(state.index * tabW + tabW / 2 - PILL_W / 2, SPRING);
+  }, [state.index, tabW]);
+
+  const pillStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: pillX.value }],
+  }));
+
+  return (
+    <View style={tabStyles.bar}>
+      {/* Sliding background pill */}
+      <Animated.View style={[tabStyles.pill, pillStyle, { backgroundColor: accent + '22' }]} />
+
+      {state.routes.map((route, index) => {
+        const isFocused = state.index === index;
+        const iconName = TAB_ICONS[route.name] ?? 'ellipse';
+        const label = TAB_LABELS[route.name] ?? route.name;
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
+
+        return (
+          <Pressable
+            key={route.key}
+            onPress={onPress}
+            accessibilityRole="button"
+            accessibilityLabel={label}
+            accessibilityState={{ selected: isFocused }}
+            style={tabStyles.tab}
+          >
+            <Ionicons
+              name={iconName}
+              size={22}
+              color={isFocused ? accent : palette.textFaint}
+            />
+            <Text
+              style={[
+                tabStyles.label,
+                { color: isFocused ? accent : palette.textFaint },
+              ]}
+            >
+              {label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+const tabStyles = StyleSheet.create({
+  bar: {
+    flexDirection: 'row',
+    backgroundColor: palette.surface,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: palette.border,
+    paddingBottom: 24, // home indicator space
+    paddingTop: spacing.sm,
+    position: 'relative',
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+    paddingVertical: spacing.xs,
+  },
+  label: {
+    fontSize: font.size.xs,
+    fontWeight: font.weight.medium,
+    letterSpacing: 0.2,
+  },
+  pill: {
+    position: 'absolute',
+    top: spacing.xs,
+    width: PILL_W,
+    height: 44,
+    borderRadius: radius.lg,
+  },
+});
+
+function Tabs() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: accent,
-        tabBarInactiveTintColor: palette.textFaint,
-        tabBarStyle: {
-          backgroundColor: palette.surface,
-          borderTopColor: palette.border,
-        },
-        tabBarIcon: ({ color, size }) => {
-          const icon =
-            route.name === 'Home'
-              ? 'today'
-              : route.name === 'Insights'
-                ? 'stats-chart'
-                : route.name === 'History'
-                  ? 'calendar'
-                  : 'settings';
-          return <Ionicons name={icon} size={size} color={color} />;
-        },
-      })}
+      tabBar={(props) => <AnimatedTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Today' }} />
       <Tab.Screen name="Insights" component={InsightsScreen} />
@@ -88,6 +189,7 @@ export function RootNavigator() {
           headerTintColor: palette.text,
           headerShadowVisible: false,
           contentStyle: { backgroundColor: palette.bg },
+          animation: 'slide_from_right',
         }}
       >
         {!onboardingComplete && (
@@ -142,8 +244,16 @@ export function RootNavigator() {
           component={RecipeBuilderScreen}
           options={{ title: 'New recipe' }}
         />
-        <Stack.Screen name="Appearance" component={AppearanceScreen} options={{ title: 'Appearance' }} />
-        <Stack.Screen name="PlatelyPlus" component={PlatelyPlusScreen} options={{ title: 'Plately+' }} />
+        <Stack.Screen
+          name="Appearance"
+          component={AppearanceScreen}
+          options={{ title: 'Appearance' }}
+        />
+        <Stack.Screen
+          name="PlatelyPlus"
+          component={PlatelyPlusScreen}
+          options={{ title: 'Plately+' }}
+        />
         <Stack.Screen name="Weight" component={WeightScreen} options={{ title: 'Weight' }} />
       </Stack.Navigator>
     </NavigationContainer>
