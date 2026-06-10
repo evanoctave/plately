@@ -23,8 +23,11 @@ export const MODEL_SHA256: string = '';
 // Reject truncated downloads / HTML error pages masquerading as the model.
 const MIN_MODEL_BYTES = 1_000_000;
 
-const INPUT_SIZE = 224;
-const NORMALIZE: 'zero_one' | 'minus_one_one' = 'zero_one';
+const INPUT_SIZE = 160;
+// 'raw' = feed pixels as 0–255 floats. Our exported model has MobileNetV2
+// preprocess_input baked in, so it expects RAW 0–255 and normalizes to [-1,1]
+// internally. Do NOT pre-normalize here or predictions will be garbage.
+const NORMALIZE: 'zero_one' | 'minus_one_one' | 'raw' = 'raw';
 
 const MODEL_FILENAME = 'food101.tflite';
 const MODEL_PATH = `${FileSystem.documentDirectory ?? ''}${MODEL_FILENAME}`;
@@ -214,10 +217,15 @@ async function imageToTensor(uri: string): Promise<Float32Array> {
       tensor[t++] = r / 255;
       tensor[t++] = g / 255;
       tensor[t++] = b / 255;
-    } else {
+    } else if (NORMALIZE === 'minus_one_one') {
       tensor[t++] = r / 127.5 - 1;
       tensor[t++] = g / 127.5 - 1;
       tensor[t++] = b / 127.5 - 1;
+    } else {
+      // 'raw' — model normalizes internally; pass 0–255 floats untouched.
+      tensor[t++] = r;
+      tensor[t++] = g;
+      tensor[t++] = b;
     }
   }
   return tensor;
