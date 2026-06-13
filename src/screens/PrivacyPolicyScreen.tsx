@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   updated: { color: palette.textFaint, fontSize: font.size.xs },
   lead: { color: palette.textMuted, fontSize: font.size.md, lineHeight: 21 },
   section: { gap: spacing.sm },
-  heading: { color: palette.text, fontSize: font.size.lg, fontWeight: font.weight.bold },
+  heading: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.uiBold },
   body: { color: palette.textMuted, fontSize: font.size.md, lineHeight: 21 },
   bulletRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: palette.green, marginTop: 7 },
@@ -122,5 +122,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
   },
-  contactText: { color: palette.green, fontSize: font.size.md, fontWeight: font.weight.medium },
+  contactText: { color: palette.green, fontSize: font.size.md, fontFamily: font.family.uiMedium },
 });

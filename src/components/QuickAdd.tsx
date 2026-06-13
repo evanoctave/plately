@@ -72,6 +72,6 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.7 },
   chipHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  chipName: { color: palette.text, fontSize: font.size.md, fontWeight: font.weight.semibold, marginTop: 2 },
+  chipName: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold, marginTop: 2 },
   chipMeta: { color: palette.textMuted, fontSize: font.size.xs },
 });

@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     alignItems: 'center',
   },
-  statusTitle: { color: palette.text, fontSize: font.size.lg, fontWeight: font.weight.semibold },
+  statusTitle: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.uiSemibold },
   statusText: { color: palette.textMuted, fontSize: font.size.sm, textAlign: 'center', lineHeight: 18 },
   statusButtons: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   permission: {
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  permTitle: { color: palette.text, fontSize: font.size.xl, fontWeight: font.weight.bold },
+  permTitle: { color: palette.text, fontSize: font.size.xl, fontFamily: font.family.uiBold },
   permBody: {
     color: palette.textMuted,
     fontSize: font.size.md,

@@ -64,8 +64,8 @@ const styles = StyleSheet.create({
   container: { gap: spacing.md },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  title: { color: palette.text, fontSize: font.size.lg, fontWeight: font.weight.semibold },
-  amount: { color: palette.textMuted, fontSize: font.size.sm },
+  title: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.uiSemibold },
+  amount: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.mono },
   track: { height: 12, borderRadius: radius.pill, backgroundColor: palette.surfaceAlt, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: radius.pill, backgroundColor: palette.water },
   buttons: { flexDirection: 'row', gap: spacing.sm },
@@ -79,5 +79,5 @@ const styles = StyleSheet.create({
     backgroundColor: palette.surfaceAlt,
   },
   chipPressed: { opacity: 0.7 },
-  chipText: { color: palette.water, fontSize: font.size.sm, fontWeight: font.weight.semibold },
+  chipText: { color: palette.water, fontSize: font.size.sm, fontFamily: font.family.monoSemibold },
 });

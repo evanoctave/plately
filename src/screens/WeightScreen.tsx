@@ -149,11 +149,11 @@ import { round } from '../utils/nutrition';
   spacing.sm, borderRadius: radius.pill, backgroundColor:
   palette.surfaceAlt },
     rangeText: { color: palette.textMuted, fontSize: font.size.sm,
-  fontWeight: font.weight.semibold },
+  fontFamily: font.family.uiSemibold },
     rangeTextActive: { color: palette.black },
     statRow: { flexDirection: 'row', gap: spacing.sm },
     stat: { flex: 1, alignItems: 'center', gap: 2 },
-    statValue: { fontSize: font.size.xl, fontWeight: font.weight.bold },
+    statValue: { fontSize: font.size.xl, fontFamily: font.family.monoBold },
     statLabel: { color: palette.textMuted, fontSize: font.size.xs },
     empty: { alignItems: 'center', gap: spacing.md, paddingVertical:
   spacing.xxl },

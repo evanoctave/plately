@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   fieldInput: {
     color: palette.text,
     fontSize: font.size.lg,
-    fontWeight: font.weight.semibold,
+    fontFamily: font.family.uiSemibold,
     textAlign: 'right',
     minWidth: 110,
     backgroundColor: palette.surfaceAlt,

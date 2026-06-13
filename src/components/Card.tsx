@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: palette.textMuted,
     fontSize: font.size.sm,
-    fontWeight: font.weight.semibold,
+    fontFamily: font.family.uiSemibold,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     marginBottom: spacing.sm,

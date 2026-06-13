@@ -139,7 +139,7 @@ const tabStyles = StyleSheet.create({
   },
   label: {
     fontSize: font.size.xs,
-    fontWeight: font.weight.medium,
+    fontFamily: font.family.uiMedium,
     letterSpacing: 0.2,
   },
   pill: {

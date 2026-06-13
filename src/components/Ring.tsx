@@ -31,7 +31,7 @@ export function Ring({
   label,
   unit = '',
   size = 200,
-  color = palette.green,
+  color = palette.accent,
 }: RingProps) {
   const strokeWidth = 16;
   const r = (size - strokeWidth) / 2;
@@ -100,17 +100,19 @@ const styles = StyleSheet.create({
   value: {
     color: palette.text,
     fontSize: font.size.display,
-    fontWeight: font.weight.bold,
+    fontFamily: font.family.monoBold,
     letterSpacing: -1,
   },
   label: {
     color: palette.textMuted,
     fontSize: font.size.sm,
+    fontFamily: font.family.ui,
     marginTop: 2,
   },
   caption: {
     color: palette.textFaint,
     fontSize: font.size.xs,
+    fontFamily: font.family.uiMedium,
     marginTop: 4,
     textTransform: 'uppercase',
     letterSpacing: 1,

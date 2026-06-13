@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   list: { padding: spacing.lg, flexGrow: 1 },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
   rowBody: { flex: 1, gap: 2 },
-  name: { color: palette.text, fontSize: font.size.md, fontWeight: font.weight.semibold },
+  name: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
   meta: { color: palette.textMuted, fontSize: font.size.sm },
   delBtn: {
     width: 44,
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.border },
   empty: { alignItems: 'center', gap: spacing.sm, paddingTop: spacing.xxl * 2, paddingHorizontal: spacing.xl },
-  emptyText: { color: palette.textMuted, fontSize: font.size.lg, fontWeight: font.weight.semibold },
+  emptyText: { color: palette.textMuted, fontSize: font.size.lg, fontFamily: font.family.uiSemibold },
   emptySub: { color: palette.textFaint, fontSize: font.size.sm, textAlign: 'center' },
   footer: { padding: spacing.lg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: palette.border },
 });

@@ -112,7 +112,7 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
               accessibilityRole="button"
               accessibilityLabel="Snap a photo of your meal"
             >
-              <Ionicons name="camera" size={22} color={palette.black} />
+              <Ionicons name="camera" size={22} color={palette.white} />
               <Text style={styles.snapText}>Snap a meal</Text>
             </Pressable>
           </Animated.View>
@@ -218,13 +218,13 @@ const styles = StyleSheet.create({
   dateLabel: {
     color: palette.textFaint,
     fontSize: font.size.sm,
-    fontWeight: font.weight.medium,
+    fontFamily: font.family.uiMedium,
     letterSpacing: 0.3,
   },
   title: {
     color: palette.text,
     fontSize: font.size.xxl,
-    fontWeight: font.weight.bold,
+    fontFamily: font.family.uiBold,
     letterSpacing: -0.5,
   },
 
@@ -255,9 +255,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   snapText: {
-    color: palette.black,
+    color: palette.white,
     fontSize: font.size.lg,
-    fontWeight: font.weight.bold,
+    fontFamily: font.family.uiBold,
   },
   iconBtn: {
     width: 58,
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   emptyText: {
     color: palette.text,
     fontSize: font.size.lg,
-    fontWeight: font.weight.semibold,
+    fontFamily: font.family.uiSemibold,
   },
   emptyHint: {
     color: palette.textFaint,

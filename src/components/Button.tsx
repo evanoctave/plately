@@ -60,7 +60,7 @@ export function Button({
         style={[styles.base, styles[variant]]}
       >
         {loading ? (
-          <ActivityIndicator color={variant === 'primary' ? palette.black : palette.text} />
+          <ActivityIndicator color={variant === 'primary' ? palette.white : palette.text} />
         ) : (
           <View style={styles.content}>
             {icon}
@@ -83,15 +83,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
   },
   content: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  primary: { backgroundColor: palette.green },
+  primary: { backgroundColor: palette.accent },
   secondary: { backgroundColor: palette.surfaceAlt },
   ghost: { backgroundColor: 'transparent' },
   danger: { backgroundColor: 'transparent', borderWidth: 1, borderColor: palette.red },
   disabled: { opacity: 0.4 },
   label: {
     fontSize: font.size.lg,
-    fontWeight: font.weight.semibold,
+    fontFamily: font.family.uiSemibold,
     color: palette.text,
   },
-  labelPrimary: { color: palette.black },
+  labelPrimary: { color: palette.white },
 });

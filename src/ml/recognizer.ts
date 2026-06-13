@@ -16,9 +16,11 @@ import { getFoodById, type FoodItem } from '../data/foods';
 export const MODEL_URL =
   'https://github.com/evanoctave/plately/releases/download/model-v1/food101.tflite';
 
-// Optional integrity pin. Set to the model's lowercase 64-char hex SHA-256 to
-// reject any tampered or substituted download. Empty = skip hash check (TLS +
-// size + functional-load validation still apply). See docs/MODEL.md.
+// Optional integrity pin, honored on BOTH the bundled and downloaded model.
+// Set to the file's lowercase 64-char hex SHA-256 to reject any tampered or
+// substituted file. Get it with: `shasum -a 256 assets/model/food101.tflite`.
+// Empty = skip hash check (TLS + size + functional-load validation still
+// apply). See docs/MODEL.md.
 export const MODEL_SHA256: string = '';
 
 // Reject truncated downloads / HTML error pages masquerading as the model.
@@ -29,6 +31,10 @@ const INPUT_SIZE = 160;
 // preprocess_input baked in, so it expects RAW 0–255 and normalizes to [-1,1]
 // internally. Do NOT pre-normalize here or predictions will be garbage.
 const NORMALIZE: 'zero_one' | 'minus_one_one' | 'raw' = 'raw';
+
+// Output must have one score per label; input must be INPUT_SIZE². A model that
+// violates either still "runs" but mislabels everything — see warnOnShapeMismatch.
+const EXPECTED_CLASSES = FOOD101_LABELS.length;
 
 const MODEL_FILENAME = 'food101.tflite';
 const MODEL_PATH = `${FileSystem.documentDirectory ?? ''}${MODEL_FILENAME}`;
@@ -76,29 +82,60 @@ export async function isModelCached(): Promise<boolean> {
   }
 }
 
+// Lowercase hex SHA-256 of a file's contents.
+async function sha256Hex(uri: string): Promise<string> {
+  const b64 = await FileSystem.readAsStringAsync(uri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  const digest = await Crypto.digest(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    base64ToBytes(b64),
+  );
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+// True if MODEL_SHA256 is unset (no pin) or the file's hash matches it.
+async function matchesPin(uri: string): Promise<boolean> {
+  if (!MODEL_SHA256) return true;
+  return (await sha256Hex(uri)) === MODEL_SHA256.toLowerCase();
+}
+
 // Verifies the cached file is a plausible, untampered model. Deletes it and
 // returns false on any failure so the next load re-downloads cleanly.
 async function verifyModelFile(): Promise<boolean> {
   try {
     const info = await FileSystem.getInfoAsync(MODEL_PATH);
     if (!info.exists || (info.size ?? 0) < MIN_MODEL_BYTES) return false;
-
-    if (MODEL_SHA256) {
-      const b64 = await FileSystem.readAsStringAsync(MODEL_PATH, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      const digest = await Crypto.digest(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        base64ToBytes(b64),
-      );
-      const hex = Array.from(new Uint8Array(digest))
-        .map((b) => b.toString(16).padStart(2, '0'))
-        .join('');
-      if (hex !== MODEL_SHA256.toLowerCase()) return false;
-    }
-    return true;
+    return await matchesPin(MODEL_PATH);
   } catch {
     return false;
+  }
+}
+
+// Dev-only guardrail. A model whose I/O shape disagrees with the label space or
+// INPUT_SIZE will run but silently mislabel every prediction — warn loudly.
+function warnOnShapeMismatch(m: TensorflowModel): void {
+  if (!__DEV__) return;
+  try {
+    const inShape = m.inputs?.[0]?.shape ?? [];
+    const outShape = m.outputs?.[0]?.shape ?? [];
+    const outLen = outShape[outShape.length - 1];
+    const h = inShape[1];
+    const w = inShape[2];
+    if (outLen !== undefined && outLen !== EXPECTED_CLASSES) {
+      console.warn(
+        `[recognizer] model outputs ${outLen} classes but FOOD101_LABELS has ${EXPECTED_CLASSES} — predictions will be mislabeled. Fix model or label order.`,
+      );
+    }
+    if ((h !== undefined && h !== INPUT_SIZE) || (w !== undefined && w !== INPUT_SIZE)) {
+      console.warn(
+        `[recognizer] model input is ${h}×${w} but INPUT_SIZE is ${INPUT_SIZE} — update INPUT_SIZE to match.`,
+      );
+    }
+  } catch {
+    // Best-effort introspection; never block loading on it.
   }
 }
 
@@ -107,7 +144,12 @@ async function resolveBundledModel(): Promise<string | null> {
   try {
     const asset = Asset.fromModule(BUNDLED_MODEL);
     if (!asset.downloaded) await asset.downloadAsync();
-    return asset.localUri ?? asset.uri ?? null;
+    const uri = asset.localUri ?? asset.uri ?? null;
+    if (!uri) return null;
+    // A bundled asset is already covered by the app binary signature, so the
+    // pin is redundant for bundled builds. Honor it anyway if set (adds a
+    // one-time file read on cold start); empty MODEL_SHA256 skips it.
+    return (await matchesPin(uri)) ? uri : null;
   } catch {
     return null;
   }
@@ -165,6 +207,7 @@ export async function loadModel(
     try {
       status = 'loading';
       const loaded = await loadTensorflowModel({ url: fileUri });
+      warnOnShapeMismatch(loaded);
       model = loaded;
       status = 'ready';
       return loaded;

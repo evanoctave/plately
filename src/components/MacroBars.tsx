@@ -90,9 +90,9 @@ const styles = StyleSheet.create({
   container: { gap: spacing.lg },
   row: { gap: spacing.xs },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  label: { color: palette.textMuted, fontSize: font.size.sm, fontWeight: font.weight.medium },
-  value: { color: palette.text, fontSize: font.size.sm, fontWeight: font.weight.semibold },
-  goal: { color: palette.textFaint, fontWeight: font.weight.regular },
+  label: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiMedium },
+  value: { color: palette.text, fontSize: font.size.sm, fontFamily: font.family.monoSemibold },
+  goal: { color: palette.textFaint, fontFamily: font.family.mono },
   track: {
     height: 8,
     borderRadius: radius.pill,

@@ -1,34 +1,42 @@
 // Design tokens.
 
 export const palette = {
-  // Brand — more vivid, saturated vs iOS system defaults
-  green: '#1EE07A',
-  greenDark: '#0DB85C',
-  teal: '#26C6D8',
-  amber: '#FFAA00',
-  red: '#FF4040',
-  blue: '#147EFF',
-  water: '#29B6E8',
+  // Accent — electric indigo. Used sparingly: focus/active state + primary CTA.
+  accent: '#7370FA',
+  accentDark: '#5E58D8',
+  accentSoft: '#2B284F',
 
-  // Surfaces — deep cool-dark with blue-slate character
-  bg: '#0A0C13',
-  surface: '#111420',
-  surfaceAlt: '#181B2A',
-  border: '#222640',
+  // Deprecated aliases → accent. Existing `palette.green` refs now render
+  // indigo; migrate them to `palette.accent` when touching a file.
+  green: '#7370FA',
+  greenDark: '#5E58D8',
 
-  // Text — slightly blue-tinted white for crispness
-  text: '#EBF0FF',
-  textMuted: '#7A86A0',
-  textFaint: '#485068',
+  // Functional signal colors (meaning, not decoration)
+  teal: '#4FBEC4',
+  amber: '#F5AE39',
+  red: '#EA3C3F',
+  blue: '#4D97DE',
+  water: '#49ABD6',
+
+  // Surfaces — warm near-black, faintly indigo-tinted
+  bg: '#0B0B0E',
+  surface: '#15151B',
+  surfaceAlt: '#212128',
+  border: '#2F2F37',
+
+  // Text — near-white with a faint cool tint
+  text: '#F5F5F8',
+  textMuted: '#9797A5',
+  textFaint: '#575762',
 
   white: '#FFFFFF',
   black: '#000000',
 } as const;
 
 export const macroColors = {
-  protein: '#FF5A6A',
-  carbs: '#FFB93A',
-  fat: '#5B8FFF',
+  protein: '#EF6661',
+  carbs: '#EEBC4A',
+  fat: '#00B4BC',
 } as const;
 
 export const spacing = {
@@ -63,6 +71,18 @@ export const font = {
     medium: '500',
     semibold: '600',
     bold: '700',
+  },
+  // Custom font families. RN ignores `fontWeight` once `fontFamily` is set, so
+  // each weight is its own family — pick the family, not the weight.
+  // `ui` = Space Grotesk (text/headings), `mono` = JetBrains Mono (all numbers).
+  family: {
+    ui: 'SpaceGrotesk_400Regular',
+    uiMedium: 'SpaceGrotesk_500Medium',
+    uiSemibold: 'SpaceGrotesk_600SemiBold',
+    uiBold: 'SpaceGrotesk_700Bold',
+    mono: 'JetBrainsMono_500Medium',
+    monoSemibold: 'JetBrainsMono_600SemiBold',
+    monoBold: 'JetBrainsMono_700Bold',
   },
 } as const;
 

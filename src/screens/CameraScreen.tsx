@@ -141,6 +141,6 @@ const styles = StyleSheet.create({
   },
   shutterInner: { width: 62, height: 62, borderRadius: 31, backgroundColor: palette.white },
   permission: { flex: 1, backgroundColor: palette.bg, padding: spacing.xl, gap: spacing.md, justifyContent: 'center', alignItems: 'center' },
-  permTitle: { color: palette.text, fontSize: font.size.xl, fontWeight: font.weight.bold },
+  permTitle: { color: palette.text, fontSize: font.size.xl, fontFamily: font.family.uiBold },
   permBody: { color: palette.textMuted, fontSize: font.size.md, textAlign: 'center', lineHeight: 20, marginBottom: spacing.md },
 });

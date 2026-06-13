@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
   statRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
   statTile: { flex: 1, alignItems: 'center', gap: 2, paddingVertical: spacing.md },
-  statValue: { color: palette.text, fontSize: font.size.xl, fontWeight: font.weight.bold },
+  statValue: { color: palette.text, fontSize: font.size.xl, fontFamily: font.family.monoBold },
   statLabel: { color: palette.textMuted, fontSize: font.size.xs, textAlign: 'center' },
   badge: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   badgeLocked: { opacity: 0.92 },
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   badgeBody: { flex: 1, gap: 2 },
-  badgeTitle: { color: palette.text, fontSize: font.size.md, fontWeight: font.weight.semibold },
+  badgeTitle: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
   dim: { color: palette.textMuted },
   badgeDesc: { color: palette.textMuted, fontSize: font.size.sm },
   barTrack: {
@@ -169,6 +169,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   barFill: { height: 5, borderRadius: radius.pill },
-  progressText: { color: palette.textFaint, fontSize: font.size.xs, fontWeight: font.weight.semibold },
+  progressText: { color: palette.textFaint, fontSize: font.size.xs, fontFamily: font.family.monoSemibold },
   footnote: { color: palette.textFaint, fontSize: font.size.xs, lineHeight: 16, marginTop: spacing.md },
 });

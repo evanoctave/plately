@@ -61,10 +61,10 @@ export function DayDetailScreen({ route }: RootStackScreenProps<'DayDetail'>) {
 
 const styles = StyleSheet.create({
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
-  title: { color: palette.text, fontSize: font.size.xxl, fontWeight: font.weight.bold },
+  title: { color: palette.text, fontSize: font.size.xxl, fontFamily: font.family.uiBold },
   ringCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   side: { flex: 1, gap: spacing.md },
-  water: { color: palette.water, fontSize: font.size.sm, fontWeight: font.weight.medium },
+  water: { color: palette.water, fontSize: font.size.sm, fontFamily: font.family.mono },
   empty: { color: palette.textMuted, fontSize: font.size.md, textAlign: 'center', paddingVertical: spacing.lg },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.border },
 });

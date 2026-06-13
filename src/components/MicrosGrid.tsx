@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   label: { color: palette.textMuted, fontSize: font.size.sm },
-  amount: { color: palette.text, fontSize: font.size.lg, fontWeight: font.weight.semibold, marginTop: 2 },
+  amount: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.monoSemibold, marginTop: 2 },
   track: {
     height: 6,
     borderRadius: radius.pill,

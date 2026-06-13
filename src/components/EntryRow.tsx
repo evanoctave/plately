@@ -75,9 +75,9 @@ const styles = StyleSheet.create({
   },
   icon: { fontSize: 22 },
   body: { flex: 1 },
-  name: { color: palette.text, fontSize: font.size.md, fontWeight: font.weight.semibold },
+  name: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
   meta: { color: palette.textMuted, fontSize: font.size.sm, marginTop: 2 },
   right: { alignItems: 'flex-end' },
-  kcal: { color: palette.text, fontSize: font.size.lg, fontWeight: font.weight.bold },
+  kcal: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.monoBold },
   kcalUnit: { color: palette.textFaint, fontSize: font.size.xs },
 });

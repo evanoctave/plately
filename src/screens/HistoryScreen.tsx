@@ -97,15 +97,15 @@ export function HistoryScreen({ navigation }: TabScreenProps<'History'>) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: palette.bg },
-  title: { color: palette.text, fontSize: font.size.xxl, fontWeight: font.weight.bold, padding: spacing.lg },
+  title: { color: palette.text, fontSize: font.size.xxl, fontFamily: font.family.uiBold, padding: spacing.lg },
   list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
   pressed: { opacity: 0.6 },
   rowBody: { flex: 1, gap: 2 },
-  day: { color: palette.text, fontSize: font.size.lg, fontWeight: font.weight.semibold },
+  day: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.uiSemibold },
   meta: { color: palette.textMuted, fontSize: font.size.sm },
   rowRight: { alignItems: 'flex-end', gap: 2 },
-  cal: { color: palette.text, fontSize: font.size.md, fontWeight: font.weight.semibold },
+  cal: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.monoSemibold },
   pct: { color: palette.textFaint, fontSize: font.size.xs },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.border },
   empty: { alignItems: 'center', gap: spacing.md, paddingTop: spacing.xxl * 2 },

@@ -137,10 +137,10 @@ const styles = StyleSheet.create({
   loadingCard: { alignItems: 'center', gap: spacing.md, paddingVertical: spacing.xl },
   loadingText: { color: palette.textMuted, fontSize: font.size.md },
   notice: { alignItems: 'center', gap: spacing.md, paddingVertical: spacing.lg },
-  noticeTitle: { color: palette.text, fontSize: font.size.lg, fontWeight: font.weight.semibold },
+  noticeTitle: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.uiSemibold },
   noticeBody: { color: palette.textMuted, fontSize: font.size.md, textAlign: 'center', lineHeight: 20 },
   results: { gap: spacing.md },
-  heading: { color: palette.text, fontSize: font.size.xl, fontWeight: font.weight.bold },
+  heading: { color: palette.text, fontSize: font.size.xl, fontFamily: font.family.uiBold },
   prediction: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.7 },
   predLeft: { gap: 2 },
-  predName: { color: palette.text, fontSize: font.size.lg, fontWeight: font.weight.semibold },
+  predName: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.uiSemibold },
   predMeta: { color: palette.textMuted, fontSize: font.size.sm },
   disclaimer: { color: palette.textFaint, fontSize: font.size.xs, textAlign: 'center', lineHeight: 16 },
 });
