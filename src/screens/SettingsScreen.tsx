@@ -24,6 +24,13 @@ const GOAL_FIELDS: { key: keyof Goals; label: string; unit: string }[] = [
   { key: 'water', label: 'Water', unit: 'mL' },
 ];
 
+const PLUS_EXTRAS: { route: 'Fasting' | 'GoalPhases' | 'Coach' | 'MealPlanner'; label: string; sub: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { route: 'Fasting', label: 'Fasting timer', sub: 'Track intermittent fasting windows', icon: 'timer-outline' },
+  { route: 'GoalPhases', label: 'Goal phases', sub: 'Cut, maintain & bulk targets', icon: 'trending-up-outline' },
+  { route: 'Coach', label: 'Smart Coach', sub: 'On-device daily guidance', icon: 'bulb-outline' },
+  { route: 'MealPlanner', label: 'Meal planner', sub: 'Plan and pre-log your days', icon: 'calendar-outline' },
+];
+
 /** Things competitors commonly charge for that Plately gives away free. */
 const FREE_PERKS = [
   'Photo food recognition (on-device)',
@@ -34,7 +41,7 @@ const FREE_PERKS = [
 ];
 
 export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
-  const { goals, setGoals, waterUnit, setWaterUnit, weightUnit, setWeightUnit, accent } = useSettings();
+  const { goals, setGoals, waterUnit, setWaterUnit, weightUnit, setWeightUnit, accent, plusActive } = useSettings();
   const bump = useDiaryRevision((s) => s.bump);
   const [modelStatus, setModelStatus] = useState(getModelStatus());
 
@@ -115,10 +122,28 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
           </View>
           <View style={styles.plusBody}>
             <Text style={styles.plusTitle}>Plately+</Text>
-            <Text style={styles.plusSub}>Optional power features — cloud sync, weight charts & more</Text>
+            <Text style={styles.plusSub}>Fasting, goal phases, Smart Coach, meal planner & more</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
         </Pressable>
+
+        <SectionTitle>Plately+ extras</SectionTitle>
+        <Card style={styles.card}>
+          {PLUS_EXTRAS.map((extra, i) => (
+            <View key={extra.route}>
+              {i > 0 && <View style={styles.divider} />}
+              <Pressable style={styles.linkRow} onPress={() => navigation.navigate(extra.route)}>
+                <Ionicons name={extra.icon} size={20} color={plusActive ? accent : palette.textMuted} />
+                <View style={styles.extraBody}>
+                  <Text style={styles.linkText}>{extra.label}</Text>
+                  <Text style={styles.extraSub}>{extra.sub}</Text>
+                </View>
+                {!plusActive && <Ionicons name="lock-closed" size={15} color={palette.textFaint} />}
+                <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+              </Pressable>
+            </View>
+          ))}
+        </Card>
 
         <SectionTitle>Personalize</SectionTitle>
         <Card style={styles.card}>
@@ -347,6 +372,8 @@ const styles = StyleSheet.create({
   note: { color: palette.textFaint, fontSize: font.size.sm, lineHeight: 18, marginVertical: spacing.sm },
   linkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
   linkText: { flex: 1, color: palette.text, fontSize: font.size.md },
+  extraBody: { flex: 1 },
+  extraSub: { color: palette.textMuted, fontSize: font.size.sm, marginTop: 1 },
   disclaimer: { color: palette.textFaint, fontSize: font.size.xs, lineHeight: 16, marginTop: spacing.xl },
   version: { color: palette.textFaint, fontSize: font.size.xs, textAlign: 'center', marginTop: spacing.lg },
 });

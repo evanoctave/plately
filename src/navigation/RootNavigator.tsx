@@ -34,6 +34,10 @@ import { AchievementsScreen } from '../screens/AchievementsScreen';
 import { RecipeBuilderScreen } from '../screens/RecipeBuilderScreen';
 import { AppearanceScreen } from '../screens/AppearanceScreen';
 import { PlatelyPlusScreen } from '../screens/PlatelyPlusScreen';
+import { FastingScreen } from '../screens/FastingScreen';
+import { GoalPhasesScreen } from '../screens/GoalPhasesScreen';
+import { CoachScreen } from '../screens/CoachScreen';
+import { MealPlannerScreen } from '../screens/MealPlannerScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -255,6 +259,10 @@ export function RootNavigator() {
           options={{ title: 'Plately+' }}
         />
         <Stack.Screen name="Weight" component={WeightScreen} options={{ title: 'Weight' }} />
+        <Stack.Screen name="Fasting" component={FastingScreen} options={{ title: 'Fasting' }} />
+        <Stack.Screen name="GoalPhases" component={GoalPhasesScreen} options={{ title: 'Goal phases' }} />
+        <Stack.Screen name="Coach" component={CoachScreen} options={{ title: 'Smart Coach' }} />
+        <Stack.Screen name="MealPlanner" component={MealPlannerScreen} options={{ title: 'Meal planner' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

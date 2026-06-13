@@ -26,6 +26,7 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
   const today = dayKey();
   const goals = useSettings((s) => s.goals);
   const accent = useSettings((s) => s.accent);
+  const plusActive = useSettings((s) => s.plusActive);
   const { entries, totals } = useDayLog(today);
   const { items: quickAddItems } = useQuickAdd();
 
@@ -139,6 +140,25 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
         <Card>
           <WaterTracker consumedMl={totals.water} goalMl={goals.water} onAdd={addWater} />
         </Card>
+
+        {/* Smart Coach teaser */}
+        {plusActive && entries.length > 0 && (
+          <Pressable
+            onPress={() => navigation.navigate('Coach')}
+            style={({ pressed }) => [styles.coachCard, { borderColor: accent + '55' }, pressed && { opacity: 0.7 }]}
+            accessibilityRole="button"
+            accessibilityLabel="Open Smart Coach"
+          >
+            <View style={[styles.coachIcon, { backgroundColor: accent + '22' }]}>
+              <Ionicons name="bulb" size={18} color={accent} />
+            </View>
+            <View style={styles.coachBody}>
+              <Text style={styles.coachTitle}>Smart Coach</Text>
+              <Text style={styles.coachSub}>See today's guidance from your log</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+          </Pressable>
+        )}
 
         {/* Quick add */}
         {quickAddItems.length > 0 && (
@@ -270,6 +290,20 @@ const styles = StyleSheet.create({
     borderColor: palette.border,
   },
   iconBtnPressed: { opacity: 0.6 },
+
+  coachCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: palette.surface,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    borderWidth: 1,
+  },
+  coachIcon: { width: 36, height: 36, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  coachBody: { flex: 1 },
+  coachTitle: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+  coachSub: { color: palette.textMuted, fontSize: font.size.sm, marginTop: 1 },
 
   // Empty state
   empty: {

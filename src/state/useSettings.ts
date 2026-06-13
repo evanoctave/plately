@@ -4,7 +4,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { DEFAULT_GOALS, type Goals } from '../data/nutrients';
 
-export const DEFAULT_ACCENT = '#34C759';
+export const DEFAULT_ACCENT = '#7370FA';
 
 interface SettingsState {
   goals: Goals;

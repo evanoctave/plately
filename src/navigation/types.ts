@@ -27,6 +27,10 @@ export type RootStackParamList = {
   RecipeBuilder: undefined;
   Appearance: undefined;
   PlatelyPlus: undefined;
+  Fasting: undefined;
+  GoalPhases: undefined;
+  Coach: undefined;
+  MealPlanner: undefined;
 };
 
 export type TabParamList = {
