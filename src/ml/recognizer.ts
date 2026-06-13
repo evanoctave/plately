@@ -1,6 +1,7 @@
 // On-device Food-101 image classifier (TensorFlow Lite). Fails soft to manual
 // search if the model can't be downloaded or loaded.
 
+import { Asset } from 'expo-asset';
 import * as Crypto from 'expo-crypto';
 import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -31,6 +32,14 @@ const NORMALIZE: 'zero_one' | 'minus_one_one' | 'raw' = 'raw';
 
 const MODEL_FILENAME = 'food101.tflite';
 const MODEL_PATH = `${FileSystem.documentDirectory ?? ''}${MODEL_FILENAME}`;
+
+// Model bundled into the binary by `npm run fetch-model` (writes
+// assets/model/food101.tflite). Preferred over the runtime download: offline on
+// first launch, no hosting needed. This require resolves at bundle time, so the
+// file MUST exist before building. If you build without it, swap this for the
+// runtime-download path by deleting the bundled branch in loadModel().
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const BUNDLED_MODEL = require('../../assets/model/food101.tflite');
 
 export interface Prediction {
   label: string;
@@ -93,6 +102,17 @@ async function verifyModelFile(): Promise<boolean> {
   }
 }
 
+// Resolves the bundled model to a local file URI, or null if not bundled.
+async function resolveBundledModel(): Promise<string | null> {
+  try {
+    const asset = Asset.fromModule(BUNDLED_MODEL);
+    if (!asset.downloaded) await asset.downloadAsync();
+    return asset.localUri ?? asset.uri ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // Downloads the model once if needed; returns the local URI or null.
 async function ensureModelFile(
   onProgress?: (fraction: number) => void,
@@ -136,7 +156,8 @@ export async function loadModel(
   if (loadPromise) return loadPromise;
 
   loadPromise = (async () => {
-    const fileUri = await ensureModelFile(onProgress);
+    // Prefer the bundled model; fall back to a one-time runtime download.
+    const fileUri = (await resolveBundledModel()) ?? (await ensureModelFile(onProgress));
     if (!fileUri) {
       status = 'unavailable';
       return null;
