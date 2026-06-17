@@ -39,13 +39,9 @@ const EXPECTED_CLASSES = FOOD101_LABELS.length;
 const MODEL_FILENAME = 'food101.tflite';
 const MODEL_PATH = `${FileSystem.documentDirectory ?? ''}${MODEL_FILENAME}`;
 
-// Model bundled into the binary by `npm run fetch-model` (writes
-// assets/model/food101.tflite). Preferred over the runtime download: offline on
-// first launch, no hosting needed. This require resolves at bundle time, so the
-// file MUST exist before building. If you build without it, swap this for the
-// runtime-download path by deleting the bundled branch in loadModel().
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const BUNDLED_MODEL = require('../../assets/model/food101.tflite');
+let BUNDLED_MODEL: number | null = null;
+try { BUNDLED_MODEL = require('../../assets/model/food101.tflite'); } catch { /* not bundled */ }
 
 export interface Prediction {
   label: string;
@@ -141,6 +137,7 @@ function warnOnShapeMismatch(m: TensorflowModel): void {
 
 // Resolves the bundled model to a local file URI, or null if not bundled.
 async function resolveBundledModel(): Promise<string | null> {
+  if (!BUNDLED_MODEL) return null;
   try {
     const asset = Asset.fromModule(BUNDLED_MODEL);
     if (!asset.downloaded) await asset.downloadAsync();
@@ -198,24 +195,34 @@ export async function loadModel(
   if (loadPromise) return loadPromise;
 
   loadPromise = (async () => {
-    // Prefer the bundled model; fall back to a one-time runtime download.
-    const fileUri = (await resolveBundledModel()) ?? (await ensureModelFile(onProgress));
-    if (!fileUri) {
+    const tryLoad = async (uri: string): Promise<TensorflowModel | null> => {
+      try {
+        status = 'loading';
+        const loaded = await loadTensorflowModel({ url: uri });
+        warnOnShapeMismatch(loaded);
+        model = loaded;
+        status = 'ready';
+        return loaded;
+      } catch {
+        return null;
+      }
+    };
+
+    const bundledUri = await resolveBundledModel();
+    if (bundledUri) {
+      const loaded = await tryLoad(bundledUri);
+      if (loaded) return loaded;
+      // bundled file is corrupt/invalid — fall through to runtime download
+    }
+
+    const downloadedUri = await ensureModelFile(onProgress);
+    if (!downloadedUri) {
       status = 'unavailable';
       return null;
     }
-    try {
-      status = 'loading';
-      const loaded = await loadTensorflowModel({ url: fileUri });
-      warnOnShapeMismatch(loaded);
-      model = loaded;
-      status = 'ready';
-      return loaded;
-    } catch {
-      status = 'unavailable';
-      model = null;
-      return null;
-    }
+    const loaded = await tryLoad(downloadedUri);
+    if (!loaded) status = 'unavailable';
+    return loaded;
   })();
 
   try {
