@@ -1,3 +1,11 @@
+// =============================================================================
+// WaterTracker — Daily hydration progress + quick-add chips
+// =============================================================================
+// Shows a thin progress bar (consumed / goal mL), the current vs goal in the
+// user's selected unit (mL / oz), and two quick-add buttons (250 mL & 500 mL,
+// or oz equivalents). Quick-add fires a light haptic and calls `onAdd(ml)`.
+// Goal-met state turns the bar / chips accent-green.
+
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';

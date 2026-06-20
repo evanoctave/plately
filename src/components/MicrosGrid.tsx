@@ -1,3 +1,11 @@
+// =============================================================================
+// MicrosGrid — Eight tracked micronutrients as a grid
+// =============================================================================
+// Renders sodium, potassium, calcium, iron, magnesium, vitamin A/C/D as a 4×2
+// grid of mini cards. Each cell shows the absolute amount + a "% of FDA Daily
+// Value" bar (clamped 0..1) using the metadata in `MICRO_META`. Color
+// coding: under = muted, met = accent, over = amber.
+
 import { View, Text, StyleSheet } from 'react-native';
 
 import { MICRO_META, type Nutrition } from '../data/nutrients';

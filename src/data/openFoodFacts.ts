@@ -1,4 +1,13 @@
-// Barcode → food lookup via Open Food Facts (free, key-less). Lookups fail soft.
+// =============================================================================
+// data/openFoodFacts — Barcode → food lookup
+// =============================================================================
+// Uses the free, key-less Open Food Facts API to resolve a UPC/EAN barcode to
+// a `FoodItem`. Result ids are prefixed with `off:` so the diary can
+// distinguish them from USDA / custom foods.
+//
+// Lookups are fire-and-forget — any failure (network, malformed JSON, missing
+// nutriments) silently returns `null` and the UI falls back to manual entry.
+// No tracking, no API keys, no server of our own.
 
 import { ZERO_NUTRITION, type Nutrition } from './nutrients';
 import type { FoodItem } from './foods';

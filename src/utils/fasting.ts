@@ -1,3 +1,11 @@
+// =============================================================================
+// utils/fasting — Fasting protocol presets + streak math
+// =============================================================================
+// Defines the well-known IF protocols (16:8, 18:6, OMAD, etc.) the UI exposes
+// as preset cards, plus the streak calculation: consecutive recent days where
+// the user completed a fast meeting some minimum length. Mirrors the diary
+// streak semantics ending today/yesterday.
+
 import { differenceInCalendarDays } from 'date-fns';
 
 import type { FastSession } from '../db/fasting';

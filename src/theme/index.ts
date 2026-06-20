@@ -1,44 +1,73 @@
-// Design tokens.
+// =============================================================================
+// THEME — Design tokens
+// =============================================================================
+// Central source of truth for colors, spacing, typography, and elevation.
+// Every component imports from here instead of using raw hex values or magic
+// numbers, so a single edit here re-skins the whole app.
+//
+// Conventions:
+//   - `palette` holds named colors (semantic + functional).
+//   - `spacing` / `radius` / `font` are scales — pick a step, not a raw number.
+//   - `shadow.card` is the only resting elevation in the app.
+//
+// When templating this for a new app: change `palette.accent` first, then
+// the surface/text values. The rest cascades.
 
+/**
+ * App-wide color values.
+ *
+ * Semantic roles (use these in components):
+ *   bg, surface, surfaceAlt, border    — background layers
+ *   text, textMuted, textFaint         — text emphasis
+ *   accent, accentDark, accentSoft     — brand color (default emerald)
+ *
+ * Functional colors (used to convey meaning — not decoration):
+ *   teal / amber / red / blue / water  — signals (success, warning, error, info, hydration)
+ *
+ * Aliases (`green`, `greenDark`) exist for legacy call sites that referenced
+ * the old palette; they resolve to the current accent. Migrate them when you
+ * touch surrounding code.
+ */
 export const palette = {
-  // Accent — electric indigo. Used sparingly: focus/active state + primary CTA.
-  accent: '#7370FA',
-  accentDark: '#5E58D8',
-  accentSoft: '#2B284F',
+  // Accent — fresh emerald. Used for active states, progress, primary CTA.
+  accent: '#16A34A',
+  accentDark: '#15803D',
+  accentSoft: '#E7F8EE',
 
-  // Deprecated aliases → accent. Existing `palette.green` refs now render
-  // indigo; migrate them to `palette.accent` when touching a file.
-  green: '#7370FA',
-  greenDark: '#5E58D8',
+  // Aliases — `palette.green` etc. resolve to accent. Migrate as you touch files.
+  green: '#16A34A',
+  greenDark: '#15803D',
 
   // Functional signal colors (meaning, not decoration)
-  teal: '#4FBEC4',
-  amber: '#F5AE39',
-  red: '#EA3C3F',
-  blue: '#4D97DE',
-  water: '#49ABD6',
+  teal: '#0EA5A8',
+  amber: '#F59E0B',
+  red: '#DC2626',
+  blue: '#2563EB',
+  water: '#0EA5E9',
 
-  // Surfaces — warm near-black, faintly indigo-tinted
-  bg: '#0B0B0E',
-  surface: '#15151B',
-  surfaceAlt: '#212128',
-  border: '#2F2F37',
+  // Surfaces — warm off-white background, near-white cards
+  bg: '#F8F7F2',
+  surface: '#FFFFFF',
+  surfaceAlt: '#F1F0EA',
+  border: '#E6E5DD',
 
-  // Text — near-white with a faint cool tint
-  text: '#F5F5F8',
-  textMuted: '#9797A5',
-  textFaint: '#575762',
+  // Text — near-black with a warm tint (matches the off-white bg)
+  text: '#15140F',
+  textMuted: '#6B6B62',
+  textFaint: '#A7A69E',
 
   white: '#FFFFFF',
   black: '#000000',
 } as const;
 
+/** Colors assigned to each macronutrient. Used consistently across charts, rings, and macro cards. */
 export const macroColors = {
-  protein: '#EF6661',
-  carbs: '#EEBC4A',
-  fat: '#00B4BC',
+  protein: '#DC2626',
+  carbs: '#F59E0B',
+  fat: '#0EA5A8',
 } as const;
 
+/** Spacing scale (in px). Always pick a step rather than a raw number to keep rhythm consistent. */
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -48,6 +77,7 @@ export const spacing = {
   xxl: 32,
 } as const;
 
+/** Border radius scale. `pill` is for fully-rounded buttons / chips. */
 export const radius = {
   sm: 8,
   md: 12,
@@ -56,6 +86,14 @@ export const radius = {
   pill: 999,
 } as const;
 
+/**
+ * Typography tokens.
+ *
+ * NOTE on `family`: React Native ignores `fontWeight` once a `fontFamily`
+ * is set, so each weight ships as its own family — pick the family, not the
+ * weight. `ui` = Space Grotesk (text/headings), `mono` = JetBrains Mono
+ * (all numbers). Loading the fonts is handled in App.tsx via `useFonts`.
+ */
 export const font = {
   size: {
     xs: 11,
@@ -72,9 +110,6 @@ export const font = {
     semibold: '600',
     bold: '700',
   },
-  // Custom font families. RN ignores `fontWeight` once `fontFamily` is set, so
-  // each weight is its own family — pick the family, not the weight.
-  // `ui` = Space Grotesk (text/headings), `mono` = JetBrains Mono (all numbers).
   family: {
     ui: 'SpaceGrotesk_400Regular',
     uiMedium: 'SpaceGrotesk_500Medium',
@@ -83,6 +118,21 @@ export const font = {
     mono: 'JetBrainsMono_500Medium',
     monoSemibold: 'JetBrainsMono_600SemiBold',
     monoBold: 'JetBrainsMono_700Bold',
+  },
+} as const;
+
+/**
+ * Resting elevation for white cards on the off-white background.
+ * Used via `...shadow.card` spread into the card's style. iOS-tuned values;
+ * `elevation: 2` provides the Android equivalent.
+ */
+export const shadow = {
+  card: {
+    shadowColor: '#0B0A07',
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
 } as const;
 

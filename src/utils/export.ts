@@ -1,5 +1,12 @@
-// CSV diary export. Pure serialization lives in csv.ts; this adds the
-// file-write + share-sheet wrapper.
+// =============================================================================
+// utils/export — Diary CSV export (write + share sheet)
+// =============================================================================
+// Glue between `utils/csv.buildCsv` (pure serialization) and the native
+// FileSystem + Sharing APIs. Writes the CSV into the app cache, then opens
+// the iOS/Android share sheet so the user can email / save / AirDrop.
+//
+// Wrapped in try/catch by callers — the share sheet can be cancelled, which
+// surfaces as a rejected promise from `Sharing.shareAsync`.
 
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';

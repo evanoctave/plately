@@ -1,3 +1,26 @@
+// =============================================================================
+// RootNavigator — App navigation graph
+// =============================================================================
+// Defines the full route tree: which screens exist, how they animate in, and
+// what's visible before vs. after onboarding.
+//
+// Structure:
+//   NavigationContainer
+//     └── Stack.Navigator
+//           ├── Onboarding flow (only mounted while `onboardingComplete = false`)
+//           │     • Onboarding (landing) → OnboardingFlow (Q&A) → GoalResults → Auth
+//           ├── Tabs (always mounted) — bottom tab bar with Home / Insights / History / Settings
+//           ├── Camera / BarcodeScan — fullscreen modals pushed from Home
+//           └── Detail screens (ConfirmFood, DayDetail, Achievements, etc.)
+//
+// Custom UI:
+//   `AnimatedTabBar` is a hand-rolled bottom tab bar. It draws a sliding accent
+//   pill behind the active tab and animates with react-native-reanimated. This
+//   replaces React Navigation's default tab bar entirely.
+//
+// To add a screen: register it in `RootStackParamList` (../navigation/types.ts)
+// then add a `<Stack.Screen>` here with the matching name.
+
 import { useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
 import Animated, {
@@ -6,7 +29,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { DarkTheme, NavigationContainer } from '@react-navigation/native';
+import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator, type BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
@@ -29,6 +52,9 @@ import { MyFoodsScreen } from '../screens/MyFoodsScreen';
 import { BarcodeScanScreen } from '../screens/BarcodeScanScreen';
 import { GoalCalculatorScreen } from '../screens/GoalCalculatorScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
+import { OnboardingFlowScreen } from '../screens/OnboardingFlowScreen';
+import { AuthScreen } from '../screens/AuthScreen';
+import { GoalResultsScreen } from '../screens/GoalResultsScreen';
 import { PrivacyPolicyScreen } from '../screens/PrivacyPolicyScreen';
 import { AchievementsScreen } from '../screens/AchievementsScreen';
 import { RecipeBuilderScreen } from '../screens/RecipeBuilderScreen';
@@ -42,6 +68,8 @@ import { MealPlannerScreen } from '../screens/MealPlannerScreen';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
+// Ionicons name for each tab. `as keyof` is asserted because RN's type for
+// `Ionicons.name` is a union of ~1000 strings — too noisy to redeclare.
 const TAB_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
   Home: 'today',
   Insights: 'stats-chart',
@@ -49,6 +77,8 @@ const TAB_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']> =
   Settings: 'settings',
 };
 
+// Display labels under each tab icon. Route names stay machine-friendly
+// ("Home") while the user-visible string can differ ("Today").
 const TAB_LABELS: Record<string, string> = {
   Home: 'Today',
   Insights: 'Insights',
@@ -56,9 +86,16 @@ const TAB_LABELS: Record<string, string> = {
   Settings: 'Settings',
 };
 
+/** Spring used for the sliding tab-bar pill. Gentle, not bouncy. */
 const SPRING = { mass: 0.5, damping: 18, stiffness: 220 };
+/** Width of the animated background pill, in px. */
 const PILL_W = 64;
 
+/**
+ * Custom bottom tab bar. Renders a sliding accent-tinted pill behind the
+ * focused tab and shows label + icon for each route. Position of the pill is
+ * animated whenever the focused index changes.
+ */
 function AnimatedTabBar({ state, navigation }: BottomTabBarProps) {
   const accent = useSettings((s) => s.accent);
   const { width: screenWidth } = useWindowDimensions();
@@ -155,6 +192,10 @@ const tabStyles = StyleSheet.create({
   },
 });
 
+/**
+ * The bottom-tab container shown after onboarding. Tabs are kept in sync with
+ * `TabParamList`. The tab bar is our `AnimatedTabBar`, not the RN default.
+ */
 function Tabs() {
   return (
     <Tab.Navigator
@@ -169,14 +210,22 @@ function Tabs() {
   );
 }
 
+/**
+ * The whole app's navigation tree. Conditionally mounts the onboarding stack
+ * based on `onboardingComplete`. Once that flips true, the user is moved into
+ * the `Tabs` route and the onboarding screens are unmounted entirely.
+ */
 export function RootNavigator() {
   const onboardingComplete = useSettings((s) => s.onboardingComplete);
   const accent = useSettings((s) => s.accent);
 
+  // React Navigation has its own theming system. We feed it our palette so
+  // that the header background, default text color, and back arrow tint all
+  // match the rest of the UI without per-screen `screenOptions` overrides.
   const navTheme = {
-    ...DarkTheme,
+    ...DefaultTheme,
     colors: {
-      ...DarkTheme.colors,
+      ...DefaultTheme.colors,
       background: palette.bg,
       card: palette.surface,
       text: palette.text,
@@ -196,14 +245,23 @@ export function RootNavigator() {
           animation: 'slide_from_right',
         }}
       >
+        {/* Pre-onboarding screens. Mounted only until the user finishes onboarding,
+            then unmounted entirely so they can never be reached again. */}
         {!onboardingComplete && (
-          <Stack.Screen
-            name="Onboarding"
-            component={OnboardingScreen}
-            options={{ headerShown: false }}
-          />
+          <>
+            <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="OnboardingFlow" component={OnboardingFlowScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="GoalResults" component={GoalResultsScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="Auth" component={AuthScreen} options={{ headerShown: false }} />
+          </>
         )}
+        {/* Main app shell. Always mounted; the initial route falls through to
+            this one once onboarding is complete. */}
         <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
+        {/* Post-onboarding auth presented as a modal (e.g. from Settings "Sign in"). */}
+        {onboardingComplete && (
+          <Stack.Screen name="Auth" component={AuthScreen} options={{ headerShown: false, presentation: 'modal' }} />
+        )}
         <Stack.Screen
           name="Camera"
           component={CameraScreen}

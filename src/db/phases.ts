@@ -1,3 +1,13 @@
+// =============================================================================
+// db/phases — Goal phases (SQLite)
+// =============================================================================
+// Saved nutrition goal presets — typically a cycle of "cut → maintain → bulk"
+// for users following a structured programming. Each phase carries its own
+// `Goals` payload (calories + macros) that, when "active", overrides the
+// settings store goals.
+//
+// Powers the GoalPhases screen (Plus-only).
+
 import * as SQLite from 'expo-sqlite';
 
 import type { Goals } from '../data/nutrients';

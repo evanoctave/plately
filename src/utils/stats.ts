@@ -1,3 +1,11 @@
+// =============================================================================
+// utils/stats — Streak + windowed aggregates
+// =============================================================================
+// Pure helpers that compute "current streak", "last N days range", and
+// "average over the last K logged days" from the day-key arrays produced by
+// `db/database.getLoggedDays`. Used by the streak chip on Home, the
+// Achievements screen, and the Insights weekly views.
+
 import { format, subDays } from 'date-fns';
 
 import { dayKey } from './date';

@@ -1,5 +1,14 @@
-// User-created custom foods (local SQLite). Share the FoodItem shape; ids are
-// prefixed with `custom:`.
+// =============================================================================
+// db/customFoods — User-created foods (SQLite)
+// =============================================================================
+// Lets the user add foods that aren't in the built-in catalog (homemade meals,
+// regional brands, etc.). They live in their own `custom_foods` table but
+// share the same `FoodItem` shape as built-in foods. Ids are prefixed with
+// `custom:` so resolution code can disambiguate.
+//
+// In-memory access: `src/data/catalog.ts` calls `refreshCustomFoods()` (loaded
+// here) into a Map, and search/log lookups go through the catalog rather than
+// hitting SQLite again.
 
 import * as SQLite from 'expo-sqlite';
 

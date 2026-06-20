@@ -1,5 +1,19 @@
-// Nutrient model. Food values are per 100 g of edible portion (USDA FoodData
-// Central). Daily Values follow U.S. FDA labels (2,000 kcal reference adult).
+// =============================================================================
+// data/nutrients — Nutrient model & daily-value reference
+// =============================================================================
+// Canonical shape of nutrition data throughout the app. Every food's per-100g
+// values match these keys; entries in the diary copy a `Nutrition` snapshot;
+// totals are computed by `utils/nutrition.sumNutrition`.
+//
+// Data source: USDA FoodData Central (per 100g of edible portion).
+// Daily Values match U.S. FDA labels for a 2000 kcal reference adult.
+//
+// Adding a new nutrient:
+//   1. Add to `Macros` or `Micros`.
+//   2. Add to `ZERO_NUTRITION`.
+//   3. Add a column to the `entries` table in `db/database.ts` AND include
+//      it in `NUTRITION_COLUMNS`.
+//   4. Optionally add to `DAILY_VALUES` for the micros grid.
 
 export interface Macros {
   calories: number; // kcal

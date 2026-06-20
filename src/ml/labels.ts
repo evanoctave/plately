@@ -1,5 +1,18 @@
-// Classifier label space. FOOD101_LABELS is the canonical Food-101 class order
-// (matches the model's output layer); LABEL_TO_FOOD_ID maps classes to foods.json.
+// =============================================================================
+// ml/labels — Classifier label space + display mapping
+// =============================================================================
+// FOOD101_LABELS lists the 101 classes the on-device TFLite model can output,
+// in the exact order the model produces them — index `i` of the output tensor
+// corresponds to label `FOOD101_LABELS[i]`. If a new model with a different
+// class order is loaded, this array MUST be reordered to match, or every
+// prediction will be mislabeled.
+//
+// LABEL_TO_FOOD_ID maps each class label to a food id in `data/foods.json`,
+// which is what the diary actually stores. Labels with no good match in the
+// catalog map to `null` (the UI falls back to manual search in that case).
+//
+// `prettyLabel` is a tiny helper that turns `chicken_quesadilla` into
+// `Chicken Quesadilla` for display.
 
 export const FOOD101_LABELS: string[] = [
   'apple_pie', 'baby_back_ribs', 'baklava', 'beef_carpaccio', 'beef_tartare',

@@ -1,3 +1,10 @@
+// =============================================================================
+// db/weights — Daily body-weight log (SQLite)
+// =============================================================================
+// One row per day (day is the primary key — re-logging today overwrites). Used
+// by the Weight screen for the weigh-in trend line and by Insights for the
+// "progress to goal" chart.
+
 import * as SQLite from 'expo-sqlite';
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;

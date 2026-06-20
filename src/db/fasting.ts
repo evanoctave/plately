@@ -1,3 +1,12 @@
+// =============================================================================
+// db/fasting — Intermittent fasting sessions (SQLite)
+// =============================================================================
+// One row per fasting window. `endedAt` is null while a fast is in progress,
+// so "the active fast" is the row with `endedAt IS NULL` (there should never
+// be more than one — `state/useFasting` enforces that by gating Start in the UI).
+//
+// Powers the Fasting screen (Plus-only feature) and its streak.
+
 import * as SQLite from 'expo-sqlite';
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;

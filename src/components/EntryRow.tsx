@@ -1,3 +1,11 @@
+// =============================================================================
+// EntryRow — One row in the diary list
+// =============================================================================
+// Renders a single `FoodEntry`: photo thumbnail (or an emoji icon for non-photo
+// sources), name + grams + time, calories on the right. Water entries hide
+// the calorie column and show "mL" instead of "g". Tappable: long-press fires
+// `onLongPress` (used by the consumer to confirm a delete).
+
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 
@@ -61,13 +69,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: 6,
   },
   pressed: { opacity: 0.6 },
-  thumb: { width: 48, height: 48, borderRadius: radius.md, backgroundColor: palette.surfaceAlt },
+  thumb: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: palette.surfaceAlt },
   iconThumb: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
     borderRadius: radius.md,
     backgroundColor: palette.surfaceAlt,
     alignItems: 'center',

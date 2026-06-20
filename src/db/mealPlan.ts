@@ -1,3 +1,12 @@
+// =============================================================================
+// db/mealPlan — Meal plan items (SQLite)
+// =============================================================================
+// Forward-looking version of the diary: planned meals (with a nutrition
+// snapshot) grouped by day. Powers the Meal Planner screen (Plus-only).
+//
+// On the day-of, a planned item can be "moved" into the real diary as a
+// regular entry; that's done at the call site (MealPlannerScreen).
+
 import * as SQLite from 'expo-sqlite';
 
 import { ZERO_NUTRITION, type Nutrition } from '../data/nutrients';

@@ -1,5 +1,17 @@
-// Unified catalog: bundled USDA foods + the user's custom foods (cached in
-// memory, refreshed from SQLite). Lets a `custom:` id resolve like a built-in.
+// =============================================================================
+// data/catalog — Unified foods catalog (built-in + custom + cached)
+// =============================================================================
+// Merges the bundled USDA `FOODS` array with the user's custom foods loaded
+// from SQLite. Maintains a single `id → FoodItem` Map for O(1) lookups, so a
+// `custom:` id resolves the same way as a built-in id.
+//
+// Initialization: built-in foods are indexed at module load. Custom foods are
+// loaded on demand via `refreshCustomFoods()` — called once at app start
+// (App.tsx), once when QuickAdd reloads, and whenever the user adds/edits a
+// custom food.
+//
+// `searchFoods` first runs the static USDA matcher, then appends fuzzy
+// matches from the custom foods table.
 
 import { FOODS, searchFoods as searchStatic, type FoodItem } from './foods';
 import { getCustomFoods } from '../db/customFoods';

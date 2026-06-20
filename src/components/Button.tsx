@@ -1,3 +1,11 @@
+// =============================================================================
+// Button — Primary CTA component
+// =============================================================================
+// Variants: primary (filled), secondary (outline), ghost (text-only), danger
+// (red). Includes a press scale animation, optional left icon, loading
+// spinner state, and a light haptic on press. Designed for full-width usage
+// inside screen footers; pass `style` to override sizing.
+
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';

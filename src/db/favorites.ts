@@ -1,4 +1,9 @@
-// Favorite food ids for one-tap re-logging (local SQLite).
+// =============================================================================
+// db/favorites — Favorite food ids (SQLite)
+// =============================================================================
+// Lightweight table that just stores `foodId → createdAt`. The actual food
+// objects come from `src/data/catalog.ts` at read time. Drives the favorites
+// half of the Quick Add strip on the Home screen.
 
 import * as SQLite from 'expo-sqlite';
 

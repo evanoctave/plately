@@ -1,3 +1,12 @@
+// =============================================================================
+// QuickAdd — Horizontal strip of one-tap log chips
+// =============================================================================
+// Renders the list of suggested foods from `useQuickAdd` as a horizontal
+// scroll of small cards. Each chip:
+//   - Tap → onQuickLog (log instantly at the suggested grams; fires haptic)
+//   - Long-press → onOpen (jump to ConfirmFood for fine-tuning grams)
+// Favorites show a star icon; recents show a clock.
+
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';

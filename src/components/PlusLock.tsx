@@ -1,3 +1,12 @@
+// =============================================================================
+// PlusLock — Paywall for Plately+ features
+// =============================================================================
+// Drop-in screen-level fallback rendered by any Plus-only screen when the
+// user hasn't unlocked Plately+. Shows the feature icon, a short pitch, and
+// a CTA that routes to the PlatelyPlusScreen for purchase / unlock. Usage:
+//
+//   if (!plusActive) return <PlusLock icon="hourglass" title="Fasting" ... />;
+
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';

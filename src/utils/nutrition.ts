@@ -1,3 +1,15 @@
+// =============================================================================
+// utils/nutrition — Nutrition math helpers
+// =============================================================================
+// Tiny, dependency-free helpers used across the diary, charts, and totals.
+//
+// Highlights:
+//   - nutritionForGrams: scale a food's per-100g profile to an arbitrary mass.
+//   - sumNutrition: total any iterable of Nutrition objects (entries, plan items).
+//   - clamp01: clamp a 0..1 progress fraction (used by Ring, MacroBars).
+//
+// All pure / synchronous so they're cheap to call inside selectors.
+
 import {
   MICRO_META,
   ZERO_NUTRITION,

@@ -1,3 +1,11 @@
+// =============================================================================
+// utils/phases — Goal phase metadata + math
+// =============================================================================
+// Each `PhaseKind` ("cut" / "maintain" / "bulk") has a default calorie
+// multiplier relative to the maintenance baseline plus suggested macro split.
+// Used by the GoalPhases screen to seed new phases and to compute the
+// effective `Goals` payload when a phase is selected as active.
+
 import type { Goals } from '../data/nutrients';
 import type { PhaseKind } from '../db/phases';
 

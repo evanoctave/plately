@@ -1,3 +1,14 @@
+// =============================================================================
+// data/foods — Built-in foods catalog
+// =============================================================================
+// Loads `foods.json` (USDA-derived seed data) into a typed `FoodItem[]` and
+// provides search + lookup helpers. This is the read-only "stock" catalog —
+// user-added foods live in `db/customFoods.ts` and the merged unified view
+// is `data/catalog.ts`.
+//
+// Search is plain substring/alias matching, not full-text. Foods may include
+// `aliases` to make matching more forgiving (e.g. "yam" → "sweet potato").
+
 import type { Nutrition } from './nutrients';
 import foodsJson from './foods.json';
 

@@ -1,3 +1,10 @@
+// =============================================================================
+// usePlus — Plately+ subscription entitlement
+// =============================================================================
+// Thin wrapper over the settings store's `plusActive` flag. Centralizing the
+// read/write here means UI code never reads the raw flag and we can swap in
+// StoreKit / RevenueCat without touching call sites.
+
 import { useSettings } from './useSettings';
 
 /**

@@ -1,3 +1,10 @@
+// =============================================================================
+// LineChart — Simple line chart (SVG)
+// =============================================================================
+// Used by Insights + the Weight trend view. Built on react-native-svg with a
+// single `Polyline`. Auto-scales the y-axis based on min/max of the data.
+// Dots are drawn only at the endpoints to keep the chart visually quiet.
+
 import { useState } from 'react';
 import { View, Text, StyleSheet, type LayoutChangeEvent } from 'react-native';
 import Svg, { Polyline, Circle } from 'react-native-svg';

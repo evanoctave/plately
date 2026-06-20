@@ -1,3 +1,14 @@
+// =============================================================================
+// utils/coach — Heuristic tips for the Smart Coach screen
+// =============================================================================
+// Generates short, contextual tips ("You're low on protein today", "Hydration
+// behind schedule", etc.) from the user's day-so-far totals + goals. Output is
+// a list of `CoachTip` objects with a tone, icon, title, and one-line detail.
+//
+// Pure / synchronous so it can be re-evaluated on every diary change without
+// performance worries. Tone (`good` / `warn` / `info`) drives icon + accent
+// color on the Smart Coach screen.
+
 import type { Goals, Nutrition } from '../data/nutrients';
 
 export type CoachTone = 'good' | 'warn' | 'info';

@@ -1,5 +1,17 @@
-// Local gamification. All progress derives from on-device diary data — no
-// account, no server, no tracking. Pure functions so they stay unit-testable.
+// =============================================================================
+// data/achievements — Local gamification
+// =============================================================================
+// Defines every unlockable badge plus the pure functions that compute progress
+// from on-device diary data. There's no server, no account, no tracking — the
+// `AchievementStats` shape is derived locally on the Achievements screen.
+//
+// Adding a new achievement:
+//   1. Add an entry to the `ACHIEVEMENTS` array with a stable `id`, target
+//      number, and the `metric` (key into `AchievementStats`) it tracks.
+//   2. Make sure `AchievementStats` has that metric and the screen computes it.
+//
+// Stays pure so it can be unit-tested without mocking SQLite (see
+// `__tests__/achievements.test.ts`).
 
 import { differenceInCalendarDays, parseISO } from 'date-fns';
 

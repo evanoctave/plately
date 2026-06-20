@@ -1,3 +1,11 @@
+// =============================================================================
+// MacroBars — Animated protein / carbs / fat progress bars
+// =============================================================================
+// Three horizontal progress bars stacked vertically, one per macro. Bars
+// animate width on mount and on value change. Each bar uses the macro's
+// dedicated color from `theme.macroColors`. Designed to sit inside a card
+// (no own background); the consumer provides container styling.
+
 import { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
@@ -87,14 +95,14 @@ export function MacroBars({ protein, carbs, fat, goals }: MacroBarsProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: spacing.lg },
+  container: { gap: spacing.md },
   row: { gap: spacing.xs },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
   label: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiMedium },
   value: { color: palette.text, fontSize: font.size.sm, fontFamily: font.family.monoSemibold },
   goal: { color: palette.textFaint, fontFamily: font.family.mono },
   track: {
-    height: 8,
+    height: 6,
     borderRadius: radius.pill,
     backgroundColor: palette.surfaceAlt,
     overflow: 'hidden',

@@ -1,3 +1,11 @@
+// =============================================================================
+// BarChart — Simple vertical bar chart (SVG)
+// =============================================================================
+// Used on the Insights screen for weekly calorie / macro intake. No external
+// chart library — drawn with react-native-svg `Rect`s. Bars can be
+// individually `highlight`ed (used to mark today). Accepts an optional `goal`
+// dashed line and respects the configured accent color.
+
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Rect, Line } from 'react-native-svg';
 

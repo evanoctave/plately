@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
-import { Ring } from '../components/Ring';
+import { BigRing } from '../components/Ring';
 import { MacroBars } from '../components/MacroBars';
 import { MicrosGrid } from '../components/MicrosGrid';
 import { EntryRow } from '../components/EntryRow';
@@ -22,7 +22,7 @@ export function DayDetailScreen({ route }: RootStackScreenProps<'DayDetail'>) {
       <Text style={styles.title}>{prettyDay(day)}</Text>
 
       <Card style={styles.ringCard}>
-        <Ring
+        <BigRing
           progress={goals.calories > 0 ? totals.calories / goals.calories : 0}
           value={totals.calories}
           goal={goals.calories}

@@ -1,4 +1,11 @@
-// Aggregate diary queries for the Insights screen.
+// =============================================================================
+// db/stats — Aggregate diary queries
+// =============================================================================
+// Read-only helpers that run aggregate SQL over the `entries` table to power
+// the Insights screen (weekly bar charts, averages, totals) and the Quick Add
+// strip (most-recently-used foods).
+//
+// All writes go through `db/database.ts` — this file only SELECTs.
 
 import * as SQLite from 'expo-sqlite';
 

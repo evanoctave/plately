@@ -1,26 +1,122 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Ring } from '../components/Ring';
-import { MacroBars } from '../components/MacroBars';
 import { MicrosGrid } from '../components/MicrosGrid';
 import { WaterTracker } from '../components/WaterTracker';
 import { EntryRow } from '../components/EntryRow';
 import { QuickAdd } from '../components/QuickAdd';
 import { Card, SectionTitle } from '../components/Card';
-import { palette, spacing, font, radius } from '../theme';
+import { palette, spacing, font, radius, shadow, macroColors } from '../theme';
 import { ZERO_NUTRITION } from '../data/nutrients';
 import { useSettings } from '../state/useSettings';
-import { logEntry, removeEntry, useDayLog } from '../state/useDiary';
+import { logEntry, removeEntry, useDayLog, useDiaryRevision } from '../state/useDiary';
 import { useQuickAdd, type QuickAddItem } from '../state/useQuickAdd';
+import { getLoggedDays } from '../db/database';
+import { computeStreak } from '../utils/stats';
 import { nutritionForGrams } from '../utils/nutrition';
-import { dayKey, prettyDay } from '../utils/date';
+import { dayKey } from '../utils/date';
+import { fmtInt } from '../utils/format';
 import type { TabScreenProps } from '../navigation/types';
 
 const SPRING = { mass: 0.4, damping: 14, stiffness: 260 };
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function CalendarStrip({ today }: { today: Date }) {
+  const week = useMemo(() => {
+    const sunday = new Date(today);
+    sunday.setDate(today.getDate() - today.getDay());
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(sunday);
+      d.setDate(sunday.getDate() + i);
+      return d;
+    });
+  }, [today]);
+
+  const todayKey = today.toDateString();
+
+  return (
+    <View style={calStyles.strip}>
+      {week.map((d, i) => {
+        const isToday = d.toDateString() === todayKey;
+        return (
+          <View key={i} style={calStyles.day}>
+            <Text style={[calStyles.dow, isToday && calStyles.dowToday]}>{DAY_NAMES[i]}</Text>
+            <View style={[calStyles.numWrap, isToday && calStyles.numWrapToday]}>
+              <Text style={[calStyles.num, isToday && calStyles.numToday]}>{d.getDate()}</Text>
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+const calStyles = StyleSheet.create({
+  strip: { flexDirection: 'row', justifyContent: 'space-between' },
+  day: { alignItems: 'center', gap: 6, flex: 1 },
+  dow: { color: palette.textFaint, fontSize: font.size.xs, fontFamily: font.family.uiMedium, letterSpacing: 0.4 },
+  dowToday: { color: palette.text },
+  numWrap: {
+    width: 36, height: 36, borderRadius: radius.pill,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'transparent',
+  },
+  numWrapToday: {
+    backgroundColor: palette.text,
+  },
+  num: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+  numToday: { color: palette.white },
+});
+
+interface MacroCardProps {
+  label: string;
+  remaining: number;
+  unit?: string;
+  color: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  progress: number;
+}
+
+function MacroCard({ label, remaining, unit = 'g', color, icon, progress }: MacroCardProps) {
+  return (
+    <View style={macroStyles.card}>
+      <Text style={macroStyles.value}>
+        {fmtInt(Math.max(0, remaining))}
+        <Text style={macroStyles.unit}>{unit}</Text>
+      </Text>
+      <Text style={macroStyles.label}>{label} left</Text>
+      <View style={macroStyles.ringWrap}>
+        <Ring progress={progress} size={32} strokeWidth={4} color={color} icon={icon} iconColor={color} />
+      </View>
+    </View>
+  );
+}
+
+const macroStyles = StyleSheet.create({
+  card: {
+    flex: 1,
+    backgroundColor: palette.surface,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: palette.border,
+    minHeight: 96,
+    ...shadow.card,
+  },
+  value: {
+    color: palette.text,
+    fontSize: font.size.xl,
+    fontFamily: font.family.uiBold,
+    letterSpacing: -0.6,
+  },
+  unit: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+  label: { color: palette.textMuted, fontSize: font.size.xs, fontFamily: font.family.uiMedium, marginTop: 1 },
+  ringWrap: { position: 'absolute', right: spacing.md, bottom: spacing.md },
+});
 
 export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
   const today = dayKey();
@@ -29,6 +125,16 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
   const plusActive = useSettings((s) => s.plusActive);
   const { entries, totals } = useDayLog(today);
   const { items: quickAddItems } = useQuickAdd();
+
+  const revision = useDiaryRevision((s) => s.revision);
+  const [streak, setStreak] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    void getLoggedDays(60).then((days) => {
+      if (alive) setStreak(computeStreak(days));
+    });
+    return () => { alive = false; };
+  }, [revision]);
 
   const quickLog = useCallback(
     (item: QuickAddItem) => {
@@ -70,36 +176,73 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
   const snapScale = useSharedValue(1);
   const snapAnimated = useAnimatedStyle(() => ({ transform: [{ scale: snapScale.value }] }));
 
+  const calProgress = goals.calories > 0 ? totals.calories / goals.calories : 0;
+  const calsLeft = Math.max(0, goals.calories - totals.calories);
+  const over = totals.calories > goals.calories;
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
         {/* Header */}
         <View style={styles.header}>
-          <View>
-            <Text style={styles.dateLabel}>{prettyDay(today)}</Text>
-            <Text style={styles.title}>Your day</Text>
-          </View>
+          <Text style={styles.brand}>Plately</Text>
+          <Pressable
+            style={({ pressed }) => [styles.streakChip, pressed && { opacity: 0.7 }]}
+            onPress={() => navigation.navigate('Achievements')}
+            accessibilityRole="button"
+            accessibilityLabel="View achievements"
+          >
+            <Ionicons name="flame" size={14} color={palette.amber} />
+            <Text style={styles.streakNum}>{streak}</Text>
+          </Pressable>
         </View>
 
-        {/* Hero: calorie ring + macro bars — no card wrapper */}
-        <View style={styles.hero}>
-          <Ring
-            progress={goals.calories > 0 ? totals.calories / goals.calories : 0}
-            value={totals.calories}
-            goal={goals.calories}
-            label="Calories"
-            unit="kcal"
-            color={accent}
-          />
-          <View style={styles.macrosBlock}>
-            <MacroBars
-              protein={totals.protein}
-              carbs={totals.carbs}
-              fat={totals.fat}
-              goals={goals}
-            />
+        {/* Week strip */}
+        <CalendarStrip today={new Date()} />
+
+        {/* Big calorie card */}
+        <View style={styles.calorieCard}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.calNumber}>
+              {fmtInt(over ? totals.calories - goals.calories : calsLeft)}
+            </Text>
+            <Text style={styles.calLabel}>{over ? 'Calories over' : 'Calories left'}</Text>
+            <Text style={styles.calMeta}>of {fmtInt(goals.calories)} kcal goal</Text>
           </View>
+          <Ring
+            progress={calProgress}
+            size={84}
+            strokeWidth={8}
+            color={over ? palette.amber : accent}
+            icon="flame"
+            iconColor={palette.text}
+          />
+        </View>
+
+        {/* Macro row */}
+        <View style={styles.macroRow}>
+          <MacroCard
+            label="Protein"
+            remaining={goals.protein - totals.protein}
+            color={macroColors.protein}
+            icon="fitness"
+            progress={goals.protein > 0 ? totals.protein / goals.protein : 0}
+          />
+          <MacroCard
+            label="Carbs"
+            remaining={goals.carbs - totals.carbs}
+            color={macroColors.carbs}
+            icon="leaf"
+            progress={goals.carbs > 0 ? totals.carbs / goals.carbs : 0}
+          />
+          <MacroCard
+            label="Fat"
+            remaining={goals.fat - totals.fat}
+            color={macroColors.fat}
+            icon="water"
+            progress={goals.fat > 0 ? totals.fat / goals.fat : 0}
+          />
         </View>
 
         {/* Actions */}
@@ -113,7 +256,7 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
               accessibilityRole="button"
               accessibilityLabel="Snap a photo of your meal"
             >
-              <Ionicons name="camera" size={22} color={palette.white} />
+              <Ionicons name="camera" size={20} color={palette.white} />
               <Text style={styles.snapText}>Snap a meal</Text>
             </Pressable>
           </Animated.View>
@@ -124,7 +267,7 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
             accessibilityRole="button"
             accessibilityLabel="Search for a food to add"
           >
-            <Ionicons name="search" size={20} color={palette.textMuted} />
+            <Ionicons name="search" size={20} color={palette.text} />
           </Pressable>
           <Pressable
             style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
@@ -132,33 +275,9 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
             accessibilityRole="button"
             accessibilityLabel="Scan a barcode"
           >
-            <Ionicons name="barcode-outline" size={20} color={palette.textMuted} />
+            <Ionicons name="barcode-outline" size={20} color={palette.text} />
           </Pressable>
         </View>
-
-        {/* Water */}
-        <Card>
-          <WaterTracker consumedMl={totals.water} goalMl={goals.water} onAdd={addWater} />
-        </Card>
-
-        {/* Smart Coach teaser */}
-        {plusActive && entries.length > 0 && (
-          <Pressable
-            onPress={() => navigation.navigate('Coach')}
-            style={({ pressed }) => [styles.coachCard, { borderColor: accent + '55' }, pressed && { opacity: 0.7 }]}
-            accessibilityRole="button"
-            accessibilityLabel="Open Smart Coach"
-          >
-            <View style={[styles.coachIcon, { backgroundColor: accent + '22' }]}>
-              <Ionicons name="bulb" size={18} color={accent} />
-            </View>
-            <View style={styles.coachBody}>
-              <Text style={styles.coachTitle}>Smart Coach</Text>
-              <Text style={styles.coachSub}>See today's guidance from your log</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
-          </Pressable>
-        )}
 
         {/* Quick add */}
         {quickAddItems.length > 0 && (
@@ -178,13 +297,32 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
           </>
         )}
 
-        {/* Logged today */}
-        <SectionTitle>Logged today</SectionTitle>
+        {/* Smart Coach teaser */}
+        {plusActive && entries.length > 0 && (
+          <Pressable
+            onPress={() => navigation.navigate('Coach')}
+            style={({ pressed }) => [styles.coachCard, pressed && { opacity: 0.7 }]}
+            accessibilityRole="button"
+            accessibilityLabel="Open Smart Coach"
+          >
+            <View style={[styles.coachIcon, { backgroundColor: accent + '22' }]}>
+              <Ionicons name="bulb" size={18} color={accent} />
+            </View>
+            <View style={styles.coachBody}>
+              <Text style={styles.coachTitle}>Smart Coach</Text>
+              <Text style={styles.coachSub}>See today's guidance from your log</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+          </Pressable>
+        )}
+
+        {/* Recently logged */}
+        <SectionTitle>Recently logged</SectionTitle>
         {entries.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyEmoji}>🍽</Text>
-            <Text style={styles.emptyText}>Nothing logged yet.</Text>
-            <Text style={styles.emptyHint}>Snap your first meal to get started.</Text>
+            <Text style={styles.emptyText}>Nothing logged yet</Text>
+            <Text style={styles.emptyHint}>Tap + or snap your first meal</Text>
           </View>
         ) : (
           <Card style={styles.entryList}>
@@ -208,6 +346,11 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
             ))}
           </Card>
         )}
+
+        {/* Water */}
+        <Card>
+          <WaterTracker consumedMl={totals.water} goalMl={goals.water} onAdd={addWater} />
+        </Card>
 
         {entries.length > 0 && (
           <>
@@ -235,28 +378,61 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: spacing.xs,
   },
-  dateLabel: {
-    color: palette.textFaint,
-    fontSize: font.size.sm,
-    fontFamily: font.family.uiMedium,
-    letterSpacing: 0.3,
-  },
-  title: {
+  brand: {
     color: palette.text,
-    fontSize: font.size.xxl,
+    fontSize: font.size.xl,
     fontFamily: font.family.uiBold,
     letterSpacing: -0.5,
   },
-
-  // Hero section — ring + macros, no card
-  hero: {
+  streakChip: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.xl,
-    gap: spacing.xl,
+    gap: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: palette.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: palette.border,
   },
-  macrosBlock: {
-    width: '100%',
-    paddingHorizontal: spacing.sm,
+  streakNum: { color: palette.text, fontSize: font.size.sm, fontFamily: font.family.monoSemibold },
+
+  // Big calorie card
+  calorieCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: palette.surface,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: palette.border,
+    ...shadow.card,
+  },
+  calNumber: {
+    color: palette.text,
+    fontSize: 44,
+    fontFamily: font.family.uiBold,
+    letterSpacing: -1.2,
+    lineHeight: 48,
+  },
+  calLabel: {
+    color: palette.textMuted,
+    fontSize: font.size.md,
+    fontFamily: font.family.uiMedium,
+    marginTop: 2,
+  },
+  calMeta: {
+    color: palette.textFaint,
+    fontSize: font.size.xs,
+    fontFamily: font.family.mono,
+    marginTop: 4,
+  },
+
+  // Macro row
+  macroRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
   },
 
   // Actions row
@@ -264,25 +440,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
     alignItems: 'center',
+    marginTop: spacing.xs,
   },
   snapWrap: { flex: 1 },
   snap: {
     flexDirection: 'row',
     gap: spacing.sm,
-    minHeight: 58,
-    borderRadius: radius.xl,
+    minHeight: 48,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
   },
   snapText: {
     color: palette.white,
-    fontSize: font.size.lg,
+    fontSize: font.size.md,
     fontFamily: font.family.uiBold,
   },
   iconBtn: {
-    width: 58,
-    height: 58,
-    borderRadius: radius.xl,
+    width: 48,
+    height: 48,
+    borderRadius: radius.pill,
     backgroundColor: palette.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -298,23 +475,24 @@ const styles = StyleSheet.create({
     backgroundColor: palette.surface,
     borderRadius: radius.lg,
     padding: spacing.md,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: palette.border,
+    ...shadow.card,
   },
   coachIcon: { width: 36, height: 36, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
   coachBody: { flex: 1 },
   coachTitle: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
   coachSub: { color: palette.textMuted, fontSize: font.size.sm, marginTop: 1 },
 
-  // Empty state
   empty: {
     alignItems: 'center',
-    paddingVertical: spacing.xxl,
+    paddingVertical: spacing.xl,
     gap: spacing.xs,
   },
-  emptyEmoji: { fontSize: 36, marginBottom: spacing.sm },
+  emptyEmoji: { fontSize: 32, marginBottom: spacing.xs },
   emptyText: {
     color: palette.text,
-    fontSize: font.size.lg,
+    fontSize: font.size.md,
     fontFamily: font.family.uiSemibold,
   },
   emptyHint: {

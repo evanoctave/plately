@@ -1,5 +1,17 @@
-// Calorie & macro goal calculator (Mifflin–St Jeor BMR → TDEE → goal split).
-// General wellness math, not medical advice; the user can override in the UI.
+// =============================================================================
+// utils/goals — Calorie & macro goal calculator
+// =============================================================================
+// Implements the standard Mifflin–St Jeor BMR equation, multiplies by an
+// activity factor to get TDEE, then applies a calorie delta for the goal
+// direction (lose / maintain / gain). Macros are split using common defaults:
+//   ~30% protein, ~40% carbs, ~30% fat (tweakable inside `computeGoals`).
+//
+// Used by:
+//   - OnboardingFlow (final step computes initial goals)
+//   - GoalCalculator (manual recompute screen in Settings)
+//
+// Output is general wellness math, not medical/clinical advice. The user can
+// always override the numbers manually from the Settings screen.
 
 import type { Goals } from '../data/nutrients';
 

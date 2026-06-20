@@ -1,3 +1,10 @@
+// =============================================================================
+// utils/format — Number formatters for display
+// =============================================================================
+// Two helpers used throughout the UI to keep numeric display consistent:
+//   fmt   — at most one decimal, no trailing ".0" (used for macros like "12.5g")
+//   fmtInt — comma-grouped integers (used for calories, water mL, etc.)
+
 /** Formats a number with at most one decimal and no trailing ".0". */
 export function fmt(value: number): string {
   const rounded = Math.round(value * 10) / 10;

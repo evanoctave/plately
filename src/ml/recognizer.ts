@@ -1,5 +1,27 @@
-// On-device Food-101 image classifier (TensorFlow Lite). Fails soft to manual
-// search if the model can't be downloaded or loaded.
+// =============================================================================
+// ml/recognizer — On-device Food-101 image classifier
+// =============================================================================
+// Wraps `react-native-fast-tflite` to classify meal photos on the device. No
+// server, no per-request cost — the model file is downloaded once from a
+// GitHub release on first use and cached on disk.
+//
+// Lifecycle:
+//   1. App.tsx fires `loadModel()` in the background at startup (idempotent).
+//   2. `ensureModelFile()` checks for a bundled or cached `.tflite`, downloads
+//      it if missing, validates size + functional load + optional SHA-256.
+//   3. `loadModel()` instantiates the TensorFlow model in memory.
+//   4. `classifyImage(uri)` resizes the photo, decodes JPEG bytes, builds the
+//      input tensor, runs inference, applies softmax if needed, and returns
+//      the top-K predictions (with the resolved `FoodItem` if we can map it).
+//
+// Failure modes — the whole pipeline fails soft:
+//   - No HTTPS / bad URL → status `unavailable`, app uses manual search.
+//   - Download too small or HTML error page → file is deleted, retried later.
+//   - Hash mismatch (when MODEL_SHA256 is set) → file rejected.
+//   - Model file invalid for the runtime → status `unavailable`.
+//
+// Tuning knobs at the top of the file (URL, expected input size, normalization).
+// Changing the model? Check those constants AND the FOOD101_LABELS order.
 
 import { Asset } from 'expo-asset';
 import * as Crypto from 'expo-crypto';

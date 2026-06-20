@@ -1,110 +1,140 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button } from '../components/Button';
-import { palette, spacing, font, radius } from '../theme';
-import { useSettings } from '../state/useSettings';
+import { palette, spacing, font, radius, shadow } from '../theme';
 import type { RootStackScreenProps } from '../navigation/types';
 
-const FEATURES = [
-  {
-    icon: 'camera' as const,
-    title: 'Snap your meal',
-    body: 'Point your camera at food and get an instant estimate of what you are eating.',
-  },
-  {
-    icon: 'nutrition' as const,
-    title: 'Full nutrition picture',
-    body: 'Track calories, protein, carbs, fat, key vitamins and minerals, plus water content.',
-  },
-  {
-    icon: 'lock-closed' as const,
-    title: 'Private & free',
-    body: 'Analysis runs on your device. Your photos and logs never leave your phone, and it is free forever.',
-  },
-];
-
 export function OnboardingScreen({ navigation }: RootStackScreenProps<'Onboarding'>) {
-  const completeOnboarding = useSettings((s) => s.completeOnboarding);
-
-  // Replacing avoids a back-gesture returning to onboarding.
-  const start = () => {
-    completeOnboarding();
-    navigation.replace('Tabs');
-  };
-
-  const personalize = () => {
-    completeOnboarding();
-    navigation.replace('Tabs');
-    navigation.navigate('GoalCalculator');
-  };
-
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <View style={styles.content}>
         <View style={styles.hero}>
           <View style={styles.logo}>
-            <Ionicons name="restaurant" size={40} color={palette.black} />
+            <Ionicons name="restaurant" size={36} color={palette.white} />
           </View>
-          <Text style={styles.appName}>Plately</Text>
-          <Text style={styles.tagline}>Photo-first nutrition tracking</Text>
+          <Text style={styles.brand}>Plately</Text>
+          <Text style={styles.tagline}>
+            Photo-first nutrition tracking.{'\n'}On-device. Private. Free.
+          </Text>
         </View>
 
-        <View style={styles.features}>
-          {FEATURES.map((f) => (
-            <View key={f.title} style={styles.feature}>
-              <View style={styles.featureIcon}>
-                <Ionicons name={f.icon} size={22} color={palette.green} />
-              </View>
-              <View style={styles.featureText}>
-                <Text style={styles.featureTitle}>{f.title}</Text>
-                <Text style={styles.featureBody}>{f.body}</Text>
-              </View>
+        <View style={styles.previewCard}>
+          <View style={styles.previewRow}>
+            <View style={styles.previewMini}>
+              <Text style={styles.previewMiniNum}>1739</Text>
+              <Text style={styles.previewMiniLbl}>Calories left</Text>
             </View>
-          ))}
+            <View style={styles.previewRing}>
+              <Ionicons name="flame" size={24} color={palette.accent} />
+            </View>
+          </View>
+          <View style={styles.previewMacros}>
+            {[
+              { l: 'Protein', v: '136g' },
+              { l: 'Carbs', v: '206g' },
+              { l: 'Fat', v: '41g' },
+            ].map((m) => (
+              <View key={m.l} style={styles.previewMacro}>
+                <Text style={styles.previewMacroV}>{m.v}</Text>
+                <Text style={styles.previewMacroL}>{m.l} left</Text>
+              </View>
+            ))}
+          </View>
         </View>
-      </ScrollView>
+
+        <View style={styles.bullet}>
+          <Bullet text="Snap a meal — recognized on device" />
+          <Bullet text="Full nutrition: macros, micros, water" />
+          <Bullet text="Daily streaks that don't manipulate" />
+        </View>
+      </View>
 
       <View style={styles.footer}>
-        <Text style={styles.disclaimer}>
-          Estimates are for general wellness only and are not medical or dietary advice.
-        </Text>
-        <Button label="Personalize my goals" onPress={personalize} />
-        <Button label="Skip — use defaults" variant="ghost" onPress={start} />
+        <Pressable
+          onPress={() => navigation.navigate('OnboardingFlow')}
+          style={styles.primaryCta}
+          accessibilityRole="button"
+          accessibilityLabel="Get started"
+        >
+          <Text style={styles.primaryCtaText}>Get started</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => navigation.navigate('Auth', { mode: 'signin' })}
+          accessibilityRole="button"
+          accessibilityLabel="Sign in"
+          style={({ pressed }) => [styles.signinRow, pressed && { opacity: 0.6 }]}
+        >
+          <Text style={styles.signinFaint}>Already have an account? </Text>
+          <Text style={styles.signinLink}>Sign In</Text>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
 }
 
+function Bullet({ text }: { text: string }) {
+  return (
+    <View style={styles.bulletRow}>
+      <Ionicons name="checkmark-circle" size={18} color={palette.accent} />
+      <Text style={styles.bulletText}>{text}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: spacing.xl, gap: spacing.xxl, flexGrow: 1, justifyContent: 'center' },
+  content: {
+    flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xl,
+    justifyContent: 'center', gap: spacing.xxl,
+  },
   hero: { alignItems: 'center', gap: spacing.sm },
   logo: {
-    width: 88,
-    height: 88,
-    borderRadius: radius.xl,
-    backgroundColor: palette.green,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 72, height: 72, borderRadius: 22,
+    backgroundColor: palette.text,
+    alignItems: 'center', justifyContent: 'center',
     marginBottom: spacing.sm,
   },
-  appName: { color: palette.text, fontSize: font.size.display, fontFamily: font.family.uiBold },
-  tagline: { color: palette.textMuted, fontSize: font.size.lg },
-  features: { gap: spacing.xl },
-  feature: { flexDirection: 'row', gap: spacing.lg, alignItems: 'flex-start' },
-  featureIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    backgroundColor: palette.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
+  brand: {
+    color: palette.text, fontSize: font.size.display,
+    fontFamily: font.family.uiBold, letterSpacing: -1.5,
   },
-  featureText: { flex: 1, gap: 2 },
-  featureTitle: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.uiSemibold },
-  featureBody: { color: palette.textMuted, fontSize: font.size.md, lineHeight: 20 },
-  footer: { padding: spacing.xl, gap: spacing.md },
-  disclaimer: { color: palette.textFaint, fontSize: font.size.xs, textAlign: 'center', lineHeight: 16 },
+  tagline: {
+    color: palette.textMuted, fontSize: font.size.md,
+    fontFamily: font.family.ui, textAlign: 'center', lineHeight: 22,
+  },
+
+  previewCard: {
+    backgroundColor: palette.surface, borderRadius: radius.xl,
+    padding: spacing.lg, gap: spacing.md,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: palette.border,
+    ...shadow.card,
+  },
+  previewRow: { flexDirection: 'row', alignItems: 'center' },
+  previewMini: { flex: 1 },
+  previewMiniNum: { color: palette.text, fontSize: 36, fontFamily: font.family.uiBold, letterSpacing: -1 },
+  previewMiniLbl: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiMedium, marginTop: 2 },
+  previewRing: {
+    width: 64, height: 64, borderRadius: 32,
+    borderWidth: 4, borderColor: palette.accentSoft,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  previewMacros: { flexDirection: 'row', gap: spacing.sm },
+  previewMacro: { flex: 1, padding: spacing.sm, backgroundColor: palette.surfaceAlt, borderRadius: radius.md },
+  previewMacroV: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiBold },
+  previewMacroL: { color: palette.textMuted, fontSize: font.size.xs, marginTop: 1 },
+
+  bullet: { gap: spacing.sm },
+  bulletRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  bulletText: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.ui },
+
+  footer: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xl, gap: spacing.md },
+  primaryCta: {
+    backgroundColor: palette.text, borderRadius: radius.pill,
+    paddingVertical: spacing.md + 2, alignItems: 'center',
+  },
+  primaryCtaText: { color: palette.white, fontSize: font.size.md, fontFamily: font.family.uiBold },
+  signinRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: spacing.sm },
+  signinFaint: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.ui },
+  signinLink: { color: palette.text, fontSize: font.size.sm, fontFamily: font.family.uiSemibold, textDecorationLine: 'underline' },
 });

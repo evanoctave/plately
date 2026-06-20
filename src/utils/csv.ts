@@ -1,4 +1,9 @@
-// Pure CSV serialization for the diary (no native imports; unit-testable).
+// =============================================================================
+// utils/csv — Pure CSV serialization for the diary
+// =============================================================================
+// Builds a CSV string from `FoodEntry[]` with a stable column order. Kept
+// dependency-free (no FileSystem / Sharing imports) so it's easy to unit-test.
+// The file-write + share-sheet wrapper lives in `utils/export.ts`.
 
 import { ZERO_NUTRITION, type Nutrition } from '../data/nutrients';
 import type { FoodEntry } from '../db/database';
