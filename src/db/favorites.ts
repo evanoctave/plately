@@ -25,6 +25,11 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
   return dbPromise;
 }
 
+/** Ensure the table exists. Called by the sync engine before it attaches triggers. */
+export async function ensureReady(): Promise<void> {
+  await getDb();
+}
+
 export async function getFavoriteIds(): Promise<string[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<{ foodId: string }>(

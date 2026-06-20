@@ -25,6 +25,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { DEFAULT_GOALS, type Goals } from '../data/nutrients';
 import type { Sex, ActivityLevel, GoalDirection } from '../utils/goals';
+import { DEFAULT_REMINDERS, type ReminderPrefs } from '../notifications/schedule';
 
 /** Default accent color (emerald). Used both as a fallback and as the seed value for new users. */
 export const DEFAULT_ACCENT = '#16A34A';
@@ -74,6 +75,7 @@ interface SettingsState {
   onboardingComplete: boolean;
   profile: UserProfile;
   account: AccountInfo | null;
+  reminders: ReminderPrefs; // local notification preferences
   hydrated: boolean; // persisted settings loaded
   setGoals: (goals: Partial<Goals>) => void;
   setWaterUnit: (unit: 'ml' | 'oz') => void;
@@ -83,6 +85,7 @@ interface SettingsState {
   setPlusActive: (active: boolean) => void;
   updateProfile: (patch: Partial<UserProfile>) => void;
   setAccount: (account: AccountInfo | null) => void;
+  setReminders: (patch: Partial<ReminderPrefs>) => void;
   completeOnboarding: () => void;
   markHydrated: () => void;
 }
@@ -106,6 +109,7 @@ export const useSettings = create<SettingsState>()(
       onboardingComplete: false,
       profile: {},
       account: null,
+      reminders: DEFAULT_REMINDERS,
       hydrated: false,
       setGoals: (goals) => set((s) => ({ goals: { ...s.goals, ...goals } })),
       setWaterUnit: (waterUnit) => set({ waterUnit }),
@@ -115,6 +119,7 @@ export const useSettings = create<SettingsState>()(
       setPlusActive: (plusActive) => set({ plusActive }),
       updateProfile: (patch) => set((s) => ({ profile: { ...s.profile, ...patch } })),
       setAccount: (account) => set({ account }),
+      setReminders: (patch) => set((s) => ({ reminders: { ...s.reminders, ...patch } })),
       completeOnboarding: () => set({ onboardingComplete: true }),
       markHydrated: () => set({ hydrated: true }),
     }),
@@ -124,9 +129,9 @@ export const useSettings = create<SettingsState>()(
       storage: createJSONStorage(() => AsyncStorage),
       // `partialize` whitelists what gets persisted; transient fields stay in memory.
       partialize: ({
-        goals, waterUnit, weightUnit, accent, appIcon, plusActive, onboardingComplete, profile, account,
+        goals, waterUnit, weightUnit, accent, appIcon, plusActive, onboardingComplete, profile, account, reminders,
       }) => ({
-        goals, waterUnit, weightUnit, accent, appIcon, plusActive, onboardingComplete, profile, account,
+        goals, waterUnit, weightUnit, accent, appIcon, plusActive, onboardingComplete, profile, account, reminders,
       }),
       // Fires once AsyncStorage has finished filling the store. Signals to App.tsx
       // that it's safe to render the real UI.

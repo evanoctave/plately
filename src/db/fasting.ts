@@ -31,6 +31,11 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
   return dbPromise;
 }
 
+/** Ensure the table exists. Called by the sync engine before it attaches triggers. */
+export async function ensureReady(): Promise<void> {
+  await getDb();
+}
+
 export interface FastSession {
   id: string;
   startedAt: number; // epoch ms

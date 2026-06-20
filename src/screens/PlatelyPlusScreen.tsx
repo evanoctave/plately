@@ -1,11 +1,24 @@
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+// =============================================================================
+// PlatelyPlusScreen — Plately+ paywall (real IAP via RevenueCat)
+// =============================================================================
+// Loads the current RevenueCat offering and presents the monthly / annual
+// packages with store-localized prices. Purchase + Restore go through
+// src/iap/purchases; the `plus` entitlement drives `plusActive`. When IAP isn't
+// configured in the build, a clear "not available" state shows instead (plus a
+// dev-only local unlock so the gated screens can be exercised without StoreKit).
+
+import { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import type { PurchasesPackage } from 'react-native-purchases';
 
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { palette, spacing, font, radius } from '../theme';
 import { useSettings } from '../state/useSettings';
+import { isPurchasesConfigured } from '../config/env';
+import { getCurrentOffering, purchasePackage, restorePurchases } from '../iap/purchases';
 
 interface PlusFeature {
   icon: string;
@@ -38,8 +51,7 @@ const FEATURES: PlusFeature[] = [
   {
     icon: 'cloud-upload',
     title: 'Cloud sync & backup',
-    description: 'Encrypted backup across your devices. Switch phones and your whole diary comes with you.',
-    comingSoon: true,
+    description: 'Your diary syncs across your devices. Switch phones and everything comes with you.',
   },
   {
     icon: 'sparkles',
@@ -53,24 +65,64 @@ export function PlatelyPlusScreen() {
   const accent = useSettings((s) => s.accent);
   const plusActive = useSettings((s) => s.plusActive);
   const setPlusActive = useSettings((s) => s.setPlusActive);
+  const configured = isPurchasesConfigured();
 
-  const onSubscribe = () => {
-    Alert.alert(
-      'Start your Plately+ preview?',
-      'Billing is still in development, so this unlocks the Plately+ extras locally with no charge. The free core of Plately stays free forever.',
-      [
-        { text: 'Not now', style: 'cancel' },
-        { text: 'Unlock preview', onPress: () => setPlusActive(true) },
-      ],
-    );
+  const [offering, setOffering] = useState<{ monthly: PurchasesPackage | null; annual: PurchasesPackage | null } | null>(null);
+  const [loading, setLoading] = useState(configured);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!configured) return;
+    let active = true;
+    void (async () => {
+      try {
+        const current = await getCurrentOffering();
+        if (active) setOffering({ monthly: current?.monthly ?? null, annual: current?.annual ?? null });
+      } catch {
+        if (active) setError('Could not load subscription options.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, [configured]);
+
+  const buy = async (pkg: PurchasesPackage | null) => {
+    if (!pkg) return;
+    setBusy(true);
+    setError(null);
+    const result = await purchasePackage(pkg);
+    setBusy(false);
+    if (result.cancelled) return;
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    if (result.active) Alert.alert('Welcome to Plately+', 'All extras are unlocked. Thank you for supporting Plately.');
   };
 
-  const onTurnOff = () => {
-    Alert.alert('Turn off Plately+?', 'You can re-enable the preview any time.', [
+  const restore = async () => {
+    setBusy(true);
+    setError(null);
+    const result = await restorePurchases();
+    setBusy(false);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    Alert.alert(result.active ? 'Restored' : 'Nothing to restore', result.active ? 'Your Plately+ subscription is active.' : 'No previous purchase was found for this Apple ID.');
+  };
+
+  const devUnlock = () => {
+    Alert.alert('Dev unlock', 'Unlock Plately+ locally for testing (no charge). Development builds only.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Turn off', style: 'destructive', onPress: () => setPlusActive(false) },
+      { text: 'Unlock', onPress: () => setPlusActive(true) },
     ]);
   };
+
+  const monthlyPrice = offering?.monthly?.product.priceString;
+  const annualPrice = offering?.annual?.product.priceString;
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
@@ -82,8 +134,8 @@ export function PlatelyPlusScreen() {
           </View>
           <Text style={styles.heroTitle}>Power features, when you want them</Text>
           <Text style={styles.heroSub}>
-            Everything you use today stays free. Plately+ adds optional extras that run on cloud
-            infrastructure — so they carry a small subscription to keep the lights on, honestly.
+            Everything you use today stays free. Plately+ adds optional extras and cloud sync,
+            with a small subscription to keep the lights on.
           </Text>
         </View>
 
@@ -106,27 +158,61 @@ export function PlatelyPlusScreen() {
           </Card>
         ))}
 
+        {error && (
+          <View style={styles.errorBox}>
+            <Ionicons name="alert-circle" size={16} color={palette.red} />
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
+
         <Card style={styles.priceCard}>
-          <Text style={styles.price}>
-            $3.99<Text style={styles.priceUnit}> / month</Text>
-          </Text>
-          <Text style={styles.priceAlt}>or $29.99 / year</Text>
           {plusActive ? (
             <>
               <View style={styles.activeRow}>
                 <Ionicons name="checkmark-circle" size={20} color={accent} />
                 <Text style={[styles.activeText, { color: accent }]}>Plately+ active</Text>
               </View>
-              <Button label="Turn off Plately+" variant="ghost" onPress={onTurnOff} style={styles.cta} />
+              <Text style={styles.fineprint}>
+                Manage or cancel anytime from the App Store → your Apple ID → Subscriptions.
+              </Text>
+            </>
+          ) : loading ? (
+            <ActivityIndicator color={accent} />
+          ) : configured ? (
+            <>
+              <Text style={styles.price}>
+                {monthlyPrice ?? '$3.99'}<Text style={styles.priceUnit}> / month</Text>
+              </Text>
+              {annualPrice && <Text style={styles.priceAlt}>or {annualPrice} / year</Text>}
+              <Button
+                label={busy ? 'Please wait…' : `Subscribe${monthlyPrice ? ` — ${monthlyPrice}/mo` : ''}`}
+                onPress={() => void buy(offering?.monthly ?? null)}
+                disabled={busy || !offering?.monthly}
+                style={styles.cta}
+              />
+              {offering?.annual && (
+                <Button
+                  label={`Best value — ${annualPrice}/yr`}
+                  variant="secondary"
+                  onPress={() => void buy(offering.annual)}
+                  disabled={busy}
+                  style={styles.cta}
+                />
+              )}
+              <Pressable onPress={() => void restore()} disabled={busy} hitSlop={8}>
+                <Text style={styles.restore}>Restore purchases</Text>
+              </Pressable>
+              <Text style={styles.fineprint}>
+                Subscription auto-renews until cancelled. The free core of Plately — photo
+                recognition, custom foods, insights, export — is never paywalled.
+              </Text>
             </>
           ) : (
-            <Button label="Try Plately+ free" onPress={onSubscribe} style={styles.cta} />
+            <>
+              <Text style={styles.unavailable}>Subscriptions aren’t available in this build yet.</Text>
+              {__DEV__ && <Button label="Dev unlock (local)" variant="ghost" onPress={devUnlock} style={styles.cta} />}
+            </>
           )}
-          <Text style={styles.fineprint}>
-            No charge today — billing is still in development, so Plately+ unlocks locally for now.
-            The free core of Plately — photo recognition, custom foods, insights, export — is never
-            paywalled.
-          </Text>
         </Card>
       </ScrollView>
     </SafeAreaView>
@@ -174,11 +260,19 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   featureDesc: { color: palette.textMuted, fontSize: font.size.sm, lineHeight: 18 },
+  errorBox: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    backgroundColor: '#FEECEC', borderRadius: radius.md,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+  },
+  errorText: { flex: 1, color: palette.red, fontSize: font.size.sm, lineHeight: 18 },
   priceCard: { alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm },
   price: { color: palette.text, fontSize: font.size.xxl, fontFamily: font.family.monoBold },
   priceUnit: { color: palette.textMuted, fontSize: font.size.md, fontFamily: font.family.ui },
   priceAlt: { color: palette.textMuted, fontSize: font.size.sm },
   cta: { alignSelf: 'stretch', marginTop: spacing.sm },
+  restore: { color: palette.textMuted, fontSize: font.size.sm, textDecorationLine: 'underline', marginTop: spacing.md },
+  unavailable: { color: palette.textMuted, fontSize: font.size.sm, textAlign: 'center', lineHeight: 19 },
   activeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
   activeText: { fontSize: font.size.md, fontFamily: font.family.uiSemibold },
   fineprint: { color: palette.textFaint, fontSize: font.size.xs, lineHeight: 16, textAlign: 'center', marginTop: spacing.sm },

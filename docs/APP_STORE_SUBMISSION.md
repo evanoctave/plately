@@ -23,6 +23,16 @@ Build in the cloud). This guide walks through it.
   to a bundle ID you own.
 - Create the App ID and an app record in App Store Connect.
 - Run `eas init` to set `expo.extra.eas.projectId`.
+- If you ship cloud sync: enable the **Sign in with Apple** capability on the
+  App ID (`app.config.js` already sets `ios.usesAppleSignIn` and adds the
+  `expo-apple-authentication` plugin).
+- If you ship Plately+: create your auto-renewable subscription products in App
+  Store Connect and link them in RevenueCat. Copy the keys into `.env` (see the
+  README "Accounts, sync & Plately+" section) before building.
+
+> Both integrations are optional at build time. With no keys in `.env`, the app
+> ships local-only and account-free, and the privacy label below stays "Data
+> Not Collected."
 
 ## 3. Build
 
@@ -43,15 +53,28 @@ eas submit --platform ios --latest
 
 - **Privacy Policy URL**: host `docs/PRIVACY_POLICY.md` (e.g. GitHub Pages) and
   paste the URL.
-- **App Privacy ("Nutrition Label")**: select **"Data Not Collected"** — the
-  app collects nothing. No tracking.
+- **App Privacy ("Nutrition Label")**: depends on whether you ship cloud sync.
+  - **Local-only build** (no Supabase keys): select **"Data Not Collected"**.
+  - **With optional accounts + sync**, declare (all **Linked to the user**, used
+    for **App Functionality**, **not** used for tracking):
+    - **Contact Info → Email Address** — captured on sign-up / read from Apple.
+    - **Health & Fitness** — the diary you choose to back up (food logs,
+      weights). Only leaves the device after the user signs in.
+    - **User Content** — custom foods, meal plans, goal phases.
+    - Photos are **not** collected — image files never leave the device.
 - **Age rating**: complete the questionnaire (no objectionable content).
 - **Category**: Health & Fitness.
+- **Subscriptions (Plately+)**: if shipping IAP, add the auto-renewable
+  subscription group, localized descriptions, and a screenshot. The paywall
+  exposes **Restore Purchases** (App Review requires it). State clearly what's
+  free vs. Plus — the core tracker is free; Plus unlocks the extras + sync.
 - **Encryption**: `ITSAppUsesNonExemptEncryption = false` is already set in
   `app.json` (only standard HTTPS is used), so no export compliance docs are
   required.
-- **Demo**: no login required, so no demo account is needed. Note in "Review
-  Notes" that the app is fully functional offline and account-free.
+- **Demo**: the app is fully functional offline and account-free, so a demo
+  account is not strictly required — note this in "Review Notes." If you ship
+  cloud sync and want the reviewer to exercise it, provide a test account and
+  steps. For IAP, the reviewer uses the sandbox automatically.
 
 ## 6. Required assets
 

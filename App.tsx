@@ -39,6 +39,7 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 import { useSettings } from './src/state/useSettings';
 import { loadModel } from './src/ml/recognizer';
 import { refreshCustomFoods } from './src/data/catalog';
+import { bootstrapServices } from './src/bootstrap';
 import { palette, font } from './src/theme';
 
 // Set the default font on the `Text` component so any unstyled <Text> still
@@ -71,6 +72,9 @@ export default function App() {
   useEffect(() => {
     void loadModel().catch(() => undefined);
     void refreshCustomFoods().catch(() => undefined);
+    // Auth listener, RevenueCat, notifications, and foreground sync. All
+    // fail-soft and no-op when their keys aren't configured.
+    return bootstrapServices();
   }, []);
 
   return (

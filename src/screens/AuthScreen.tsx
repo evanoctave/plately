@@ -1,46 +1,101 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+// =============================================================================
+// AuthScreen — Real account creation / sign-in
+// =============================================================================
+// Backed by Supabase (see src/auth). Email/password + Sign in with Apple, with
+// inline validation + error states and a loading state on submit. The ToS box
+// must be checked before any provider runs. "Skip" keeps the local guest mode
+// (no account, no cloud sync). On success we complete onboarding and reset into
+// the tab navigator; the auth listener mirrors the session into settings.
+
+import { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { palette, spacing, font, radius, shadow } from '../theme';
 import { useSettings } from '../state/useSettings';
+import { isSupabaseConfigured } from '../config/env';
+import { signInWithApple, signInWithEmail, signUpWithEmail, isAppleAuthAvailable } from '../auth/actions';
+import { validateCredentials } from '../auth/validation';
 import type { RootStackScreenProps } from '../navigation/types';
 
 export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) {
   const mode = route.params?.mode ?? 'signup';
   const setAccount = useSettings((s) => s.setAccount);
   const completeOnboarding = useSettings((s) => s.completeOnboarding);
+  const configured = isSupabaseConfigured();
 
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showEmailForm, setShowEmailForm] = useState(false);
-  const [agreedTos, setAgreedTos] = useState(true);
+  const [agreedTos, setAgreedTos] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const finish = (provider: 'apple' | 'google' | 'email' | 'guest', info: Partial<{ email: string; name: string }> = {}) => {
-    setAccount({ provider, ...info });
+  useEffect(() => {
+    void isAppleAuthAvailable().then(setAppleAvailable);
+  }, []);
+
+  const enterApp = () => {
     completeOnboarding();
     navigation.reset({ index: 0, routes: [{ name: 'Tabs' }] });
   };
 
-  const apple = () => {
-    // Real Apple Sign In requires expo-apple-authentication and Apple Developer setup.
-    // For now: stub success so the flow is complete and testable.
-    finish('apple', { name: 'Apple user' });
+  // Guard the shared preconditions before any real provider runs.
+  const guard = (): boolean => {
+    if (!agreedTos) {
+      setError('Please agree to the Terms and Privacy Policy to continue.');
+      return false;
+    }
+    if (!configured) {
+      Alert.alert(
+        'Accounts not set up',
+        'This build has no Supabase keys yet. You can continue without an account for now.',
+        [{ text: 'OK' }],
+      );
+      return false;
+    }
+    return true;
   };
 
-  const google = () => {
-    Alert.alert('Google sign-in', 'Google OAuth requires a backend or Firebase. Coming soon.');
-  };
-
-  const emailSubmit = () => {
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      Alert.alert('Invalid email', 'Enter a valid email address.');
+  const apple = async () => {
+    if (!guard()) return;
+    setBusy(true);
+    setError(null);
+    const { error: err } = await signInWithApple();
+    setBusy(false);
+    if (err) {
+      setError(err);
       return;
     }
-    finish('email', { email });
+    enterApp();
   };
 
-  const guest = () => finish('guest');
+  const emailSubmit = async () => {
+    if (!guard()) return;
+    const invalid = validateCredentials(email, password, mode === 'signin' ? 'signin' : 'signup');
+    if (invalid) {
+      setError(invalid.message);
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    const { error: err } = mode === 'signin'
+      ? await signInWithEmail(email, password)
+      : await signUpWithEmail(email, password);
+    setBusy(false);
+    if (err) {
+      setError(err);
+      return;
+    }
+    enterApp();
+  };
+
+  const guest = () => {
+    setAccount({ provider: 'guest' });
+    enterApp();
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -57,6 +112,13 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
             {mode === 'signin' ? 'Sign in to sync your goals and streak.' : 'Create an account so your data syncs across devices.'}
           </Text>
 
+          {error && (
+            <View style={styles.errorBox} accessibilityLiveRegion="polite">
+              <Ionicons name="alert-circle" size={16} color={palette.red} />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
           {showEmailForm ? (
             <View style={{ gap: spacing.md, marginTop: spacing.lg }}>
               <Text style={styles.label}>Email</Text>
@@ -69,33 +131,46 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
                 placeholder="you@example.com"
                 placeholderTextColor={palette.textFaint}
                 style={styles.input}
+                editable={!busy}
                 accessibilityLabel="Email address"
               />
-              <Pressable onPress={emailSubmit} style={styles.primary} accessibilityRole="button">
-                <Text style={styles.primaryText}>{mode === 'signin' ? 'Sign in' : 'Continue'}</Text>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                autoCapitalize="none"
+                secureTextEntry
+                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+                placeholder={mode === 'signin' ? 'Your password' : 'At least 8 characters'}
+                placeholderTextColor={palette.textFaint}
+                style={styles.input}
+                editable={!busy}
+                accessibilityLabel="Password"
+              />
+              <Pressable onPress={() => void emailSubmit()} style={[styles.primary, busy && styles.disabled]} disabled={busy} accessibilityRole="button">
+                {busy ? <ActivityIndicator color={palette.white} /> : (
+                  <Text style={styles.primaryText}>{mode === 'signin' ? 'Sign in' : 'Continue'}</Text>
+                )}
               </Pressable>
-              <Pressable onPress={() => setShowEmailForm(false)} accessibilityRole="button">
+              <Pressable onPress={() => { setShowEmailForm(false); setError(null); }} disabled={busy} accessibilityRole="button">
                 <Text style={styles.linkCenter}>Back to options</Text>
               </Pressable>
             </View>
           ) : (
             <View style={{ gap: spacing.sm, marginTop: spacing.lg }}>
-              <Pressable onPress={apple} style={styles.appleBtn} accessibilityRole="button" accessibilityLabel="Sign in with Apple">
-                <Ionicons name="logo-apple" size={20} color={palette.white} />
-                <Text style={styles.appleText}>{mode === 'signin' ? 'Sign in' : 'Continue'} with Apple</Text>
-              </Pressable>
+              {appleAvailable && (
+                <Pressable onPress={() => void apple()} style={[styles.appleBtn, busy && styles.disabled]} disabled={busy} accessibilityRole="button" accessibilityLabel="Sign in with Apple">
+                  <Ionicons name="logo-apple" size={20} color={palette.white} />
+                  <Text style={styles.appleText}>{mode === 'signin' ? 'Sign in' : 'Continue'} with Apple</Text>
+                </Pressable>
+              )}
 
-              <Pressable onPress={google} style={styles.outlineBtn} accessibilityRole="button" accessibilityLabel="Sign in with Google">
-                <Ionicons name="logo-google" size={18} color={palette.text} />
-                <Text style={styles.outlineText}>{mode === 'signin' ? 'Sign in' : 'Continue'} with Google</Text>
-              </Pressable>
-
-              <Pressable onPress={() => setShowEmailForm(true)} style={styles.outlineBtn} accessibilityRole="button" accessibilityLabel="Continue with email">
+              <Pressable onPress={() => { setShowEmailForm(true); setError(null); }} style={[styles.outlineBtn, busy && styles.disabled]} disabled={busy} accessibilityRole="button" accessibilityLabel="Continue with email">
                 <Ionicons name="mail" size={18} color={palette.text} />
                 <Text style={styles.outlineText}>{mode === 'signin' ? 'Sign in' : 'Continue'} with email</Text>
               </Pressable>
 
-              <Pressable onPress={guest} style={({ pressed }) => [styles.guestRow, pressed && { opacity: 0.6 }]} accessibilityRole="button">
+              <Pressable onPress={guest} style={({ pressed }) => [styles.guestRow, pressed && { opacity: 0.6 }]} disabled={busy} accessibilityRole="button">
                 <Text style={styles.guestText}>Skip — use without an account</Text>
               </Pressable>
             </View>
@@ -124,6 +199,12 @@ const styles = StyleSheet.create({
   title: { color: palette.text, fontSize: 28, fontFamily: font.family.uiBold, letterSpacing: -0.6 },
   sub: { color: palette.textMuted, fontSize: font.size.md, marginTop: spacing.xs, lineHeight: 22 },
   label: { color: palette.text, fontSize: font.size.sm, fontFamily: font.family.uiSemibold },
+  errorBox: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    backgroundColor: '#FEECEC', borderRadius: radius.md,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginTop: spacing.lg,
+  },
+  errorText: { flex: 1, color: palette.red, fontSize: font.size.sm, lineHeight: 18 },
   input: {
     backgroundColor: palette.surface, borderRadius: radius.lg,
     paddingHorizontal: spacing.md, paddingVertical: spacing.md,
@@ -145,9 +226,10 @@ const styles = StyleSheet.create({
   outlineText: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
   primary: {
     backgroundColor: palette.text, borderRadius: radius.pill,
-    paddingVertical: spacing.md + 2, alignItems: 'center',
+    paddingVertical: spacing.md + 2, alignItems: 'center', justifyContent: 'center', minHeight: 50,
   },
   primaryText: { color: palette.white, fontSize: font.size.md, fontFamily: font.family.uiBold },
+  disabled: { opacity: 0.5 },
   guestRow: { alignItems: 'center', paddingVertical: spacing.md },
   guestText: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.ui, textDecorationLine: 'underline' },
   linkCenter: { color: palette.textMuted, fontSize: font.size.sm, textAlign: 'center', textDecorationLine: 'underline', marginTop: spacing.sm },

@@ -1,19 +1,19 @@
 // =============================================================================
 // usePlus — Plately+ subscription entitlement
 // =============================================================================
-// Thin wrapper over the settings store's `plusActive` flag. Centralizing the
-// read/write here means UI code never reads the raw flag and we can swap in
-// StoreKit / RevenueCat without touching call sites.
+// Thin wrapper over the settings store's `plusActive` flag. UI code reads the
+// entitlement through here, never the raw flag.
+//
+// Source of truth: the RevenueCat `plus` entitlement. src/iap/purchases mirrors
+// CustomerInfo into `plusActive` on launch, on purchase, and on restore. The
+// `unlock`/`lock` setters remain for guest/dev paths (e.g. the __DEV__ local
+// unlock on the Plus screen); real subscribers are driven by the store.
 
 import { useSettings } from './useSettings';
 
 /**
  * Plately+ entitlement. The free core of the app never reads this — only the
  * optional "extras" (Fasting, Goal Phases, Coach, Meal Planner) gate on it.
- *
- * There is no real billing yet, so `unlock`/`lock` flip a local flag with no
- * charge. When StoreKit lands, the purchase flow should call `unlock` on a
- * verified transaction and `lock` on expiry/refund.
  */
 export interface PlusEntitlement {
   active: boolean;

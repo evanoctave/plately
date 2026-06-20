@@ -13,6 +13,9 @@ import { useDiaryRevision } from '../state/useDiary';
 import { clearAllEntries } from '../db/database';
 import { exportDiaryCsv } from '../utils/export';
 import { isModelReady, getModelStatus, loadModel } from '../ml/recognizer';
+import { useAuth } from '../auth/useAuth';
+import { signOut } from '../auth/actions';
+import { applyReminderSchedule } from '../notifications/notifications';
 import type { Goals } from '../data/nutrients';
 import type { TabScreenProps } from '../navigation/types';
 
@@ -37,13 +40,30 @@ const FREE_PERKS = [
   'Create unlimited custom foods',
   'Trends, streaks & insights',
   'Export your data (CSV)',
-  'No ads, no account, no tracking',
+  'No ads, no tracking · account optional',
 ];
 
 export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
   const { goals, setGoals, waterUnit, setWaterUnit, weightUnit, setWeightUnit, accent, plusActive } = useSettings();
+  const reminders = useSettings((s) => s.reminders);
+  const setReminders = useSettings((s) => s.setReminders);
+  const { account, signedIn } = useAuth();
   const bump = useDiaryRevision((s) => s.bump);
   const [modelStatus, setModelStatus] = useState(getModelStatus());
+
+  // Toggle a reminder preference, then re-register the local notification set.
+  const toggleReminder = (patch: Partial<typeof reminders>) => {
+    const next = { ...reminders, ...patch };
+    setReminders(patch);
+    void applyReminderSchedule(next);
+  };
+
+  const onSignOut = () => {
+    Alert.alert('Sign out?', 'Your data stays on this device. Sign back in anytime to sync.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign out', style: 'destructive', onPress: () => void signOut() },
+    ]);
+  };
 
   const updateGoal = (key: keyof Goals, text: string) => {
     const n = parseInt(text.replace(/[^0-9]/g, ''), 10);
@@ -95,6 +115,35 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title}>Settings</Text>
+
+        <SectionTitle>Account</SectionTitle>
+        <Card style={styles.card}>
+          {signedIn ? (
+            <>
+              <View style={styles.linkRow}>
+                <Ionicons name="person-circle-outline" size={22} color={palette.green} />
+                <View style={styles.extraBody}>
+                  <Text style={styles.linkText}>{account?.email ?? account?.name ?? 'Signed in'}</Text>
+                  <Text style={styles.extraSub}>Synced across your devices</Text>
+                </View>
+              </View>
+              <View style={styles.divider} />
+              <Pressable style={styles.linkRow} onPress={onSignOut}>
+                <Ionicons name="log-out-outline" size={20} color={palette.red} />
+                <Text style={[styles.linkText, { color: palette.red }]}>Sign out</Text>
+              </Pressable>
+            </>
+          ) : (
+            <Pressable style={styles.linkRow} onPress={() => navigation.navigate('Auth', { mode: 'signin' })}>
+              <Ionicons name="cloud-outline" size={20} color={palette.text} />
+              <View style={styles.extraBody}>
+                <Text style={styles.linkText}>Sign in or create account</Text>
+                <Text style={styles.extraSub}>Back up &amp; sync your diary across devices</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+            </Pressable>
+          )}
+        </Card>
 
         <Card style={styles.freeCard}>
           <View style={styles.freeHeader}>
@@ -256,6 +305,53 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
           )}
         </Card>
 
+        <SectionTitle>Reminders</SectionTitle>
+        <Card style={styles.card}>
+          <View style={styles.linkRow}>
+            <Ionicons name="notifications-outline" size={20} color={palette.text} />
+            <View style={styles.extraBody}>
+              <Text style={styles.linkText}>Daily reminders</Text>
+              <Text style={styles.extraSub}>Gentle nudges to log meals &amp; water</Text>
+            </View>
+            <Pressable
+              onPress={() => toggleReminder({ enabled: !reminders.enabled })}
+              style={[styles.switch, reminders.enabled && { backgroundColor: accent }]}
+              accessibilityRole="switch"
+              accessibilityState={{ checked: reminders.enabled }}
+            >
+              <View style={[styles.knob, reminders.enabled && styles.knobOn]} />
+            </Pressable>
+          </View>
+          {reminders.enabled && (
+            <>
+              {([
+                ['meals', 'Meal reminders', 'Breakfast, lunch & dinner'],
+                ['water', 'Water reminder', 'Mid-afternoon hydration nudge'],
+                ['streak', 'Streak reminder', 'Evening "keep your streak" nudge'],
+              ] as const).map(([key, label, sub]) => (
+                <View key={key}>
+                  <View style={styles.divider} />
+                  <View style={styles.linkRow}>
+                    <View style={{ width: 20 }} />
+                    <View style={styles.extraBody}>
+                      <Text style={styles.linkText}>{label}</Text>
+                      <Text style={styles.extraSub}>{sub}</Text>
+                    </View>
+                    <Pressable
+                      onPress={() => toggleReminder({ [key]: !reminders[key] } as Partial<typeof reminders>)}
+                      style={[styles.switch, reminders[key] && { backgroundColor: accent }]}
+                      accessibilityRole="switch"
+                      accessibilityState={{ checked: reminders[key] }}
+                    >
+                      <View style={[styles.knob, reminders[key] && styles.knobOn]} />
+                    </Pressable>
+                  </View>
+                </View>
+              ))}
+            </>
+          )}
+        </Card>
+
         <SectionTitle>Your data</SectionTitle>
         <Card style={styles.card}>
           <Pressable style={styles.linkRow} onPress={() => navigation.navigate('RecipeBuilder')}>
@@ -374,6 +470,9 @@ const styles = StyleSheet.create({
   linkText: { flex: 1, color: palette.text, fontSize: font.size.md },
   extraBody: { flex: 1 },
   extraSub: { color: palette.textMuted, fontSize: font.size.sm, marginTop: 1 },
+  switch: { width: 44, height: 26, borderRadius: radius.pill, backgroundColor: palette.border, padding: 3, justifyContent: 'center' },
+  knob: { width: 20, height: 20, borderRadius: radius.pill, backgroundColor: palette.white },
+  knobOn: { alignSelf: 'flex-end' },
   disclaimer: { color: palette.textFaint, fontSize: font.size.xs, lineHeight: 16, marginTop: spacing.xl },
   version: { color: palette.textFaint, fontSize: font.size.xs, textAlign: 'center', marginTop: spacing.lg },
 });

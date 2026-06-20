@@ -47,6 +47,11 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
   return dbPromise;
 }
 
+/** Ensure the table exists. Called by the sync engine before it attaches triggers. */
+export async function ensureReady(): Promise<void> {
+  await getDb();
+}
+
 function makeId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
