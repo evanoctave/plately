@@ -132,6 +132,7 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
                 placeholderTextColor={palette.textFaint}
                 style={styles.input}
                 editable={!busy}
+                maxLength={254}
                 accessibilityLabel="Email address"
               />
               <Text style={styles.label}>Password</Text>
@@ -145,6 +146,7 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
                 placeholderTextColor={palette.textFaint}
                 style={styles.input}
                 editable={!busy}
+                maxLength={128}
                 accessibilityLabel="Password"
               />
               <Pressable onPress={() => void emailSubmit()} style={[styles.primary, busy && styles.disabled]} disabled={busy} accessibilityRole="button">
