@@ -13,10 +13,9 @@ import Animated, {
 import { palette, spacing, font, radius, shadow } from '../theme';
 import { useSettings } from '../state/useSettings';
 import {
-  ACTIVITY_LABELS, DIRECTION_LABELS, computeGoals, feetInchesToCm, lbToKg,
+  DIRECTION_LABELS, computeGoals, feetInchesToCm, lbToKg,
   type Sex, type ActivityLevel, type GoalDirection,
 } from '../utils/goals';
-import { fmtInt } from '../utils/format';
 import type { RootStackScreenProps } from '../navigation/types';
 
 type SexChoice = Sex | 'other';
@@ -442,24 +441,6 @@ function UnitToggle({ a, b, value, onChange }: { a: string; b: string; value: 'a
   );
 }
 
-function NumberStepper({ label, value, onChange, min, max }: { label: string; value: number; onChange: (n: number) => void; min: number; max: number }) {
-  const clamp = (n: number) => Math.max(min, Math.min(max, n));
-  return (
-    <View style={styles.stepper}>
-      <Pressable onPress={() => onChange(clamp(value - 1))} style={styles.stepBtn} accessibilityLabel={`Decrease ${label}`}>
-        <Ionicons name="remove" size={18} color={palette.text} />
-      </Pressable>
-      <View style={styles.stepValue}>
-        <Text style={styles.stepNum}>{fmtInt(value)}</Text>
-        <Text style={styles.stepLabel}>{label}</Text>
-      </View>
-      <Pressable onPress={() => onChange(clamp(value + 1))} style={styles.stepBtn} accessibilityLabel={`Increase ${label}`}>
-        <Ionicons name="add" size={18} color={palette.text} />
-      </Pressable>
-    </View>
-  );
-}
-
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function BirthWheel({ month, day, year, onChange }: { month: number; day: number; year: number; onChange: (m: number, d: number, y: number) => void }) {
@@ -668,20 +649,6 @@ const styles = StyleSheet.create({
   unitTxtOn: { color: palette.text },
 
   pickerRow: { flexDirection: 'row', gap: spacing.sm, justifyContent: 'center' },
-  stepper: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.md,
-    backgroundColor: palette.surface, borderRadius: radius.lg,
-    padding: spacing.sm, borderWidth: StyleSheet.hairlineWidth, borderColor: palette.border,
-    flex: 1, ...shadow.card,
-  },
-  stepBtn: {
-    width: 36, height: 36, borderRadius: radius.pill,
-    backgroundColor: palette.surfaceAlt,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  stepValue: { flex: 1, alignItems: 'center' },
-  stepNum: { color: palette.text, fontSize: font.size.xl, fontFamily: font.family.uiBold },
-  stepLabel: { color: palette.textFaint, fontSize: font.size.xs, fontFamily: font.family.uiMedium, letterSpacing: 0.5, textTransform: 'uppercase' },
 
   speedChip: {
     flex: 1, alignItems: 'center', gap: 6,

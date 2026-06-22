@@ -301,8 +301,10 @@ async function imageToTensor(uri: string): Promise<Float32Array> {
 
   const tensor = new Float32Array(INPUT_SIZE * INPUT_SIZE * 3);
   let t = 0;
-  // jpeg-js returns RGBA; drop alpha and normalize.
-  for (let i = 0; i < width * height; i++) {
+  // jpeg-js returns RGBA; drop alpha and normalize. Cap at the tensor's pixel
+  // budget so an unexpected decode size can't overflow the fixed buffer.
+  const pixels = Math.min(width * height, INPUT_SIZE * INPUT_SIZE);
+  for (let i = 0; i < pixels; i++) {
     const r = data[i * 4] ?? 0;
     const g = data[i * 4 + 1] ?? 0;
     const b = data[i * 4 + 2] ?? 0;
