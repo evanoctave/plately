@@ -11,8 +11,6 @@ expo-env.d.ts
 ios/
 android/
 
-# Bundled ML model (downloaded via `npm run fetch-model`; too large / license-bound to commit)
-assets/model/*.tflite
 
 # Environment / secrets
 .env
