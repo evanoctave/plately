@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
@@ -6,7 +6,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '../components/Button';
-import { palette, spacing, font, radius } from '../theme';
+import { spacing, font, radius } from '../theme';
+import type { Palette } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { lookupBarcode } from '../data/openFoodFacts';
 import { registerTransientFood } from '../data/catalog';
 import type { RootStackScreenProps } from '../navigation/types';
@@ -16,6 +18,8 @@ const BARCODE_TYPES = ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'code39'] a
 type Phase = 'scanning' | 'looking_up' | 'not_found' | 'error';
 
 export function BarcodeScanScreen({ navigation }: RootStackScreenProps<'BarcodeScan'>) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
   const [permission, requestPermission] = useCameraPermissions();
   const [phase, setPhase] = useState<Phase>('scanning');
   const [lastCode, setLastCode] = useState<string | null>(null);
@@ -55,7 +59,7 @@ export function BarcodeScanScreen({ navigation }: RootStackScreenProps<'BarcodeS
   if (!permission) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={palette.green} />
+        <ActivityIndicator color={p.green} />
       </View>
     );
   }
@@ -63,7 +67,7 @@ export function BarcodeScanScreen({ navigation }: RootStackScreenProps<'BarcodeS
   if (!permission.granted) {
     return (
       <SafeAreaView style={styles.permission}>
-        <Ionicons name="barcode-outline" size={56} color={palette.textMuted} />
+        <Ionicons name="barcode-outline" size={56} color={p.textMuted} />
         <Text style={styles.permTitle}>Camera access needed</Text>
         <Text style={styles.permBody}>
           Allow camera access to scan a product barcode. Lookups use the free, open
@@ -86,7 +90,7 @@ export function BarcodeScanScreen({ navigation }: RootStackScreenProps<'BarcodeS
       <SafeAreaView style={styles.overlay} edges={['top', 'bottom']}>
         <View style={styles.topBar}>
           <Pressable onPress={() => navigation.goBack()} style={styles.iconBtn} accessibilityLabel="Close scanner">
-            <Ionicons name="close" size={26} color={palette.white} />
+            <Ionicons name="close" size={26} color={p.white} />
           </Pressable>
           <View style={styles.hintPill}>
             <Text style={styles.hintText}>Point at a barcode</Text>
@@ -98,7 +102,7 @@ export function BarcodeScanScreen({ navigation }: RootStackScreenProps<'BarcodeS
         <View style={styles.bottom}>
           {phase === 'looking_up' && (
             <View style={styles.statusCard}>
-              <ActivityIndicator color={palette.green} />
+              <ActivityIndicator color={p.green} />
               <Text style={styles.statusText}>Looking up {lastCode}…</Text>
             </View>
           )}
@@ -129,59 +133,61 @@ export function BarcodeScanScreen({ navigation }: RootStackScreenProps<'BarcodeS
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.black },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.bg },
-  overlay: { flex: 1, justifyContent: 'space-between' },
-  topBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg },
-  hintPill: {
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-  },
-  hintText: { color: palette.white, fontSize: font.size.sm },
-  iconBtn: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.pill,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  frame: {
-    alignSelf: 'center',
-    width: '78%',
-    height: 160,
-    borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.85)',
-    borderRadius: radius.lg,
-  },
-  bottom: { padding: spacing.lg, gap: spacing.md, minHeight: 80 },
-  statusCard: {
-    backgroundColor: palette.surface,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    gap: spacing.sm,
-    alignItems: 'center',
-  },
-  statusTitle: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.uiSemibold },
-  statusText: { color: palette.textMuted, fontSize: font.size.sm, textAlign: 'center', lineHeight: 18 },
-  statusButtons: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-  permission: {
-    flex: 1,
-    backgroundColor: palette.bg,
-    padding: spacing.xl,
-    gap: spacing.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  permTitle: { color: palette.text, fontSize: font.size.xl, fontFamily: font.family.uiBold },
-  permBody: {
-    color: palette.textMuted,
-    fontSize: font.size.md,
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: spacing.md,
-  },
-});
+function makeStyles(p: Palette) {
+  return StyleSheet.create({
+    root: { flex: 1, backgroundColor: p.black },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: p.bg },
+    overlay: { flex: 1, justifyContent: 'space-between' },
+    topBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg },
+    hintPill: {
+      backgroundColor: 'rgba(0,0,0,0.45)',
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.pill,
+    },
+    hintText: { color: p.white, fontSize: font.size.sm },
+    iconBtn: {
+      width: 52,
+      height: 52,
+      borderRadius: radius.pill,
+      backgroundColor: 'rgba(0,0,0,0.4)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    frame: {
+      alignSelf: 'center',
+      width: '78%',
+      height: 160,
+      borderWidth: 3,
+      borderColor: 'rgba(255,255,255,0.85)',
+      borderRadius: radius.lg,
+    },
+    bottom: { padding: spacing.lg, gap: spacing.md, minHeight: 80 },
+    statusCard: {
+      backgroundColor: p.surface,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      gap: spacing.sm,
+      alignItems: 'center',
+    },
+    statusTitle: { color: p.text, fontSize: font.size.lg, fontFamily: font.family.uiSemibold },
+    statusText: { color: p.textMuted, fontSize: font.size.sm, textAlign: 'center', lineHeight: 18 },
+    statusButtons: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+    permission: {
+      flex: 1,
+      backgroundColor: p.bg,
+      padding: spacing.xl,
+      gap: spacing.md,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    permTitle: { color: p.text, fontSize: font.size.xl, fontFamily: font.family.uiBold },
+    permBody: {
+      color: p.textMuted,
+      fontSize: font.size.md,
+      textAlign: 'center',
+      lineHeight: 20,
+      marginBottom: spacing.md,
+    },
+  });
+}

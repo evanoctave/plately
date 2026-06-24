@@ -1,17 +1,46 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { Button } from '../components/Button';
-import { palette, spacing, font, radius } from '../theme';
+import { spacing, font, radius } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { getCustomFoods, deleteCustomFood } from '../db/customFoods';
 import { refreshCustomFoods } from '../data/catalog';
 import type { FoodItem } from '../data/foods';
 import { fmtInt } from '../utils/format';
 import type { RootStackScreenProps } from '../navigation/types';
 
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    root: { flex: 1, backgroundColor: p.bg },
+    list: { padding: spacing.lg, flexGrow: 1 },
+    row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
+    rowBody: { flex: 1, gap: 2 },
+    name: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    meta: { color: p.textMuted, fontSize: font.size.sm },
+    delBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: radius.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: p.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+    },
+    divider: { height: StyleSheet.hairlineWidth, backgroundColor: p.border },
+    empty: { alignItems: 'center', gap: spacing.sm, paddingTop: spacing.xxl * 2, paddingHorizontal: spacing.xl },
+    emptyText: { color: p.textMuted, fontSize: font.size.lg, fontFamily: font.family.uiSemibold },
+    emptySub: { color: p.textFaint, fontSize: font.size.sm, textAlign: 'center' },
+    footer: { padding: spacing.lg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: p.border },
+  });
+}
+
 export function MyFoodsScreen({ navigation }: RootStackScreenProps<'MyFoods'>) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
   const [foods, setFoods] = useState<FoodItem[]>([]);
 
   const load = useCallback(async () => {
@@ -52,7 +81,7 @@ export function MyFoodsScreen({ navigation }: RootStackScreenProps<'MyFoods'>) {
         accessibilityLabel={`Delete ${item.name}`}
         style={({ pressed }) => [styles.delBtn, pressed && { opacity: 0.6 }]}
       >
-        <Ionicons name="trash-outline" size={20} color={palette.red} />
+        <Ionicons name="trash-outline" size={20} color={p.red} />
       </Pressable>
     </View>
   );
@@ -67,7 +96,7 @@ export function MyFoodsScreen({ navigation }: RootStackScreenProps<'MyFoods'>) {
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Ionicons name="restaurant-outline" size={36} color={palette.textFaint} />
+            <Ionicons name="restaurant-outline" size={36} color={p.textFaint} />
             <Text style={styles.emptyText}>No custom foods yet.</Text>
             <Text style={styles.emptySub}>
               Create your own foods once and reuse them anytime — free.
@@ -82,26 +111,3 @@ export function MyFoodsScreen({ navigation }: RootStackScreenProps<'MyFoods'>) {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.bg },
-  list: { padding: spacing.lg, flexGrow: 1 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
-  rowBody: { flex: 1, gap: 2 },
-  name: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  meta: { color: palette.textMuted, fontSize: font.size.sm },
-  delBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: palette.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-  },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.border },
-  empty: { alignItems: 'center', gap: spacing.sm, paddingTop: spacing.xxl * 2, paddingHorizontal: spacing.xl },
-  emptyText: { color: palette.textMuted, fontSize: font.size.lg, fontFamily: font.family.uiSemibold },
-  emptySub: { color: palette.textFaint, fontSize: font.size.sm, textAlign: 'center' },
-  footer: { padding: spacing.lg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: palette.border },
-});

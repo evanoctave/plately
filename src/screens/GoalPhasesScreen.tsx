@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useTheme } from '../theme/ThemeContext';
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,7 +9,7 @@ import * as Haptics from 'expo-haptics';
 import { Card, SectionTitle } from '../components/Card';
 import { Button } from '../components/Button';
 import { PlusLock } from '../components/PlusLock';
-import { palette, spacing, font, radius } from '../theme';
+import { spacing, font, radius } from '../theme';
 import { useSettings } from '../state/useSettings';
 import { usePlus } from '../state/usePlus';
 import { useDiaryRevision } from '../state/useDiary';
@@ -46,10 +47,12 @@ export function GoalPhasesScreen({ navigation }: RootStackScreenProps<'GoalPhase
 }
 
 function GoalPhases() {
+  const p = useTheme();
   const accent = useSettings((s) => s.accent);
   const baseGoals = useSettings((s) => s.goals);
   const setGoals = useSettings((s) => s.setGoals);
   const bump = useDiaryRevision((s) => s.bump);
+  const styles = useMemo(() => makeStyles(p), [p]);
 
   const [phases, setPhases] = useState<GoalPhase[]>([]);
   const [creating, setCreating] = useState(false);
@@ -123,22 +126,22 @@ function GoalPhases() {
 
         {phases.length === 0 && !creating && (
           <Card style={styles.empty}>
-            <Ionicons name="trending-up" size={30} color={palette.textFaint} />
+            <Ionicons name="trending-up" size={30} color={p.textFaint} />
             <Text style={styles.emptyText}>No phases yet. Create your first cut, maintain or bulk.</Text>
           </Card>
         )}
 
-        {phases.map((p) => {
-          const meta = phaseMeta(p.kind);
-          const isActive = p.active === 1;
+        {phases.map((phase) => {
+          const meta = phaseMeta(phase.kind);
+          const isActive = phase.active === 1;
           return (
-            <Card key={p.id} style={[styles.phaseCard, isActive && { borderColor: accent }]}>
+            <Card key={phase.id} style={[styles.phaseCard, isActive && { borderColor: accent }]}>
               <View style={styles.phaseHeader}>
                 <View style={[styles.kindChip, { backgroundColor: accent + '1A' }]}>
                   <Ionicons name={meta.icon as never} size={13} color={accent} />
                   <Text style={[styles.kindChipText, { color: accent }]}>{meta.label}</Text>
                 </View>
-                <Text style={styles.phaseName}>{p.name}</Text>
+                <Text style={styles.phaseName}>{phase.name}</Text>
                 {isActive && (
                   <View style={[styles.activeTag, { backgroundColor: accent }]}>
                     <Text style={styles.activeTagText}>ACTIVE</Text>
@@ -147,25 +150,25 @@ function GoalPhases() {
               </View>
 
               <View style={styles.macroRow}>
-                <Macro label="kcal" value={p.calories} />
-                <Macro label="P" value={p.protein} suffix="g" />
-                <Macro label="C" value={p.carbs} suffix="g" />
-                <Macro label="F" value={p.fat} suffix="g" />
+                <Macro label="kcal" value={phase.calories} />
+                <Macro label="P" value={phase.protein} suffix="g" />
+                <Macro label="C" value={phase.carbs} suffix="g" />
+                <Macro label="F" value={phase.fat} suffix="g" />
               </View>
 
               <View style={styles.phaseActions}>
                 <Button
                   label={isActive ? 'Deactivate' : 'Activate'}
                   variant={isActive ? 'secondary' : 'primary'}
-                  onPress={() => void onActivate(p)}
+                  onPress={() => void onActivate(phase)}
                   style={styles.flex}
                 />
                 <Pressable
-                  onPress={() => confirmDelete(p)}
+                  onPress={() => confirmDelete(phase)}
                   style={({ pressed }) => [styles.deleteBtn, pressed && { opacity: 0.6 }]}
-                  accessibilityLabel={`Delete ${p.name}`}
+                  accessibilityLabel={`Delete ${phase.name}`}
                 >
-                  <Ionicons name="trash-outline" size={20} color={palette.red} />
+                  <Ionicons name="trash-outline" size={20} color={p.red} />
                 </Pressable>
               </View>
             </Card>
@@ -178,7 +181,7 @@ function GoalPhases() {
             <TextInput
               style={styles.nameInput}
               placeholder="Phase name (e.g. Summer cut)"
-              placeholderTextColor={palette.textFaint}
+              placeholderTextColor={p.textFaint}
               value={name}
               onChangeText={setName}
               maxLength={30}
@@ -192,7 +195,7 @@ function GoalPhases() {
                     onPress={() => setKind(m.kind)}
                     style={[styles.kindOption, on && { borderColor: accent, backgroundColor: accent + '1A' }]}
                   >
-                    <Ionicons name={m.icon as never} size={18} color={on ? accent : palette.textMuted} />
+                    <Ionicons name={m.icon as never} size={18} color={on ? accent : p.textMuted} />
                     <Text style={[styles.kindOptionText, on && { color: accent }]}>{m.label}</Text>
                   </Pressable>
                 );
@@ -224,6 +227,8 @@ function GoalPhases() {
 }
 
 function Macro({ label, value, suffix }: { label: string; value: number; suffix?: string }) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
   return (
     <View style={styles.macro}>
       <Text style={styles.macroValue}>
@@ -235,65 +240,67 @@ function Macro({ label, value, suffix }: { label: string; value: number; suffix?
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
-  intro: { color: palette.textMuted, fontSize: font.size.sm, lineHeight: 19 },
-  empty: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl },
-  emptyText: { color: palette.textMuted, fontSize: font.size.md, textAlign: 'center' },
-  phaseCard: { gap: spacing.md },
-  phaseHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  kindChip: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 4 },
-  kindChipText: { fontSize: font.size.xs, fontFamily: font.family.uiBold, letterSpacing: 0.5 },
-  phaseName: { flex: 1, color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  activeTag: { borderRadius: radius.sm, paddingHorizontal: spacing.sm, paddingVertical: 3 },
-  activeTagText: { color: palette.white, fontSize: 9, fontFamily: font.family.uiBold, letterSpacing: 1 },
-  macroRow: { flexDirection: 'row', gap: spacing.sm },
-  macro: {
-    flex: 1,
-    backgroundColor: palette.surfaceAlt,
-    borderRadius: radius.md,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-    gap: 2,
-  },
-  macroValue: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.monoBold },
-  macroSuffix: { color: palette.textMuted, fontSize: font.size.xs, fontFamily: font.family.mono },
-  macroLabel: { color: palette.textFaint, fontSize: font.size.xs, textTransform: 'uppercase', letterSpacing: 0.5 },
-  phaseActions: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
-  flex: { flex: 1 },
-  deleteBtn: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: palette.surfaceAlt,
-  },
-  addBtn: { marginTop: spacing.xs },
-  createCard: { gap: spacing.md },
-  nameInput: {
-    color: palette.text,
-    fontSize: font.size.md,
-    backgroundColor: palette.surfaceAlt,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-  },
-  kindRow: { flexDirection: 'row', gap: spacing.sm },
-  kindOption: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: spacing.xs,
-    borderWidth: 1,
-    borderColor: palette.border,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
-  },
-  kindOptionText: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiSemibold },
-  kindBlurb: { color: palette.textMuted, fontSize: font.size.sm, marginTop: -spacing.xs },
-  previewBox: { backgroundColor: palette.bg, borderRadius: radius.md, padding: spacing.md, gap: spacing.sm },
-  previewLabel: { color: palette.textFaint, fontSize: font.size.xs, textTransform: 'uppercase', letterSpacing: 0.5 },
-});
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: p.bg },
+    content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
+    intro: { color: p.textMuted, fontSize: font.size.sm, lineHeight: 19 },
+    empty: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl },
+    emptyText: { color: p.textMuted, fontSize: font.size.md, textAlign: 'center' },
+    phaseCard: { gap: spacing.md },
+    phaseHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    kindChip: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 4 },
+    kindChipText: { fontSize: font.size.xs, fontFamily: font.family.uiBold, letterSpacing: 0.5 },
+    phaseName: { flex: 1, color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    activeTag: { borderRadius: radius.sm, paddingHorizontal: spacing.sm, paddingVertical: 3 },
+    activeTagText: { color: p.white, fontSize: 9, fontFamily: font.family.uiBold, letterSpacing: 1 },
+    macroRow: { flexDirection: 'row', gap: spacing.sm },
+    macro: {
+      flex: 1,
+      backgroundColor: p.surfaceAlt,
+      borderRadius: radius.md,
+      paddingVertical: spacing.sm,
+      alignItems: 'center',
+      gap: 2,
+    },
+    macroValue: { color: p.text, fontSize: font.size.md, fontFamily: font.family.monoBold },
+    macroSuffix: { color: p.textMuted, fontSize: font.size.xs, fontFamily: font.family.mono },
+    macroLabel: { color: p.textFaint, fontSize: font.size.xs, textTransform: 'uppercase', letterSpacing: 0.5 },
+    phaseActions: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
+    flex: { flex: 1 },
+    deleteBtn: {
+      width: 52,
+      height: 52,
+      borderRadius: radius.lg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: p.surfaceAlt,
+    },
+    addBtn: { marginTop: spacing.xs },
+    createCard: { gap: spacing.md },
+    nameInput: {
+      color: p.text,
+      fontSize: font.size.md,
+      backgroundColor: p.surfaceAlt,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+    },
+    kindRow: { flexDirection: 'row', gap: spacing.sm },
+    kindOption: {
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: spacing.xs,
+      borderWidth: 1,
+      borderColor: p.border,
+      borderRadius: radius.md,
+      paddingVertical: spacing.md,
+    },
+    kindOptionText: { color: p.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiSemibold },
+    kindBlurb: { color: p.textMuted, fontSize: font.size.sm, marginTop: -spacing.xs },
+    previewBox: { backgroundColor: p.bg, borderRadius: radius.md, padding: spacing.md, gap: spacing.sm },
+    previewLabel: { color: p.textFaint, fontSize: font.size.xs, textTransform: 'uppercase', letterSpacing: 0.5 },
+  });
+}

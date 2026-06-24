@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,13 +7,16 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Path, Circle } from 'react-native-svg';
 
-import { palette, spacing, font, radius, shadow, macroColors } from '../theme';
+import { spacing, font, radius, shadow, macroColors } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { useSettings } from '../state/useSettings';
 import { fmtInt } from '../utils/format';
 import { kgToLb } from '../utils/goals';
 import type { RootStackScreenProps } from '../navigation/types';
 
 export function GoalResultsScreen({ navigation }: RootStackScreenProps<'GoalResults'>) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
   const goals = useSettings((s) => s.goals);
   const profile = useSettings((s) => s.profile);
   const weightUnit = useSettings((s) => s.weightUnit);
@@ -52,7 +55,7 @@ export function GoalResultsScreen({ navigation }: RootStackScreenProps<'GoalResu
                 <View key={label} style={styles.checkRow}>
                   <Text style={styles.checkText}>{label}</Text>
                   {reached
-                    ? <Ionicons name="checkmark-circle" size={18} color={palette.text} />
+                    ? <Ionicons name="checkmark-circle" size={18} color={p.text} />
                     : <View style={styles.checkPending} />}
                 </View>
               );
@@ -73,7 +76,7 @@ export function GoalResultsScreen({ navigation }: RootStackScreenProps<'GoalResu
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
         <View style={styles.doneBadge}>
-          <Ionicons name="checkmark-circle" size={26} color={palette.accent} />
+          <Ionicons name="checkmark-circle" size={26} color={p.accent} />
         </View>
         <Text style={styles.goalLine}>
           {direction === 'maintain'
@@ -81,7 +84,7 @@ export function GoalResultsScreen({ navigation }: RootStackScreenProps<'GoalResu
             : `Goal: ${direction === 'lose' ? 'lose' : 'gain'} ${Math.abs(diff)} ${weightUnit === 'kg' ? 'kg' : 'lbs'}`}
         </Text>
 
-        <ProgressChart currentLb={currentLb} targetLb={targetLb} direction={direction} />
+        <ProgressChart currentLb={currentLb} targetLb={targetLb} direction={direction} styles={styles} p={p} />
 
         <View style={styles.card}>
           <Text style={styles.cardHeader}>Your daily recommendation</Text>
@@ -89,16 +92,16 @@ export function GoalResultsScreen({ navigation }: RootStackScreenProps<'GoalResu
 
           <View style={styles.bigStat}>
             <View style={styles.bigStatIcon}>
-              <Ionicons name="flame" size={20} color={palette.text} />
+              <Ionicons name="flame" size={20} color={p.text} />
             </View>
             <Text style={styles.bigStatNum}>{fmtInt(goals.calories)}</Text>
             <Text style={styles.bigStatLabel}>Calories</Text>
           </View>
 
           <View style={styles.macroRow}>
-            <Macro label="Protein" v={`${fmtInt(goals.protein)}g`} color={macroColors.protein} icon="fitness" />
-            <Macro label="Carbs" v={`${fmtInt(goals.carbs)}g`} color={macroColors.carbs} icon="leaf" />
-            <Macro label="Fats" v={`${fmtInt(goals.fat)}g`} color={macroColors.fat} icon="water" />
+            <Macro label="Protein" v={`${fmtInt(goals.protein)}g`} color={macroColors.protein} icon="fitness" styles={styles} />
+            <Macro label="Carbs" v={`${fmtInt(goals.carbs)}g`} color={macroColors.carbs} icon="leaf" styles={styles} />
+            <Macro label="Fats" v={`${fmtInt(goals.fat)}g`} color={macroColors.fat} icon="water" styles={styles} />
           </View>
         </View>
 
@@ -111,7 +114,7 @@ export function GoalResultsScreen({ navigation }: RootStackScreenProps<'GoalResu
             { i: 'trending-up' as const, t: 'Weigh in weekly to track progress' },
           ].map((row) => (
             <View key={row.t} style={styles.howRow}>
-              <View style={styles.howIcon}><Ionicons name={row.i} size={18} color={palette.text} /></View>
+              <View style={styles.howIcon}><Ionicons name={row.i} size={18} color={p.text} /></View>
               <Text style={styles.howText}>{row.t}</Text>
             </View>
           ))}
@@ -132,7 +135,7 @@ export function GoalResultsScreen({ navigation }: RootStackScreenProps<'GoalResu
   );
 }
 
-function Macro({ label, v, color, icon }: { label: string; v: string; color: string; icon: keyof typeof import('@expo/vector-icons').Ionicons.glyphMap }) {
+function Macro({ label, v, color, icon, styles }: { label: string; v: string; color: string; icon: keyof typeof import('@expo/vector-icons').Ionicons.glyphMap; styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.macro}>
       <View style={[styles.macroIcon, { backgroundColor: color + '22' }]}>
@@ -144,7 +147,7 @@ function Macro({ label, v, color, icon }: { label: string; v: string; color: str
   );
 }
 
-function ProgressChart({ currentLb, targetLb, direction }: { currentLb: number; targetLb: number; direction: string }) {
+function ProgressChart({ currentLb, targetLb, direction, styles, p }: { currentLb: number; targetLb: number; direction: string; styles: ReturnType<typeof makeStyles>; p: ReturnType<typeof useTheme> }) {
   const w = 280;
   const h = 80;
   // Simple decay curve from current → target
@@ -159,9 +162,9 @@ function ProgressChart({ currentLb, targetLb, direction }: { currentLb: number; 
       <Text style={styles.chartHeader}>Estimated progress</Text>
       <View style={{ alignItems: 'center', marginTop: spacing.sm }}>
         <Svg width={w} height={h}>
-          <Path d={path} stroke={palette.text} strokeWidth={2} fill="none" strokeLinecap="round" />
-          <Circle cx={8} cy={startY} r={4} fill={palette.text} />
-          <Circle cx={w - 16} cy={endY} r={4} fill={palette.accent} />
+          <Path d={path} stroke={p.text} strokeWidth={2} fill="none" strokeLinecap="round" />
+          <Circle cx={8} cy={startY} r={4} fill={p.text} />
+          <Circle cx={w - 16} cy={endY} r={4} fill={p.accent} />
         </Svg>
         <View style={styles.chartLabels}>
           <Text style={styles.chartFaint}>Now</Text>
@@ -172,50 +175,52 @@ function ProgressChart({ currentLb, targetLb, direction }: { currentLb: number; 
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: palette.bg },
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: p.bg },
 
-  // generating
-  generatingBody: { flex: 1, padding: spacing.xl, justifyContent: 'center', alignItems: 'center', gap: spacing.lg },
-  pctNum: { color: palette.text, fontSize: 56, fontFamily: font.family.uiBold, letterSpacing: -2 },
-  pctTitle: { color: palette.text, fontSize: 22, fontFamily: font.family.uiBold, textAlign: 'center', lineHeight: 28 },
-  track: { width: '90%', height: 4, borderRadius: 2, backgroundColor: palette.surfaceAlt, marginTop: spacing.md, overflow: 'hidden' },
-  fill: { height: '100%', backgroundColor: palette.text, borderRadius: 2 },
-  checklist: { width: '90%', backgroundColor: palette.surface, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm, borderWidth: StyleSheet.hairlineWidth, borderColor: palette.border, marginTop: spacing.lg, ...shadow.card },
-  checkRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  checkText: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.ui },
-  checkPending: { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: palette.border },
+    // generating
+    generatingBody: { flex: 1, padding: spacing.xl, justifyContent: 'center', alignItems: 'center', gap: spacing.lg },
+    pctNum: { color: p.text, fontSize: 56, fontFamily: font.family.uiBold, letterSpacing: -2 },
+    pctTitle: { color: p.text, fontSize: 22, fontFamily: font.family.uiBold, textAlign: 'center', lineHeight: 28 },
+    track: { width: '90%', height: 4, borderRadius: 2, backgroundColor: p.surfaceAlt, marginTop: spacing.md, overflow: 'hidden' },
+    fill: { height: '100%', backgroundColor: p.text, borderRadius: 2 },
+    checklist: { width: '90%', backgroundColor: p.surface, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm, borderWidth: StyleSheet.hairlineWidth, borderColor: p.border, marginTop: spacing.lg, ...shadow.card },
+    checkRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    checkText: { color: p.text, fontSize: font.size.md, fontFamily: font.family.ui },
+    checkPending: { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: p.border },
 
-  // results
-  body: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
-  doneBadge: { alignSelf: 'center', marginTop: spacing.lg },
-  goalLine: { color: palette.text, fontSize: 24, fontFamily: font.family.uiBold, textAlign: 'center', letterSpacing: -0.5, marginBottom: spacing.sm },
+    // results
+    body: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
+    doneBadge: { alignSelf: 'center', marginTop: spacing.lg },
+    goalLine: { color: p.text, fontSize: 24, fontFamily: font.family.uiBold, textAlign: 'center', letterSpacing: -0.5, marginBottom: spacing.sm },
 
-  chartCard: { backgroundColor: palette.surface, borderRadius: radius.lg, padding: spacing.lg, ...shadow.card, borderWidth: StyleSheet.hairlineWidth, borderColor: palette.border },
-  chartHeader: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  chartLabels: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
-  chartFaint: { color: palette.textFaint, fontSize: font.size.xs, fontFamily: font.family.uiMedium },
+    chartCard: { backgroundColor: p.surface, borderRadius: radius.lg, padding: spacing.lg, ...shadow.card, borderWidth: StyleSheet.hairlineWidth, borderColor: p.border },
+    chartHeader: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    chartLabels: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
+    chartFaint: { color: p.textFaint, fontSize: font.size.xs, fontFamily: font.family.uiMedium },
 
-  card: { backgroundColor: palette.surface, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm, borderWidth: StyleSheet.hairlineWidth, borderColor: palette.border, ...shadow.card },
-  cardHeader: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  cardSub: { color: palette.textMuted, fontSize: font.size.xs, marginTop: -spacing.xs },
-  bigStat: { backgroundColor: palette.surfaceAlt, borderRadius: radius.md, padding: spacing.md, flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.sm },
-  bigStatIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: palette.surface, alignItems: 'center', justifyContent: 'center' },
-  bigStatNum: { color: palette.text, fontSize: font.size.xxl, fontFamily: font.family.uiBold, letterSpacing: -0.8 },
-  bigStatLabel: { color: palette.textMuted, fontSize: font.size.sm, marginTop: 8 },
-  macroRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-  macro: { flex: 1, backgroundColor: palette.surfaceAlt, borderRadius: radius.md, padding: spacing.sm, alignItems: 'flex-start', gap: 4 },
-  macroIcon: { width: 24, height: 24, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  macroV: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.uiBold },
-  macroL: { color: palette.textMuted, fontSize: font.size.xs, fontFamily: font.family.uiMedium },
+    card: { backgroundColor: p.surface, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm, borderWidth: StyleSheet.hairlineWidth, borderColor: p.border, ...shadow.card },
+    cardHeader: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    cardSub: { color: p.textMuted, fontSize: font.size.xs, marginTop: -spacing.xs },
+    bigStat: { backgroundColor: p.surfaceAlt, borderRadius: radius.md, padding: spacing.md, flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.sm },
+    bigStatIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: p.surface, alignItems: 'center', justifyContent: 'center' },
+    bigStatNum: { color: p.text, fontSize: font.size.xxl, fontFamily: font.family.uiBold, letterSpacing: -0.8 },
+    bigStatLabel: { color: p.textMuted, fontSize: font.size.sm, marginTop: 8 },
+    macroRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+    macro: { flex: 1, backgroundColor: p.surfaceAlt, borderRadius: radius.md, padding: spacing.sm, alignItems: 'flex-start', gap: 4 },
+    macroIcon: { width: 24, height: 24, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+    macroV: { color: p.text, fontSize: font.size.lg, fontFamily: font.family.uiBold },
+    macroL: { color: p.textMuted, fontSize: font.size.xs, fontFamily: font.family.uiMedium },
 
-  howCard: { backgroundColor: palette.surface, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md, borderWidth: StyleSheet.hairlineWidth, borderColor: palette.border, ...shadow.card },
-  howHeader: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  howRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: palette.surfaceAlt, padding: spacing.md, borderRadius: radius.md },
-  howIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: palette.surface, alignItems: 'center', justifyContent: 'center' },
-  howText: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiMedium },
+    howCard: { backgroundColor: p.surface, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md, borderWidth: StyleSheet.hairlineWidth, borderColor: p.border, ...shadow.card },
+    howHeader: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    howRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: p.surfaceAlt, padding: spacing.md, borderRadius: radius.md },
+    howIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: p.surface, alignItems: 'center', justifyContent: 'center' },
+    howText: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiMedium },
 
-  footer: { padding: spacing.lg },
-  cta: { backgroundColor: palette.text, borderRadius: radius.pill, paddingVertical: spacing.md + 2, alignItems: 'center' },
-  ctaText: { color: palette.white, fontSize: font.size.md, fontFamily: font.family.uiBold },
-});
+    footer: { padding: spacing.lg },
+    cta: { backgroundColor: p.text, borderRadius: radius.pill, paddingVertical: spacing.md + 2, alignItems: 'center' },
+    ctaText: { color: p.white, fontSize: font.size.md, fontFamily: font.family.uiBold },
+  });
+}

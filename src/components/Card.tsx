@@ -9,12 +9,16 @@
 //   SectionTitle  — the small uppercase-ish label that appears above grouped
 //                   content ("Recently logged", "Quick add", "Micronutrients").
 
+import { useMemo } from 'react';
 import { StyleSheet, View, Text, type ViewProps } from 'react-native';
 
-import { palette, radius, spacing, font, shadow } from '../theme';
+import { radius, spacing, font, shadow } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 
 /** Standard white card surface. Default padding is `spacing.lg`. */
 export function Card({ style, children, ...rest }: ViewProps) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
   return (
     <View style={[styles.card, style]} {...rest}>
       {children}
@@ -23,23 +27,27 @@ export function Card({ style, children, ...rest }: ViewProps) {
 }
 
 export function SectionTitle({ children }: { children: React.ReactNode }) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
   return <Text style={styles.sectionTitle}>{children}</Text>;
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: palette.surface,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-    ...shadow.card,
-  },
-  sectionTitle: {
-    color: palette.textMuted,
-    fontSize: font.size.sm,
-    fontFamily: font.family.uiSemibold,
-    marginBottom: spacing.sm,
-    marginTop: spacing.lg,
-  },
-});
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: p.surface,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+      ...shadow.card,
+    },
+    sectionTitle: {
+      color: p.textMuted,
+      fontSize: font.size.sm,
+      fontFamily: font.family.uiSemibold,
+      marginBottom: spacing.sm,
+      marginTop: spacing.lg,
+    },
+  });
+}

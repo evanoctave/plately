@@ -7,7 +7,9 @@ import * as Haptics from 'expo-haptics';
 import { Button } from '../components/Button';
 import { Card, SectionTitle } from '../components/Card';
 import { MicrosGrid } from '../components/MicrosGrid';
-import { palette, spacing, font, radius, macroColors } from '../theme';
+import { spacing, font, radius, macroColors } from '../theme';
+import type { Palette } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { getFood } from '../data/catalog';
 import { isFavorite, toggleFavorite } from '../db/favorites';
 import { nutritionForGrams } from '../utils/nutrition';
@@ -19,6 +21,8 @@ import type { RootStackScreenProps } from '../navigation/types';
 const STEP_OPTIONS = [0.5, 1, 1.5, 2];
 
 export function ConfirmFoodScreen({ route, navigation }: RootStackScreenProps<'ConfirmFood'>) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
   const { foodId, photoUri, source, suggestedGrams } = route.params;
   const food = getFood(foodId);
   const [grams, setGrams] = useState(suggestedGrams ?? food?.servingGrams ?? 100);
@@ -89,7 +93,7 @@ export function ConfirmFoodScreen({ route, navigation }: RootStackScreenProps<'C
           <Ionicons
             name={favorite ? 'star' : 'star-outline'}
             size={24}
-            color={favorite ? palette.amber : palette.textMuted}
+            color={favorite ? p.amber : p.textMuted}
           />
         </Pressable>
       </View>
@@ -98,14 +102,14 @@ export function ConfirmFoodScreen({ route, navigation }: RootStackScreenProps<'C
         <SectionTitle>Portion</SectionTitle>
         <View style={styles.gramRow}>
           <Pressable onPress={() => nudge(-10)} style={styles.stepBtn} accessibilityLabel="Decrease grams">
-            <Ionicons name="remove" size={22} color={palette.text} />
+            <Ionicons name="remove" size={22} color={p.text} />
           </Pressable>
           <View style={styles.gramDisplay}>
             <Text style={styles.gramValue}>{fmtInt(grams)} g</Text>
             <Text style={styles.gramServings}>{fmt(servings)}× {food.servingLabel}</Text>
           </View>
           <Pressable onPress={() => nudge(10)} style={styles.stepBtn} accessibilityLabel="Increase grams">
-            <Ionicons name="add" size={22} color={palette.text} />
+            <Ionicons name="add" size={22} color={p.text} />
           </Pressable>
         </View>
         <View style={styles.quickRow}>
@@ -130,14 +134,14 @@ export function ConfirmFoodScreen({ route, navigation }: RootStackScreenProps<'C
           <Text style={styles.calUnit}>kcal</Text>
         </View>
         <View style={styles.macroRow}>
-          <Macro label="Protein" value={nutrition.protein} color={macroColors.protein} />
-          <Macro label="Carbs" value={nutrition.carbs} color={macroColors.carbs} />
-          <Macro label="Fat" value={nutrition.fat} color={macroColors.fat} />
+          <Macro label="Protein" value={nutrition.protein} color={macroColors.protein} styles={styles} />
+          <Macro label="Carbs" value={nutrition.carbs} color={macroColors.carbs} styles={styles} />
+          <Macro label="Fat" value={nutrition.fat} color={macroColors.fat} styles={styles} />
         </View>
         <View style={styles.subRow}>
-          <Sub label="Fiber" value={`${fmt(nutrition.fiber)} g`} />
-          <Sub label="Sugar" value={`${fmt(nutrition.sugar)} g`} />
-          <Sub label="Water" value={`${fmtInt(nutrition.water)} mL`} />
+          <Sub label="Fiber" value={`${fmt(nutrition.fiber)} g`} styles={styles} />
+          <Sub label="Sugar" value={`${fmt(nutrition.sugar)} g`} styles={styles} />
+          <Sub label="Water" value={`${fmtInt(nutrition.water)} mL`} styles={styles} />
         </View>
       </Card>
 
@@ -149,7 +153,9 @@ export function ConfirmFoodScreen({ route, navigation }: RootStackScreenProps<'C
   );
 }
 
-function Macro({ label, value, color }: { label: string; value: number; color: string }) {
+type ConfirmStyles = ReturnType<typeof makeStyles>;
+
+function Macro({ label, value, color, styles }: { label: string; value: number; color: string; styles: ConfirmStyles }) {
   return (
     <View style={styles.macro}>
       <View style={[styles.macroDot, { backgroundColor: color }]} />
@@ -159,7 +165,7 @@ function Macro({ label, value, color }: { label: string; value: number; color: s
   );
 }
 
-function Sub({ label, value }: { label: string; value: string }) {
+function Sub({ label, value, styles }: { label: string; value: string; styles: ConfirmStyles }) {
   return (
     <View style={styles.sub}>
       <Text style={styles.subValue}>{value}</Text>
@@ -168,53 +174,55 @@ function Sub({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
-  photo: { width: '100%', height: 200, borderRadius: radius.lg, backgroundColor: palette.surfaceAlt },
-  name: { color: palette.text, fontSize: font.size.xxl, fontFamily: font.family.uiBold },
-  category: { color: palette.textMuted, fontSize: font.size.md, marginTop: 2 },
-  titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.md },
-  titleText: { flex: 1 },
-  starBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    backgroundColor: palette.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-  },
-  portionCard: { gap: spacing.sm },
-  gramRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  stepBtn: {
-    width: 48, height: 48, borderRadius: radius.md, backgroundColor: palette.surfaceAlt,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  gramDisplay: { alignItems: 'center' },
-  gramValue: { color: palette.text, fontSize: font.size.xl, fontFamily: font.family.monoBold },
-  gramServings: { color: palette.textMuted, fontSize: font.size.sm, marginTop: 2 },
-  quickRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-  quickChip: {
-    flex: 1, paddingVertical: spacing.sm, borderRadius: radius.md, backgroundColor: palette.surfaceAlt,
-    alignItems: 'center',
-  },
-  quickChipActive: { backgroundColor: palette.green },
-  quickChipText: { color: palette.textMuted, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  quickChipTextActive: { color: palette.black },
-  calRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
-  calValue: { color: palette.text, fontSize: font.size.display, fontFamily: font.family.monoBold },
-  calUnit: { color: palette.textMuted, fontSize: font.size.lg },
-  macroRow: { flexDirection: 'row', justifyContent: 'space-around', marginTop: spacing.md },
-  macro: { alignItems: 'center', gap: 4 },
-  macroDot: { width: 10, height: 10, borderRadius: 5 },
-  macroValue: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.monoSemibold },
-  macroLabel: { color: palette.textMuted, fontSize: font.size.sm },
-  subRow: { flexDirection: 'row', justifyContent: 'space-around', marginTop: spacing.lg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: palette.border, paddingTop: spacing.md },
-  sub: { alignItems: 'center', gap: 2 },
-  subValue: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.mono },
-  subLabel: { color: palette.textFaint, fontSize: font.size.xs },
-  saveBtn: { marginTop: spacing.lg },
-  missing: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg, padding: spacing.xl },
-  missingText: { color: palette.textMuted, fontSize: font.size.lg },
-});
+function makeStyles(p: Palette) {
+  return StyleSheet.create({
+    content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
+    photo: { width: '100%', height: 200, borderRadius: radius.lg, backgroundColor: p.surfaceAlt },
+    name: { color: p.text, fontSize: font.size.xxl, fontFamily: font.family.uiBold },
+    category: { color: p.textMuted, fontSize: font.size.md, marginTop: 2 },
+    titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.md },
+    titleText: { flex: 1 },
+    starBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: radius.md,
+      backgroundColor: p.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+    },
+    portionCard: { gap: spacing.sm },
+    gramRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    stepBtn: {
+      width: 48, height: 48, borderRadius: radius.md, backgroundColor: p.surfaceAlt,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    gramDisplay: { alignItems: 'center' },
+    gramValue: { color: p.text, fontSize: font.size.xl, fontFamily: font.family.monoBold },
+    gramServings: { color: p.textMuted, fontSize: font.size.sm, marginTop: 2 },
+    quickRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+    quickChip: {
+      flex: 1, paddingVertical: spacing.sm, borderRadius: radius.md, backgroundColor: p.surfaceAlt,
+      alignItems: 'center',
+    },
+    quickChipActive: { backgroundColor: p.green },
+    quickChipText: { color: p.textMuted, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    quickChipTextActive: { color: p.black },
+    calRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
+    calValue: { color: p.text, fontSize: font.size.display, fontFamily: font.family.monoBold },
+    calUnit: { color: p.textMuted, fontSize: font.size.lg },
+    macroRow: { flexDirection: 'row', justifyContent: 'space-around', marginTop: spacing.md },
+    macro: { alignItems: 'center', gap: 4 },
+    macroDot: { width: 10, height: 10, borderRadius: 5 },
+    macroValue: { color: p.text, fontSize: font.size.lg, fontFamily: font.family.monoSemibold },
+    macroLabel: { color: p.textMuted, fontSize: font.size.sm },
+    subRow: { flexDirection: 'row', justifyContent: 'space-around', marginTop: spacing.lg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: p.border, paddingTop: spacing.md },
+    sub: { alignItems: 'center', gap: 2 },
+    subValue: { color: p.text, fontSize: font.size.md, fontFamily: font.family.mono },
+    subLabel: { color: p.textFaint, fontSize: font.size.xs },
+    saveBtn: { marginTop: spacing.lg },
+    missing: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg, padding: spacing.xl },
+    missingText: { color: p.textMuted, fontSize: font.size.lg },
+  });
+}

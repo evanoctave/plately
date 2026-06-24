@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -6,7 +6,8 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import { BarChart, type BarDatum } from '../components/BarChart';
 import { Card, SectionTitle } from '../components/Card';
-import { palette, spacing, font, radius, macroColors } from '../theme';
+import { spacing, font, radius, macroColors } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { getDailyTotals, getAllLoggedDayKeys, type DayTotals } from '../db/stats';
 import { useSettings } from '../state/useSettings';
 import { useDiaryRevision } from '../state/useDiary';
@@ -17,7 +18,42 @@ import { mlToDisplay } from '../state/useSettings';
 
 const RANGE_DAYS = 14;
 
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: p.bg },
+    content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
+    title: { color: p.text, fontSize: font.size.xxl, fontFamily: font.family.uiBold },
+    subtitle: { color: p.textMuted, fontSize: font.size.sm, marginTop: -spacing.sm },
+    empty: { alignItems: 'center', gap: spacing.md, paddingVertical: spacing.xxl },
+    emptyText: { color: p.textMuted, fontSize: font.size.md, textAlign: 'center', paddingHorizontal: spacing.lg },
+    statRow: { flexDirection: 'row', gap: spacing.md },
+    statCard: {
+      flex: 1,
+      backgroundColor: p.surface,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      alignItems: 'center',
+      gap: spacing.xs,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+    },
+    statValue: { color: p.text, fontSize: font.size.xxl, fontFamily: font.family.monoBold },
+    statLabel: { color: p.textMuted, fontSize: font.size.sm, textAlign: 'center' },
+    avgCard: { gap: spacing.md },
+    avgRow: { gap: spacing.xs },
+    avgHeader: { flexDirection: 'row', justifyContent: 'space-between' },
+    avgLabel: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiMedium },
+    avgValue: { color: p.textMuted, fontSize: font.size.sm },
+    avgTrack: { height: 8, borderRadius: radius.pill, backgroundColor: p.surfaceAlt, overflow: 'hidden' },
+    avgFill: { height: '100%', borderRadius: radius.pill },
+    avgNote: { color: p.textFaint, fontSize: font.size.xs },
+  });
+}
+
 export function InsightsScreen() {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
+
   const goals = useSettings((s) => s.goals);
   const waterUnit = useSettings((s) => s.waterUnit);
   const revision = useDiaryRevision((s) => s.revision);
@@ -66,7 +102,7 @@ export function InsightsScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={palette.green} />}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={p.green} />}
       >
         <Text style={styles.title}>Insights</Text>
         <Text style={styles.subtitle}>
@@ -75,7 +111,7 @@ export function InsightsScreen() {
 
         {!hasData ? (
           <Card style={styles.empty}>
-            <Ionicons name="bar-chart-outline" size={32} color={palette.textFaint} />
+            <Ionicons name="bar-chart-outline" size={32} color={p.textFaint} />
             <Text style={styles.emptyText}>
               Log a few meals and your trends will appear here.
             </Text>
@@ -85,15 +121,17 @@ export function InsightsScreen() {
             <View style={styles.statRow}>
               <StatCard
                 icon="flame"
-                color={palette.amber}
+                color={p.amber}
                 value={`${streak}`}
                 label={streak === 1 ? 'day streak' : 'day streak'}
+                styles={styles}
               />
               <StatCard
                 icon="calendar"
-                color={palette.teal}
+                color={p.teal}
                 value={`${activeDays}`}
                 label={`of ${RANGE_DAYS} days logged`}
+                styles={styles}
               />
             </View>
 
@@ -108,19 +146,22 @@ export function InsightsScreen() {
                 label="Calories"
                 value={`${fmtInt(avgCalories)} kcal`}
                 pct={goals.calories > 0 ? avgCalories / goals.calories : 0}
-                color={palette.green}
+                color={p.green}
+                styles={styles}
               />
               <AvgRow
                 label="Protein"
                 value={`${fmt(avgProtein)} g`}
                 pct={goals.protein > 0 ? avgProtein / goals.protein : 0}
                 color={macroColors.protein}
+                styles={styles}
               />
               <AvgRow
                 label="Water"
                 value={`${mlToDisplay(avgWater, waterUnit)} ${waterUnit}`}
                 pct={goals.water > 0 ? avgWater / goals.water : 0}
-                color={palette.water}
+                color={p.water}
+                styles={styles}
               />
               <Text style={styles.avgNote}>Averaged over days you logged.</Text>
             </Card>
@@ -136,11 +177,13 @@ function StatCard({
   color,
   value,
   label,
+  styles,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   color: string;
   value: string;
   label: string;
+  styles: ReturnType<typeof makeStyles>;
 }) {
   return (
     <View style={styles.statCard}>
@@ -151,7 +194,19 @@ function StatCard({
   );
 }
 
-function AvgRow({ label, value, pct, color }: { label: string; value: string; pct: number; color: string }) {
+function AvgRow({
+  label,
+  value,
+  pct,
+  color,
+  styles,
+}: {
+  label: string;
+  value: string;
+  pct: number;
+  color: string;
+  styles: ReturnType<typeof makeStyles>;
+}) {
   const width = `${Math.max(0, Math.min(1, pct)) * 100}%` as const;
   return (
     <View style={styles.avgRow}>
@@ -165,33 +220,3 @@ function AvgRow({ label, value, pct, color }: { label: string; value: string; pc
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
-  title: { color: palette.text, fontSize: font.size.xxl, fontFamily: font.family.uiBold },
-  subtitle: { color: palette.textMuted, fontSize: font.size.sm, marginTop: -spacing.sm },
-  empty: { alignItems: 'center', gap: spacing.md, paddingVertical: spacing.xxl },
-  emptyText: { color: palette.textMuted, fontSize: font.size.md, textAlign: 'center', paddingHorizontal: spacing.lg },
-  statRow: { flexDirection: 'row', gap: spacing.md },
-  statCard: {
-    flex: 1,
-    backgroundColor: palette.surface,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    alignItems: 'center',
-    gap: spacing.xs,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-  },
-  statValue: { color: palette.text, fontSize: font.size.xxl, fontFamily: font.family.monoBold },
-  statLabel: { color: palette.textMuted, fontSize: font.size.sm, textAlign: 'center' },
-  avgCard: { gap: spacing.md },
-  avgRow: { gap: spacing.xs },
-  avgHeader: { flexDirection: 'row', justifyContent: 'space-between' },
-  avgLabel: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiMedium },
-  avgValue: { color: palette.textMuted, fontSize: font.size.sm },
-  avgTrack: { height: 8, borderRadius: radius.pill, backgroundColor: palette.surfaceAlt, overflow: 'hidden' },
-  avgFill: { height: '100%', borderRadius: radius.pill },
-  avgNote: { color: palette.textFaint, fontSize: font.size.xs },
-});

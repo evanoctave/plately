@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card } from '../components/Card';
-import { palette, spacing, font, radius } from '../theme';
+import { spacing, font, radius } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { useSettings } from '../state/useSettings';
 import { useDiaryRevision } from '../state/useDiary';
 import { getAllEntries, getLoggedDays } from '../db/database';
@@ -28,6 +29,8 @@ const EMPTY_STATS: AchievementStats = {
 };
 
 export function AchievementsScreen() {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
   const accent = useSettings((s) => s.accent);
   const waterGoal = useSettings((s) => s.goals.water);
   const revision = useDiaryRevision((s) => s.revision);
@@ -74,13 +77,13 @@ export function AchievementsScreen() {
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.statRow}>
-          <StatTile icon="trophy" value={`${unlockedCount}/${progress.length}`} label="Unlocked" accent={accent} />
-          <StatTile icon="flame" value={String(stats.currentStreak)} label="Day streak" accent={accent} />
-          <StatTile icon="snow" value={String(freezes)} label="Streak freezes" accent={accent} />
+          <StatTile icon="trophy" value={`${unlockedCount}/${progress.length}`} label="Unlocked" accent={accent} styles={styles} />
+          <StatTile icon="flame" value={String(stats.currentStreak)} label="Day streak" accent={accent} styles={styles} />
+          <StatTile icon="snow" value={String(freezes)} label="Streak freezes" accent={accent} styles={styles} />
         </View>
 
         {progress.map((a) => (
-          <Badge key={a.id} a={a} accent={accent} />
+          <Badge key={a.id} a={a} accent={accent} styles={styles} p={p} />
         ))}
 
         <Text style={styles.footnote}>
@@ -97,11 +100,13 @@ function StatTile({
   value,
   label,
   accent,
+  styles,
 }: {
   icon: string;
   value: string;
   label: string;
   accent: string;
+  styles: ReturnType<typeof makeStyles>;
 }) {
   return (
     <Card style={styles.statTile}>
@@ -112,14 +117,14 @@ function StatTile({
   );
 }
 
-function Badge({ a, accent }: { a: AchievementProgress; accent: string }) {
+function Badge({ a, accent, styles, p }: { a: AchievementProgress; accent: string; styles: ReturnType<typeof makeStyles>; p: ReturnType<typeof useTheme> }) {
   return (
     <Card style={[styles.badge, !a.unlocked && styles.badgeLocked]}>
-      <View style={[styles.iconWrap, { backgroundColor: a.unlocked ? accent : palette.surfaceAlt }]}>
+      <View style={[styles.iconWrap, { backgroundColor: a.unlocked ? accent : p.surfaceAlt }]}>
         <Ionicons
           name={(a.unlocked ? a.icon : 'lock-closed') as never}
           size={22}
-          color={a.unlocked ? palette.black : palette.textFaint}
+          color={a.unlocked ? p.black : p.textFaint}
         />
       </View>
       <View style={styles.badgeBody}>
@@ -141,34 +146,36 @@ function Badge({ a, accent }: { a: AchievementProgress; accent: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
-  statRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
-  statTile: { flex: 1, alignItems: 'center', gap: 2, paddingVertical: spacing.md },
-  statValue: { color: palette.text, fontSize: font.size.xl, fontFamily: font.family.monoBold },
-  statLabel: { color: palette.textMuted, fontSize: font.size.xs, textAlign: 'center' },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  badgeLocked: { opacity: 0.92 },
-  iconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeBody: { flex: 1, gap: 2 },
-  badgeTitle: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  dim: { color: palette.textMuted },
-  badgeDesc: { color: palette.textMuted, fontSize: font.size.sm },
-  barTrack: {
-    height: 5,
-    borderRadius: radius.pill,
-    backgroundColor: palette.surfaceAlt,
-    overflow: 'hidden',
-    marginTop: spacing.xs,
-  },
-  barFill: { height: 5, borderRadius: radius.pill },
-  progressText: { color: palette.textFaint, fontSize: font.size.xs, fontFamily: font.family.monoSemibold },
-  footnote: { color: palette.textFaint, fontSize: font.size.xs, lineHeight: 16, marginTop: spacing.md },
-});
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: p.bg },
+    content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
+    statRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+    statTile: { flex: 1, alignItems: 'center', gap: 2, paddingVertical: spacing.md },
+    statValue: { color: p.text, fontSize: font.size.xl, fontFamily: font.family.monoBold },
+    statLabel: { color: p.textMuted, fontSize: font.size.xs, textAlign: 'center' },
+    badge: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    badgeLocked: { opacity: 0.92 },
+    iconWrap: {
+      width: 44,
+      height: 44,
+      borderRadius: radius.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    badgeBody: { flex: 1, gap: 2 },
+    badgeTitle: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    dim: { color: p.textMuted },
+    badgeDesc: { color: p.textMuted, fontSize: font.size.sm },
+    barTrack: {
+      height: 5,
+      borderRadius: radius.pill,
+      backgroundColor: p.surfaceAlt,
+      overflow: 'hidden',
+      marginTop: spacing.xs,
+    },
+    barFill: { height: 5, borderRadius: radius.pill },
+    progressText: { color: p.textFaint, fontSize: font.size.xs, fontFamily: font.family.monoSemibold },
+    footnote: { color: p.textFaint, fontSize: font.size.xs, lineHeight: 16, marginTop: spacing.md },
+  });
+}

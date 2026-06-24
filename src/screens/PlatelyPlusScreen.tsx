@@ -1,24 +1,17 @@
-// =============================================================================
-// PlatelyPlusScreen — Plately+ paywall (real IAP via RevenueCat)
-// =============================================================================
-// Loads the current RevenueCat offering and presents the monthly / annual
-// packages with store-localized prices. Purchase + Restore go through
-// src/iap/purchases; the `plus` entitlement drives `plusActive`. When IAP isn't
-// configured in the build, a clear "not available" state shows instead (plus a
-// dev-only local unlock so the gated screens can be exercised without StoreKit).
-
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { PurchasesPackage } from 'react-native-purchases';
 
-import { Card } from '../components/Card';
+import { Card, SectionTitle } from '../components/Card';
 import { Button } from '../components/Button';
-import { palette, spacing, font, radius } from '../theme';
+import { spacing, font, radius } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { useSettings } from '../state/useSettings';
 import { isPurchasesConfigured } from '../config/env';
 import { getCurrentOffering, purchasePackage, restorePurchases } from '../iap/purchases';
+import type { RootStackScreenProps } from '../navigation/types';
 
 interface PlusFeature {
   icon: string;
@@ -61,11 +54,21 @@ const FEATURES: PlusFeature[] = [
   },
 ];
 
-export function PlatelyPlusScreen() {
+const PLUS_EXTRAS: { route: 'Fasting' | 'GoalPhases' | 'Coach' | 'MealPlanner'; label: string; sub: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { route: 'Fasting', label: 'Fasting timer', sub: 'Track intermittent fasting windows', icon: 'timer-outline' },
+  { route: 'GoalPhases', label: 'Goal phases', sub: 'Cut, maintain & bulk targets', icon: 'trending-up-outline' },
+  { route: 'Coach', label: 'Smart Coach', sub: 'On-device daily guidance', icon: 'bulb-outline' },
+  { route: 'MealPlanner', label: 'Meal planner', sub: 'Plan and pre-log your days', icon: 'calendar-outline' },
+];
+
+export function PlatelyPlusScreen({ navigation }: RootStackScreenProps<'PlatelyPlus'>) {
+  const p = useTheme();
   const accent = useSettings((s) => s.accent);
   const plusActive = useSettings((s) => s.plusActive);
   const setPlusActive = useSettings((s) => s.setPlusActive);
   const configured = isPurchasesConfigured();
+
+  const styles = useMemo(() => makeStyles(p), [p]);
 
   const [offering, setOffering] = useState<{ monthly: PurchasesPackage | null; annual: PurchasesPackage | null } | null>(null);
   const [loading, setLoading] = useState(configured);
@@ -127,10 +130,12 @@ export function PlatelyPlusScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.content}>
+        {/* Hero */}
         <View style={[styles.hero, { borderColor: accent }]}>
-          <View style={[styles.badge, { backgroundColor: accent }]}>
-            <Ionicons name="star" size={16} color={palette.white} />
-            <Text style={styles.badgeText}>PLATELY+</Text>
+          <View style={[styles.heroBadge, { backgroundColor: '#B8860B' }]}>
+            <Ionicons name="star" size={13} color="#000" />
+            <Text style={styles.heroBadgeText}>PLATELY+</Text>
+            <Ionicons name="sparkles" size={11} color="#FFF8D6" />
           </View>
           <Text style={styles.heroTitle}>Power features, when you want them</Text>
           <Text style={styles.heroSub}>
@@ -139,9 +144,10 @@ export function PlatelyPlusScreen() {
           </Text>
         </View>
 
+        {/* What's included */}
         {FEATURES.map((f) => (
           <Card key={f.title} style={styles.featureCard}>
-            <View style={[styles.iconWrap, { backgroundColor: palette.surfaceAlt }]}>
+            <View style={[styles.iconWrap, { backgroundColor: p.surfaceAlt }]}>
               <Ionicons name={f.icon as never} size={22} color={accent} />
             </View>
             <View style={styles.featureBody}>
@@ -158,9 +164,10 @@ export function PlatelyPlusScreen() {
           </Card>
         ))}
 
+        {/* Paywall */}
         {error && (
           <View style={styles.errorBox}>
-            <Ionicons name="alert-circle" size={16} color={palette.red} />
+            <Ionicons name="alert-circle" size={16} color={p.red} />
             <Text style={styles.errorText}>{error}</Text>
           </View>
         )}
@@ -209,71 +216,98 @@ export function PlatelyPlusScreen() {
             </>
           ) : (
             <>
-              <Text style={styles.unavailable}>Subscriptions aren’t available in this build yet.</Text>
+              <Text style={styles.unavailable}>Subscriptions aren't available in this build yet.</Text>
               {__DEV__ && <Button label="Dev unlock (local)" variant="ghost" onPress={devUnlock} style={styles.cta} />}
             </>
           )}
+        </Card>
+
+        {/* Quick-access extras */}
+        <SectionTitle>Jump in</SectionTitle>
+        <Card style={styles.extrasCard}>
+          {PLUS_EXTRAS.map((extra, i) => (
+            <View key={extra.route}>
+              {i > 0 && <View style={styles.divider} />}
+              <Pressable style={styles.linkRow} onPress={() => navigation.navigate(extra.route)}>
+                <Ionicons name={extra.icon} size={20} color={plusActive ? accent : p.textMuted} />
+                <View style={styles.extraBody}>
+                  <Text style={styles.linkText}>{extra.label}</Text>
+                  <Text style={styles.extraSub}>{extra.sub}</Text>
+                </View>
+                {!plusActive && <Ionicons name="lock-closed" size={15} color={p.textFaint} />}
+                <Ionicons name="chevron-forward" size={18} color={p.textFaint} />
+              </Pressable>
+            </View>
+          ))}
         </Card>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
-  hero: {
-    backgroundColor: palette.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    padding: spacing.lg,
-    gap: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    alignSelf: 'flex-start',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: radius.pill,
-  },
-  badgeText: { color: palette.white, fontSize: font.size.xs, fontFamily: font.family.uiBold, letterSpacing: 1 },
-  heroTitle: { color: palette.text, fontSize: font.size.xl, fontFamily: font.family.uiBold },
-  heroSub: { color: palette.textMuted, fontSize: font.size.sm, lineHeight: 19 },
-  featureCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  iconWrap: { width: 44, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
-  featureBody: { flex: 1, gap: 2 },
-  featureTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
-  featureTitle: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  soonTag: {
-    color: palette.textFaint,
-    fontSize: 9,
-    fontFamily: font.family.uiBold,
-    letterSpacing: 1,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-    borderRadius: radius.sm,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    overflow: 'hidden',
-  },
-  featureDesc: { color: palette.textMuted, fontSize: font.size.sm, lineHeight: 18 },
-  errorBox: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    backgroundColor: '#FEECEC', borderRadius: radius.md,
-    paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
-  },
-  errorText: { flex: 1, color: palette.red, fontSize: font.size.sm, lineHeight: 18 },
-  priceCard: { alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm },
-  price: { color: palette.text, fontSize: font.size.xxl, fontFamily: font.family.monoBold },
-  priceUnit: { color: palette.textMuted, fontSize: font.size.md, fontFamily: font.family.ui },
-  priceAlt: { color: palette.textMuted, fontSize: font.size.sm },
-  cta: { alignSelf: 'stretch', marginTop: spacing.sm },
-  restore: { color: palette.textMuted, fontSize: font.size.sm, textDecorationLine: 'underline', marginTop: spacing.md },
-  unavailable: { color: palette.textMuted, fontSize: font.size.sm, textAlign: 'center', lineHeight: 19 },
-  activeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
-  activeText: { fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  fineprint: { color: palette.textFaint, fontSize: font.size.xs, lineHeight: 16, textAlign: 'center', marginTop: spacing.sm },
-});
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: p.bg },
+    content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
+    hero: {
+      backgroundColor: p.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      padding: spacing.lg,
+      gap: spacing.sm,
+      marginBottom: spacing.sm,
+    },
+    heroBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      alignSelf: 'flex-start',
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 4,
+      borderRadius: radius.pill,
+    },
+    heroBadgeText: { color: '#000', fontSize: font.size.xs, fontFamily: font.family.uiBold, letterSpacing: 1 },
+    heroTitle: { color: p.text, fontSize: font.size.xl, fontFamily: font.family.uiBold },
+    heroSub: { color: p.textMuted, fontSize: font.size.sm, lineHeight: 19 },
+    featureCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    iconWrap: { width: 44, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+    featureBody: { flex: 1, gap: 2 },
+    featureTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+    featureTitle: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    soonTag: {
+      color: p.textFaint,
+      fontSize: 9,
+      fontFamily: font.family.uiBold,
+      letterSpacing: 1,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+      borderRadius: radius.sm,
+      paddingHorizontal: 5,
+      paddingVertical: 2,
+      overflow: 'hidden',
+    },
+    featureDesc: { color: p.textMuted, fontSize: font.size.sm, lineHeight: 18 },
+    errorBox: {
+      flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+      backgroundColor: p.surfaceAlt, borderRadius: radius.md,
+      paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    },
+    errorText: { flex: 1, color: p.red, fontSize: font.size.sm, lineHeight: 18 },
+    priceCard: { alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm },
+    price: { color: p.text, fontSize: font.size.xxl, fontFamily: font.family.monoBold },
+    priceUnit: { color: p.textMuted, fontSize: font.size.md, fontFamily: font.family.ui },
+    priceAlt: { color: p.textMuted, fontSize: font.size.sm },
+    cta: { alignSelf: 'stretch', marginTop: spacing.sm },
+    restore: { color: p.textMuted, fontSize: font.size.sm, textDecorationLine: 'underline', marginTop: spacing.md },
+    unavailable: { color: p.textMuted, fontSize: font.size.sm, textAlign: 'center', lineHeight: 19 },
+    activeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
+    activeText: { fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    fineprint: { color: p.textFaint, fontSize: font.size.xs, lineHeight: 16, textAlign: 'center', marginTop: spacing.sm },
+    extrasCard: { paddingVertical: spacing.xs },
+    divider: { height: StyleSheet.hairlineWidth, backgroundColor: p.border },
+    linkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
+    linkText: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    extraBody: { flex: 1 },
+    extraSub: { color: p.textMuted, fontSize: font.size.sm, marginTop: 1 },
+  });
+}

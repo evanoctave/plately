@@ -6,7 +6,7 @@
 // dedicated color from `theme.macroColors`. Designed to sit inside a card
 // (no own background); the consumer provides container styling.
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -16,7 +16,8 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 
-import { macroColors, palette, radius, spacing, font } from '../theme';
+import { macroColors, radius, spacing, font } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { clamp01 } from '../utils/nutrition';
 import { fmt } from '../utils/format';
 import type { Goals } from '../data/nutrients';
@@ -38,10 +39,12 @@ function AnimatedBar({
   pct,
   color,
   delay,
+  trackColor,
 }: {
   pct: number;
   color: string;
   delay: number;
+  trackColor: string;
 }) {
   const width = useSharedValue(0);
   const containerWidth = useRef(0);
@@ -59,7 +62,7 @@ function AnimatedBar({
 
   return (
     <View
-      style={styles.track}
+      style={[styles.track, { backgroundColor: trackColor }]}
       onLayout={(e) => {
         containerWidth.current = e.nativeEvent.layout.width;
       }}
@@ -70,6 +73,8 @@ function AnimatedBar({
 }
 
 export function MacroBars({ protein, carbs, fat, goals }: MacroBarsProps) {
+  const p = useTheme();
+  const localStyles = useMemo(() => makeStyles(p), [p]);
   const values = { protein, carbs, fat };
   return (
     <View style={styles.container}>
@@ -80,13 +85,13 @@ export function MacroBars({ protein, carbs, fat, goals }: MacroBarsProps) {
         return (
           <View key={row.key} style={styles.row}>
             <View style={styles.headerRow}>
-              <Text style={styles.label}>{row.label}</Text>
-              <Text style={styles.value}>
+              <Text style={localStyles.label}>{row.label}</Text>
+              <Text style={localStyles.value}>
                 {fmt(value)}
-                <Text style={styles.goal}> / {fmt(goal)} g</Text>
+                <Text style={localStyles.goal}> / {fmt(goal)} g</Text>
               </Text>
             </View>
-            <AnimatedBar pct={pct} color={row.color} delay={i * 80} />
+            <AnimatedBar pct={pct} color={row.color} delay={i * 80} trackColor={p.surfaceAlt} />
           </View>
         );
       })}
@@ -94,18 +99,23 @@ export function MacroBars({ protein, carbs, fat, goals }: MacroBarsProps) {
   );
 }
 
+// Static styles that don't depend on the palette
 const styles = StyleSheet.create({
   container: { gap: spacing.md },
   row: { gap: spacing.xs },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  label: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiMedium },
-  value: { color: palette.text, fontSize: font.size.sm, fontFamily: font.family.monoSemibold },
-  goal: { color: palette.textFaint, fontFamily: font.family.mono },
   track: {
     height: 6,
     borderRadius: radius.pill,
-    backgroundColor: palette.surfaceAlt,
     overflow: 'hidden',
   },
   fill: { height: '100%', borderRadius: radius.pill },
 });
+
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    label: { color: p.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiMedium },
+    value: { color: p.text, fontSize: font.size.sm, fontFamily: font.family.monoSemibold },
+    goal: { color: p.textFaint, fontFamily: font.family.mono },
+  });
+}

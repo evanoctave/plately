@@ -14,7 +14,7 @@
 //
 // Both use react-native-svg + reanimated. Progress is clamped to [0, 1].
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -25,7 +25,8 @@ import Animated, {
 import Svg, { Circle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 
-import { palette, font } from '../theme';
+import { font } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { clamp01 } from '../utils/nutrition';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -46,11 +47,15 @@ export function Ring({
   progress,
   size = 56,
   strokeWidth = 6,
-  color = palette.accent,
-  trackColor = palette.surfaceAlt,
+  color,
+  trackColor,
   icon,
   iconColor,
 }: RingProps) {
+  const p = useTheme();
+  const resolvedColor = color ?? p.accent;
+  const resolvedTrackColor = trackColor ?? p.surfaceAlt;
+
   const r = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * r;
   const targetOffset = circumference * (1 - clamp01(progress));
@@ -74,7 +79,7 @@ export function Ring({
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={trackColor}
+          stroke={resolvedTrackColor}
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -82,7 +87,7 @@ export function Ring({
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={color}
+          stroke={resolvedColor}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -93,7 +98,7 @@ export function Ring({
       </Svg>
       {icon && (
         <View style={styles.center} pointerEvents="none">
-          <Ionicons name={icon} size={Math.round(size * 0.42)} color={iconColor ?? color} />
+          <Ionicons name={icon} size={Math.round(size * 0.42)} color={iconColor ?? resolvedColor} />
         </View>
       )}
     </View>
@@ -128,14 +133,18 @@ export function BigRing({
   label,
   unit = '',
   size = 172,
-  color = palette.accent,
+  color,
 }: BigRingProps) {
+  const p = useTheme();
+  const bigStyles = useMemo(() => makeBigStyles(p), [p]);
+  const resolvedColor = color ?? p.accent;
+
   const strokeWidth = 13;
   const r = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * r;
   const targetOffset = circumference * (1 - clamp01(progress));
   const over = value > goal;
-  const strokeColor = over ? palette.amber : color;
+  const strokeColor = over ? p.amber : resolvedColor;
   const animatedOffset = useSharedValue(circumference);
 
   useEffect(() => {
@@ -152,7 +161,7 @@ export function BigRing({
   return (
     <View style={{ width: size, height: size }}>
       <Svg width={size} height={size}>
-        <Circle cx={size / 2} cy={size / 2} r={r} stroke={palette.surfaceAlt} strokeWidth={strokeWidth} fill="none" />
+        <Circle cx={size / 2} cy={size / 2} r={r} stroke={p.surfaceAlt} strokeWidth={strokeWidth} fill="none" />
         <AnimatedCircle
           cx={size / 2}
           cy={size / 2}
@@ -178,16 +187,18 @@ export function BigRing({
   );
 }
 
-const bigStyles = StyleSheet.create({
-  center: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
-  value: { color: palette.text, fontSize: 32, fontFamily: font.family.monoBold, letterSpacing: -1 },
-  label: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.ui, marginTop: 2 },
-  caption: {
-    color: palette.textFaint,
-    fontSize: font.size.xs,
-    fontFamily: font.family.uiMedium,
-    marginTop: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-});
+function makeBigStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    center: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
+    value: { color: p.text, fontSize: 32, fontFamily: font.family.monoBold, letterSpacing: -1 },
+    label: { color: p.textMuted, fontSize: font.size.sm, fontFamily: font.family.ui, marginTop: 2 },
+    caption: {
+      color: p.textFaint,
+      fontSize: font.size.xs,
+      fontFamily: font.family.uiMedium,
+      marginTop: 4,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+  });
+}

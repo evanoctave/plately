@@ -5,7 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card, SectionTitle } from '../components/Card';
 import { Button } from '../components/Button';
-import { palette, spacing, font, radius } from '../theme';
+import { spacing, font, radius } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { useSettings } from '../state/useSettings';
 import { searchCatalog, refreshCustomFoods } from '../data/catalog';
 import { addCustomFood } from '../db/customFoods';
@@ -21,6 +22,8 @@ interface Ingredient {
 }
 
 export function RecipeBuilderScreen({ navigation }: RootStackScreenProps<'RecipeBuilder'>) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
   const accent = useSettings((s) => s.accent);
   const [name, setName] = useState('');
   const [servings, setServings] = useState('1');
@@ -88,7 +91,7 @@ export function RecipeBuilderScreen({ navigation }: RootStackScreenProps<'Recipe
         <TextInput
           style={styles.input}
           placeholder="e.g. Protein overnight oats"
-          placeholderTextColor={palette.textFaint}
+          placeholderTextColor={p.textFaint}
           value={name}
           onChangeText={setName}
           maxLength={60}
@@ -96,11 +99,11 @@ export function RecipeBuilderScreen({ navigation }: RootStackScreenProps<'Recipe
 
         <SectionTitle>Add ingredients</SectionTitle>
         <View style={styles.searchWrap}>
-          <Ionicons name="search" size={18} color={palette.textMuted} />
+          <Ionicons name="search" size={18} color={p.textMuted} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search foods to add"
-            placeholderTextColor={palette.textFaint}
+            placeholderTextColor={p.textFaint}
             value={query}
             onChangeText={setQuery}
             autoCorrect={false}
@@ -143,7 +146,7 @@ export function RecipeBuilderScreen({ navigation }: RootStackScreenProps<'Recipe
                   />
                   <Text style={styles.gramsUnit}>g</Text>
                   <Pressable onPress={() => remove(ing.key)} hitSlop={8}>
-                    <Ionicons name="close-circle" size={20} color={palette.textFaint} />
+                    <Ionicons name="close-circle" size={20} color={p.textFaint} />
                   </Pressable>
                 </View>
               </View>
@@ -164,10 +167,10 @@ export function RecipeBuilderScreen({ navigation }: RootStackScreenProps<'Recipe
           <Card style={[styles.card, styles.totalsCard]}>
             <Text style={styles.totalsTitle}>Per serving</Text>
             <View style={styles.macroRow}>
-              <Macro label="Cal" value={`${Math.round(perServing('calories'))}`} accent={accent} />
-              <Macro label="Protein" value={`${perServing('protein')}g`} accent={accent} />
-              <Macro label="Carbs" value={`${perServing('carbs')}g`} accent={accent} />
-              <Macro label="Fat" value={`${perServing('fat')}g`} accent={accent} />
+              <Macro label="Cal" value={`${Math.round(perServing('calories'))}`} accent={accent} styles={styles} />
+              <Macro label="Protein" value={`${perServing('protein')}g`} accent={accent} styles={styles} />
+              <Macro label="Carbs" value={`${perServing('carbs')}g`} accent={accent} styles={styles} />
+              <Macro label="Fat" value={`${perServing('fat')}g`} accent={accent} styles={styles} />
             </View>
             <Text style={styles.totalsMeta}>
               {servingsNum} serving{servingsNum > 1 ? 's' : ''} · {Math.round(totalGrams)} g total
@@ -181,7 +184,7 @@ export function RecipeBuilderScreen({ navigation }: RootStackScreenProps<'Recipe
   );
 }
 
-function Macro({ label, value, accent }: { label: string; value: string; accent: string }) {
+function Macro({ label, value, accent, styles }: { label: string; value: string; accent: string; styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.macro}>
       <Text style={[styles.macroValue, { color: accent }]}>{value}</Text>
@@ -190,55 +193,57 @@ function Macro({ label, value, accent }: { label: string; value: string; accent:
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxl },
-  input: {
-    color: palette.text,
-    fontSize: font.size.md,
-    backgroundColor: palette.surface,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-  },
-  searchWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: palette.surface,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-  },
-  searchInput: { flex: 1, color: palette.text, fontSize: font.size.md, paddingVertical: spacing.md },
-  resultsCard: { marginTop: spacing.sm, paddingVertical: spacing.xs },
-  resultRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md },
-  resultName: { flex: 1, color: palette.text, fontSize: font.size.md, marginRight: spacing.sm },
-  card: { marginTop: spacing.sm, paddingVertical: spacing.xs },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.border },
-  ingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.md },
-  ingName: { flex: 1, color: palette.text, fontSize: font.size.md },
-  gramsInput: {
-    color: palette.text,
-    fontSize: font.size.md,
-    fontFamily: font.family.uiSemibold,
-    textAlign: 'right',
-    minWidth: 52,
-    backgroundColor: palette.surfaceAlt,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  gramsUnit: { color: palette.textMuted, fontSize: font.size.sm },
-  totalsCard: { gap: spacing.sm, paddingVertical: spacing.md },
-  totalsTitle: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiSemibold },
-  macroRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  macro: { alignItems: 'center', flex: 1 },
-  macroValue: { fontSize: font.size.lg, fontFamily: font.family.monoBold },
-  macroLabel: { color: palette.textMuted, fontSize: font.size.xs },
-  totalsMeta: { color: palette.textFaint, fontSize: font.size.xs },
-  save: { marginTop: spacing.lg },
-});
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: p.bg },
+    content: { padding: spacing.lg, paddingBottom: spacing.xxl },
+    input: {
+      color: p.text,
+      fontSize: font.size.md,
+      backgroundColor: p.surface,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+    },
+    searchWrap: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: p.surface,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+    },
+    searchInput: { flex: 1, color: p.text, fontSize: font.size.md, paddingVertical: spacing.md },
+    resultsCard: { marginTop: spacing.sm, paddingVertical: spacing.xs },
+    resultRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md },
+    resultName: { flex: 1, color: p.text, fontSize: font.size.md, marginRight: spacing.sm },
+    card: { marginTop: spacing.sm, paddingVertical: spacing.xs },
+    divider: { height: StyleSheet.hairlineWidth, backgroundColor: p.border },
+    ingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.md },
+    ingName: { flex: 1, color: p.text, fontSize: font.size.md },
+    gramsInput: {
+      color: p.text,
+      fontSize: font.size.md,
+      fontFamily: font.family.uiSemibold,
+      textAlign: 'right',
+      minWidth: 52,
+      backgroundColor: p.surfaceAlt,
+      borderRadius: radius.sm,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+    },
+    gramsUnit: { color: p.textMuted, fontSize: font.size.sm },
+    totalsCard: { gap: spacing.sm, paddingVertical: spacing.md },
+    totalsTitle: { color: p.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiSemibold },
+    macroRow: { flexDirection: 'row', justifyContent: 'space-between' },
+    macro: { alignItems: 'center', flex: 1 },
+    macroValue: { fontSize: font.size.lg, fontFamily: font.family.monoBold },
+    macroLabel: { color: p.textMuted, fontSize: font.size.xs },
+    totalsMeta: { color: p.textFaint, fontSize: font.size.xs },
+    save: { marginTop: spacing.lg },
+  });
+}

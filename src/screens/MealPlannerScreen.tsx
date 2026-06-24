@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useTheme } from '../theme/ThemeContext';
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,7 +11,7 @@ import { Card, SectionTitle } from '../components/Card';
 import { Button } from '../components/Button';
 import { MacroBars } from '../components/MacroBars';
 import { PlusLock } from '../components/PlusLock';
-import { palette, spacing, font, radius } from '../theme';
+import { spacing, font, radius } from '../theme';
 import { usePlus } from '../state/usePlus';
 import { useSettings } from '../state/useSettings';
 import { logEntry } from '../state/useDiary';
@@ -51,6 +52,7 @@ export function MealPlannerScreen({ navigation }: RootStackScreenProps<'MealPlan
 }
 
 function MealPlanner() {
+  const p = useTheme();
   const accent = useSettings((s) => s.accent);
   const goals = useSettings((s) => s.goals);
 
@@ -75,6 +77,7 @@ function MealPlanner() {
 
   const results = useMemo(() => (query.trim() ? searchFoods(query, 12) : []), [query]);
   const projected = useMemo(() => sumNutrition(items.length ? items : [ZERO_NUTRITION]), [items]);
+  const styles = useMemo(() => makeStyles(p), [p]);
 
   const addFood = async (food: FoodItem) => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -170,18 +173,18 @@ function MealPlanner() {
 
         <SectionTitle>Add to this day</SectionTitle>
         <View style={styles.searchWrap}>
-          <Ionicons name="search" size={18} color={palette.textFaint} />
+          <Ionicons name="search" size={18} color={p.textFaint} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search foods to plan"
-            placeholderTextColor={palette.textFaint}
+            placeholderTextColor={p.textFaint}
             value={query}
             onChangeText={setQuery}
             autoCorrect={false}
           />
           {query.length > 0 && (
             <Pressable onPress={() => setQuery('')} hitSlop={8}>
-              <Ionicons name="close-circle" size={18} color={palette.textFaint} />
+              <Ionicons name="close-circle" size={18} color={p.textFaint} />
             </Pressable>
           )}
         </View>
@@ -206,7 +209,7 @@ function MealPlanner() {
         <SectionTitle>Planned</SectionTitle>
         {items.length === 0 ? (
           <Card style={styles.empty}>
-            <Ionicons name="calendar-outline" size={28} color={palette.textFaint} />
+            <Ionicons name="calendar-outline" size={28} color={p.textFaint} />
             <Text style={styles.emptyText}>Nothing planned for this day yet.</Text>
           </Card>
         ) : (
@@ -221,7 +224,7 @@ function MealPlanner() {
                       <Text style={styles.planMeta}>{fmtInt(item.grams)} g · {fmtInt(item.calories)} kcal</Text>
                     </View>
                     <Pressable onPress={() => void removeItem(item.id)} hitSlop={8} accessibilityLabel={`Remove ${item.name}`}>
-                      <Ionicons name="close-circle-outline" size={22} color={palette.textFaint} />
+                      <Ionicons name="close-circle-outline" size={22} color={p.textFaint} />
                     </Pressable>
                   </View>
                 </View>
@@ -242,54 +245,56 @@ function pickNutrition(item: PlanItem) {
   return out;
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
-  dayStrip: { gap: spacing.sm, paddingVertical: spacing.xs },
-  dayChip: {
-    width: 56,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.md,
-    backgroundColor: palette.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-    alignItems: 'center',
-    gap: 2,
-  },
-  dayChipDow: { color: palette.textMuted, fontSize: font.size.xs, fontFamily: font.family.uiMedium },
-  dayChipNum: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.monoBold },
-  dayChipOn: { color: palette.white },
-  projection: { gap: spacing.md },
-  projHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  projTitle: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiSemibold, textTransform: 'uppercase', letterSpacing: 0.6 },
-  projCal: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.monoBold },
-  projCalGoal: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.mono },
-  projTrack: { height: 8, borderRadius: radius.pill, backgroundColor: palette.surfaceAlt, overflow: 'hidden' },
-  projFill: { height: '100%', borderRadius: radius.pill },
-  macroWrap: { marginTop: spacing.xs },
-  searchWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: palette.surface,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-  },
-  searchInput: { flex: 1, color: palette.text, fontSize: font.size.md, paddingVertical: spacing.md },
-  results: { paddingVertical: spacing.xs },
-  resultRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
-  resultBody: { flex: 1 },
-  resultName: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiMedium },
-  resultMeta: { color: palette.textMuted, fontSize: font.size.sm, marginTop: 1 },
-  empty: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl },
-  emptyText: { color: palette.textMuted, fontSize: font.size.md, textAlign: 'center' },
-  planList: { paddingVertical: spacing.xs },
-  planRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
-  planBody: { flex: 1 },
-  planName: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiMedium },
-  planMeta: { color: palette.textMuted, fontSize: font.size.sm, marginTop: 1 },
-  logBtn: { marginTop: spacing.xs },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.border },
-});
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: p.bg },
+    content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
+    dayStrip: { gap: spacing.sm, paddingVertical: spacing.xs },
+    dayChip: {
+      width: 56,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.md,
+      backgroundColor: p.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+      alignItems: 'center',
+      gap: 2,
+    },
+    dayChipDow: { color: p.textMuted, fontSize: font.size.xs, fontFamily: font.family.uiMedium },
+    dayChipNum: { color: p.text, fontSize: font.size.lg, fontFamily: font.family.monoBold },
+    dayChipOn: { color: p.white },
+    projection: { gap: spacing.md },
+    projHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+    projTitle: { color: p.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiSemibold, textTransform: 'uppercase', letterSpacing: 0.6 },
+    projCal: { color: p.text, fontSize: font.size.lg, fontFamily: font.family.monoBold },
+    projCalGoal: { color: p.textMuted, fontSize: font.size.sm, fontFamily: font.family.mono },
+    projTrack: { height: 8, borderRadius: radius.pill, backgroundColor: p.surfaceAlt, overflow: 'hidden' },
+    projFill: { height: '100%', borderRadius: radius.pill },
+    macroWrap: { marginTop: spacing.xs },
+    searchWrap: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: p.surface,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+    },
+    searchInput: { flex: 1, color: p.text, fontSize: font.size.md, paddingVertical: spacing.md },
+    results: { paddingVertical: spacing.xs },
+    resultRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
+    resultBody: { flex: 1 },
+    resultName: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiMedium },
+    resultMeta: { color: p.textMuted, fontSize: font.size.sm, marginTop: 1 },
+    empty: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl },
+    emptyText: { color: p.textMuted, fontSize: font.size.md, textAlign: 'center' },
+    planList: { paddingVertical: spacing.xs },
+    planRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
+    planBody: { flex: 1 },
+    planName: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiMedium },
+    planMeta: { color: p.textMuted, fontSize: font.size.sm, marginTop: 1 },
+    logBtn: { marginTop: spacing.xs },
+    divider: { height: StyleSheet.hairlineWidth, backgroundColor: p.border },
+  });
+}

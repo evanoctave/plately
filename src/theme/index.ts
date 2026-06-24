@@ -136,4 +136,31 @@ export const shadow = {
   },
 } as const;
 
+export const darkPalette = {
+  accent: '#16A34A',
+  accentDark: '#15803D',
+  accentSoft: '#0D2E1A',
+
+  green: '#16A34A',
+  greenDark: '#15803D',
+
+  teal: '#0EA5A8',
+  amber: '#F59E0B',
+  red: '#DC2626',
+  blue: '#2563EB',
+  water: '#0EA5E9',
+
+  bg: '#0F0F0D',
+  surface: '#1C1C1A',
+  surfaceAlt: '#252522',
+  border: '#2E2E2B',
+
+  text: '#F2F1EC',
+  textMuted: '#9B9B92',
+  textFaint: '#5A5A54',
+
+  white: '#FFFFFF',
+  black: '#000000',
+} as const;
+
 export type Palette = typeof palette;

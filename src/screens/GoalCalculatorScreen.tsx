@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, KeyboardAvoid
 
 import { Button } from '../components/Button';
 import { Card, SectionTitle } from '../components/Card';
-import { palette, spacing, font, radius, macroColors } from '../theme';
+import { spacing, font, radius, macroColors } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { useSettings } from '../state/useSettings';
 import { fmtInt } from '../utils/format';
 import {
@@ -28,7 +29,74 @@ function num(s: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: p.bg },
+    content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
+    intro: { color: p.textMuted, fontSize: font.size.sm, lineHeight: 18, marginBottom: spacing.sm },
+    card: { paddingVertical: spacing.xs },
+    listCard: { padding: 0, overflow: 'hidden' },
+    row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, paddingHorizontal: spacing.lg, gap: spacing.md },
+    rowLabel: { color: p.text, fontSize: font.size.md },
+    inputWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+    input: {
+      color: p.text,
+      fontSize: font.size.lg,
+      fontFamily: font.family.uiSemibold,
+      textAlign: 'right',
+      minWidth: 70,
+      backgroundColor: p.surfaceAlt,
+      borderRadius: radius.sm,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+    },
+    smallInput: {
+      color: p.text,
+      fontSize: font.size.lg,
+      fontFamily: font.family.uiSemibold,
+      textAlign: 'right',
+      minWidth: 44,
+      backgroundColor: p.surfaceAlt,
+      borderRadius: radius.sm,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+    },
+    inputUnit: { color: p.textMuted, fontSize: font.size.sm, width: 24 },
+    heightImperial: { flexDirection: 'row', gap: spacing.sm },
+    divider: { height: StyleSheet.hairlineWidth, backgroundColor: p.border, marginHorizontal: spacing.lg },
+    segmented: { flexDirection: 'row', gap: spacing.xs, backgroundColor: p.surfaceAlt, borderRadius: radius.md, padding: 3 },
+    segmentedCompact: { alignSelf: 'flex-end' },
+    segment: { flex: 1, paddingVertical: spacing.sm, paddingHorizontal: spacing.md, borderRadius: radius.sm, alignItems: 'center' },
+    segmentActive: { backgroundColor: p.green },
+    segmentText: { color: p.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiSemibold },
+    segmentTextActive: { color: p.black },
+    option: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
+    optionBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: p.border },
+    optionText: { color: p.textMuted, fontSize: font.size.md, flex: 1 },
+    optionTextActive: { color: p.text, fontFamily: font.family.uiSemibold },
+    radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: p.border, alignItems: 'center', justifyContent: 'center' },
+    radioActive: { borderColor: p.green },
+    radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: p.green },
+    previewCard: { marginTop: spacing.lg, gap: spacing.sm, borderColor: p.greenDark, borderWidth: 1 },
+    previewTitle: { color: p.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiSemibold, textTransform: 'uppercase', letterSpacing: 0.6 },
+    previewCalRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
+    previewCal: { color: p.text, fontSize: font.size.display, fontFamily: font.family.monoBold },
+    previewCalUnit: { color: p.textMuted, fontSize: font.size.md },
+    previewMacros: { flexDirection: 'row', justifyContent: 'space-around', marginTop: spacing.sm },
+    macro: { alignItems: 'center', gap: 4 },
+    macroDot: { width: 10, height: 10, borderRadius: 5 },
+    macroValue: { color: p.text, fontSize: font.size.lg, fontFamily: font.family.monoSemibold },
+    macroLabel: { color: p.textMuted, fontSize: font.size.sm },
+    previewWater: { color: p.water, fontSize: font.size.sm, fontFamily: font.family.mono, marginTop: spacing.sm },
+    apply: { marginTop: spacing.lg },
+    hint: { color: p.textFaint, fontSize: font.size.xs, textAlign: 'center', marginTop: spacing.sm },
+  });
+}
+
+type Styles = ReturnType<typeof makeStyles>;
+
 export function GoalCalculatorScreen({ navigation }: RootStackScreenProps<'GoalCalculator'>) {
+  const p = useTheme();
   const setGoals = useSettings((s) => s.setGoals);
 
   const [units, setUnits] = useState<UnitSystem>('imperial');
@@ -46,6 +114,8 @@ export function GoalCalculatorScreen({ navigation }: RootStackScreenProps<'GoalC
   const ageYears = num(age);
 
   const valid = weightKg > 0 && resolvedHeightCm > 0 && ageYears > 0;
+
+  const styles = useMemo(() => makeStyles(p), [p]);
 
   const preview = useMemo(() => {
     if (!valid) return null;
@@ -74,6 +144,7 @@ export function GoalCalculatorScreen({ navigation }: RootStackScreenProps<'GoalC
         </Text>
 
         <Segmented
+          styles={styles}
           options={[
             { key: 'imperial', label: 'lb / ft' },
             { key: 'metric', label: 'kg / cm' },
@@ -84,8 +155,9 @@ export function GoalCalculatorScreen({ navigation }: RootStackScreenProps<'GoalC
 
         <SectionTitle>About you</SectionTitle>
         <Card style={styles.card}>
-          <Row label="Sex">
+          <Row label="Sex" styles={styles}>
             <Segmented
+              styles={styles}
               compact
               options={[
                 { key: 'male', label: 'Male' },
@@ -95,25 +167,27 @@ export function GoalCalculatorScreen({ navigation }: RootStackScreenProps<'GoalC
               onChange={(v) => setSex(v as Sex)}
             />
           </Row>
-          <Divider />
-          <InputRow label="Age" value={age} onChange={setAge} unit="yr" />
-          <Divider />
+          <Divider styles={styles} />
+          <InputRow label="Age" value={age} onChange={setAge} unit="yr" styles={styles} textFaint={p.textFaint} />
+          <Divider styles={styles} />
           {units === 'metric' ? (
-            <InputRow label="Height" value={heightCm} onChange={setHeightCm} unit="cm" />
+            <InputRow label="Height" value={heightCm} onChange={setHeightCm} unit="cm" styles={styles} textFaint={p.textFaint} />
           ) : (
-            <Row label="Height">
+            <Row label="Height" styles={styles}>
               <View style={styles.heightImperial}>
-                <SmallInput value={feet} onChange={setFeet} unit="ft" />
-                <SmallInput value={inches} onChange={setInches} unit="in" />
+                <SmallInput value={feet} onChange={setFeet} unit="ft" styles={styles} textFaint={p.textFaint} />
+                <SmallInput value={inches} onChange={setInches} unit="in" styles={styles} textFaint={p.textFaint} />
               </View>
             </Row>
           )}
-          <Divider />
+          <Divider styles={styles} />
           <InputRow
             label="Weight"
             value={weight}
             onChange={setWeight}
             unit={units === 'metric' ? 'kg' : 'lb'}
+            styles={styles}
+            textFaint={p.textFaint}
           />
         </Card>
 
@@ -122,6 +196,7 @@ export function GoalCalculatorScreen({ navigation }: RootStackScreenProps<'GoalC
           {ACTIVITIES.map((a, i) => (
             <Option
               key={a}
+              styles={styles}
               label={ACTIVITY_LABELS[a]}
               selected={activity === a}
               first={i === 0}
@@ -135,6 +210,7 @@ export function GoalCalculatorScreen({ navigation }: RootStackScreenProps<'GoalC
           {DIRECTIONS.map((d, i) => (
             <Option
               key={d}
+              styles={styles}
               label={DIRECTION_LABELS[d]}
               selected={direction === d}
               first={i === 0}
@@ -151,9 +227,9 @@ export function GoalCalculatorScreen({ navigation }: RootStackScreenProps<'GoalC
               <Text style={styles.previewCalUnit}>kcal / day</Text>
             </View>
             <View style={styles.previewMacros}>
-              <Macro label="Protein" value={preview.protein} color={macroColors.protein} />
-              <Macro label="Carbs" value={preview.carbs} color={macroColors.carbs} />
-              <Macro label="Fat" value={preview.fat} color={macroColors.fat} />
+              <Macro styles={styles} label="Protein" value={preview.protein} color={macroColors.protein} />
+              <Macro styles={styles} label="Carbs" value={preview.carbs} color={macroColors.carbs} />
+              <Macro styles={styles} label="Fat" value={preview.fat} color={macroColors.fat} />
             </View>
             <Text style={styles.previewWater}>💧 {fmtInt(preview.water)} mL water / day</Text>
           </Card>
@@ -166,7 +242,7 @@ export function GoalCalculatorScreen({ navigation }: RootStackScreenProps<'GoalC
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({ label, children, styles }: { label: string; children: React.ReactNode; styles: Styles }) {
   return (
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
@@ -175,9 +251,9 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-function InputRow({ label, value, onChange, unit }: { label: string; value: string; onChange: (v: string) => void; unit: string }) {
+function InputRow({ label, value, onChange, unit, styles, textFaint }: { label: string; value: string; onChange: (v: string) => void; unit: string; styles: Styles; textFaint: string }) {
   return (
-    <Row label={label}>
+    <Row label={label} styles={styles}>
       <View style={styles.inputWrap}>
         <TextInput
           style={styles.input}
@@ -185,7 +261,7 @@ function InputRow({ label, value, onChange, unit }: { label: string; value: stri
           onChangeText={onChange}
           keyboardType="numeric"
           placeholder="0"
-          placeholderTextColor={palette.textFaint}
+          placeholderTextColor={textFaint}
           maxLength={5}
         />
         <Text style={styles.inputUnit}>{unit}</Text>
@@ -194,7 +270,7 @@ function InputRow({ label, value, onChange, unit }: { label: string; value: stri
   );
 }
 
-function SmallInput({ value, onChange, unit }: { value: string; onChange: (v: string) => void; unit: string }) {
+function SmallInput({ value, onChange, unit, styles, textFaint }: { value: string; onChange: (v: string) => void; unit: string; styles: Styles; textFaint: string }) {
   return (
     <View style={styles.inputWrap}>
       <TextInput
@@ -203,7 +279,7 @@ function SmallInput({ value, onChange, unit }: { value: string; onChange: (v: st
         onChangeText={onChange}
         keyboardType="numeric"
         placeholder="0"
-        placeholderTextColor={palette.textFaint}
+        placeholderTextColor={textFaint}
         maxLength={2}
       />
       <Text style={styles.inputUnit}>{unit}</Text>
@@ -216,7 +292,7 @@ interface SegOption {
   label: string;
 }
 
-function Segmented({ options, value, onChange, compact }: { options: SegOption[]; value: string; onChange: (v: string) => void; compact?: boolean }) {
+function Segmented({ options, value, onChange, compact, styles }: { options: SegOption[]; value: string; onChange: (v: string) => void; compact?: boolean; styles: Styles }) {
   return (
     <View style={[styles.segmented, compact && styles.segmentedCompact]}>
       {options.map((o) => (
@@ -232,7 +308,7 @@ function Segmented({ options, value, onChange, compact }: { options: SegOption[]
   );
 }
 
-function Option({ label, selected, first, onPress }: { label: string; selected: boolean; first: boolean; onPress: () => void }) {
+function Option({ label, selected, first, onPress, styles }: { label: string; selected: boolean; first: boolean; onPress: () => void; styles: Styles }) {
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.option, !first && styles.optionBorder, pressed && { opacity: 0.6 }]}>
       <Text style={[styles.optionText, selected && styles.optionTextActive]}>{label}</Text>
@@ -243,7 +319,7 @@ function Option({ label, selected, first, onPress }: { label: string; selected: 
   );
 }
 
-function Macro({ label, value, color }: { label: string; value: number; color: string }) {
+function Macro({ label, value, color, styles }: { label: string; value: number; color: string; styles: Styles }) {
   return (
     <View style={styles.macro}>
       <View style={[styles.macroDot, { backgroundColor: color }]} />
@@ -253,68 +329,6 @@ function Macro({ label, value, color }: { label: string; value: number; color: s
   );
 }
 
-function Divider() {
+function Divider({ styles }: { styles: Styles }) {
   return <View style={styles.divider} />;
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
-  intro: { color: palette.textMuted, fontSize: font.size.sm, lineHeight: 18, marginBottom: spacing.sm },
-  card: { paddingVertical: spacing.xs },
-  listCard: { padding: 0, overflow: 'hidden' },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, paddingHorizontal: spacing.lg, gap: spacing.md },
-  rowLabel: { color: palette.text, fontSize: font.size.md },
-  inputWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  input: {
-    color: palette.text,
-    fontSize: font.size.lg,
-    fontFamily: font.family.uiSemibold,
-    textAlign: 'right',
-    minWidth: 70,
-    backgroundColor: palette.surfaceAlt,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  smallInput: {
-    color: palette.text,
-    fontSize: font.size.lg,
-    fontFamily: font.family.uiSemibold,
-    textAlign: 'right',
-    minWidth: 44,
-    backgroundColor: palette.surfaceAlt,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  inputUnit: { color: palette.textMuted, fontSize: font.size.sm, width: 24 },
-  heightImperial: { flexDirection: 'row', gap: spacing.sm },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.border, marginHorizontal: spacing.lg },
-  segmented: { flexDirection: 'row', gap: spacing.xs, backgroundColor: palette.surfaceAlt, borderRadius: radius.md, padding: 3 },
-  segmentedCompact: { alignSelf: 'flex-end' },
-  segment: { flex: 1, paddingVertical: spacing.sm, paddingHorizontal: spacing.md, borderRadius: radius.sm, alignItems: 'center' },
-  segmentActive: { backgroundColor: palette.green },
-  segmentText: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiSemibold },
-  segmentTextActive: { color: palette.black },
-  option: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
-  optionBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: palette.border },
-  optionText: { color: palette.textMuted, fontSize: font.size.md, flex: 1 },
-  optionTextActive: { color: palette.text, fontFamily: font.family.uiSemibold },
-  radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: palette.border, alignItems: 'center', justifyContent: 'center' },
-  radioActive: { borderColor: palette.green },
-  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: palette.green },
-  previewCard: { marginTop: spacing.lg, gap: spacing.sm, borderColor: palette.greenDark, borderWidth: 1 },
-  previewTitle: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiSemibold, textTransform: 'uppercase', letterSpacing: 0.6 },
-  previewCalRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
-  previewCal: { color: palette.text, fontSize: font.size.display, fontFamily: font.family.monoBold },
-  previewCalUnit: { color: palette.textMuted, fontSize: font.size.md },
-  previewMacros: { flexDirection: 'row', justifyContent: 'space-around', marginTop: spacing.sm },
-  macro: { alignItems: 'center', gap: 4 },
-  macroDot: { width: 10, height: 10, borderRadius: 5 },
-  macroValue: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.monoSemibold },
-  macroLabel: { color: palette.textMuted, fontSize: font.size.sm },
-  previewWater: { color: palette.water, fontSize: font.size.sm, fontFamily: font.family.mono, marginTop: spacing.sm },
-  apply: { marginTop: spacing.lg },
-  hint: { color: palette.textFaint, fontSize: font.size.xs, textAlign: 'center', marginTop: spacing.sm },
-});

@@ -5,11 +5,12 @@
 // single `Polyline`. Auto-scales the y-axis based on min/max of the data.
 // Dots are drawn only at the endpoints to keep the chart visually quiet.
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, type LayoutChangeEvent } from 'react-native';
 import Svg, { Polyline, Circle } from 'react-native-svg';
 
-import { palette, font, spacing } from '../theme';
+import { font, spacing } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 
 export interface LinePoint {
     label: string;
@@ -23,7 +24,11 @@ interface LineChartProps {
     color?: string;
 }
 
-export function LineChart({ data, unit, height = 180, color = palette.green }: LineChartProps) {
+export function LineChart({ data, unit, height = 180, color }: LineChartProps) {
+    const p = useTheme();
+    const styles = useMemo(() => makeStyles(p), [p]);
+    const resolvedColor = color ?? p.green;
+
     const [width, setWidth] = useState(0);
     const onLayout = (e: LayoutChangeEvent) =>
         setWidth(e.nativeEvent.layout.width);
@@ -47,11 +52,11 @@ export function LineChart({ data, unit, height = 180, color = palette.green }: L
         <View style={{ height }}>
           {width > 0 && n > 0 && (
             <Svg width={width} height={height}>
-              {n > 1 && <Polyline points={points} fill="none" 
-  stroke={color} strokeWidth={2} />}
+              {n > 1 && <Polyline points={points} fill="none"
+  stroke={resolvedColor} strokeWidth={2} />}
               {data.map((d, i) => (
-                <Circle key={i} cx={toX(i)} cy={toY(d.value)} r={3} 
-  fill={color} />
+                <Circle key={i} cx={toX(i)} cy={toY(d.value)} r={3}
+  fill={resolvedColor} />
               ))}
             </Svg>
           )}
@@ -68,10 +73,12 @@ export function LineChart({ data, unit, height = 180, color = palette.green }: L
     );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
     labels: { flexDirection: 'row', justifyContent: 'space-between',
   marginTop: spacing.xs },
-    label: { color: palette.textFaint, fontSize: font.size.xs },
-    range: { color: palette.textFaint, fontSize: font.size.xs,
+    label: { color: p.textFaint, fontSize: font.size.xs },
+    range: { color: p.textFaint, fontSize: font.size.xs,
   textAlign: 'center', marginTop: spacing.sm },
-});
+  });
+}

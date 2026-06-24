@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,7 +7,8 @@ import appConfig from '../../app.json';
 
 import { Card, SectionTitle } from '../components/Card';
 import { Button } from '../components/Button';
-import { palette, spacing, font, radius } from '../theme';
+import { spacing, font, radius } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { useSettings } from '../state/useSettings';
 import { useDiaryRevision } from '../state/useDiary';
 import { clearAllEntries } from '../db/database';
@@ -27,31 +28,17 @@ const GOAL_FIELDS: { key: keyof Goals; label: string; unit: string }[] = [
   { key: 'water', label: 'Water', unit: 'mL' },
 ];
 
-const PLUS_EXTRAS: { route: 'Fasting' | 'GoalPhases' | 'Coach' | 'MealPlanner'; label: string; sub: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { route: 'Fasting', label: 'Fasting timer', sub: 'Track intermittent fasting windows', icon: 'timer-outline' },
-  { route: 'GoalPhases', label: 'Goal phases', sub: 'Cut, maintain & bulk targets', icon: 'trending-up-outline' },
-  { route: 'Coach', label: 'Smart Coach', sub: 'On-device daily guidance', icon: 'bulb-outline' },
-  { route: 'MealPlanner', label: 'Meal planner', sub: 'Plan and pre-log your days', icon: 'calendar-outline' },
-];
-
-/** Things competitors commonly charge for that Plately gives away free. */
-const FREE_PERKS = [
-  'Photo food recognition (on-device)',
-  'Create unlimited custom foods',
-  'Trends, streaks & insights',
-  'Export your data (CSV)',
-  'No ads, no tracking · account optional',
-];
-
 export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
-  const { goals, setGoals, waterUnit, setWaterUnit, weightUnit, setWeightUnit, accent, plusActive } = useSettings();
+  const p = useTheme();
+  const { goals, setGoals, waterUnit, setWaterUnit, weightUnit, setWeightUnit, accent } = useSettings();
   const reminders = useSettings((s) => s.reminders);
   const setReminders = useSettings((s) => s.setReminders);
   const { account, signedIn } = useAuth();
   const bump = useDiaryRevision((s) => s.bump);
   const [modelStatus, setModelStatus] = useState(getModelStatus());
 
-  // Toggle a reminder preference, then re-register the local notification set.
+  const styles = useMemo(() => makeStyles(p), [p]);
+
   const toggleReminder = (patch: Partial<typeof reminders>) => {
     const next = { ...reminders, ...patch };
     setReminders(patch);
@@ -114,14 +101,26 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Settings</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Settings</Text>
+          <Pressable
+            onPress={() => navigation.navigate('PlatelyPlus')}
+            style={({ pressed }) => [styles.plusBtn, pressed && { opacity: 0.7 }]}
+            accessibilityLabel="Plately+"
+          >
+            <View style={styles.plusIconWrap}>
+              <Ionicons name="star" size={13} color="#000" style={styles.plusStarIcon} />
+              <Ionicons name="sparkles" size={9} color="#FFF8D6" style={styles.plusSparkle} />
+            </View>
+          </Pressable>
+        </View>
 
         <SectionTitle>Account</SectionTitle>
         <Card style={styles.card}>
           {signedIn ? (
             <>
               <View style={styles.linkRow}>
-                <Ionicons name="person-circle-outline" size={22} color={palette.green} />
+                <Ionicons name="person-circle-outline" size={22} color={accent} />
                 <View style={styles.extraBody}>
                   <Text style={styles.linkText}>{account?.email ?? account?.name ?? 'Signed in'}</Text>
                   <Text style={styles.extraSub}>Synced across your devices</Text>
@@ -129,89 +128,40 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
               </View>
               <View style={styles.divider} />
               <Pressable style={styles.linkRow} onPress={onSignOut}>
-                <Ionicons name="log-out-outline" size={20} color={palette.red} />
-                <Text style={[styles.linkText, { color: palette.red }]}>Sign out</Text>
+                <Ionicons name="log-out-outline" size={20} color={p.red} />
+                <Text style={[styles.linkText, { color: p.red }]}>Sign out</Text>
               </Pressable>
             </>
           ) : (
             <Pressable style={styles.linkRow} onPress={() => navigation.navigate('Auth', { mode: 'signin' })}>
-              <Ionicons name="cloud-outline" size={20} color={palette.text} />
+              <Ionicons name="cloud-outline" size={20} color={p.text} />
               <View style={styles.extraBody}>
                 <Text style={styles.linkText}>Sign in or create account</Text>
                 <Text style={styles.extraSub}>Back up &amp; sync your diary across devices</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+              <Ionicons name="chevron-forward" size={18} color={p.textFaint} />
             </Pressable>
           )}
-        </Card>
-
-        <Card style={styles.freeCard}>
-          <View style={styles.freeHeader}>
-            <Ionicons name="heart" size={18} color={palette.green} />
-            <Text style={styles.freeTitle}>Free forever — really</Text>
-          </View>
-          <Text style={styles.freeSub}>
-            Everything other trackers lock behind a subscription, Plately gives you free:
-          </Text>
-          {FREE_PERKS.map((perk) => (
-            <View key={perk} style={styles.perkRow}>
-              <Ionicons name="checkmark-circle" size={16} color={palette.green} />
-              <Text style={styles.perkText}>{perk}</Text>
-            </View>
-          ))}
-          <Text style={styles.freePrice}>Core features free forever · no ads · no account</Text>
-        </Card>
-
-        <Pressable
-          onPress={() => navigation.navigate('PlatelyPlus')}
-          style={({ pressed }) => [styles.plusRow, { borderColor: accent }, pressed && { opacity: 0.8 }]}
-        >
-          <View style={[styles.plusBadge, { backgroundColor: accent }]}>
-            <Ionicons name="star" size={16} color={palette.black} />
-          </View>
-          <View style={styles.plusBody}>
-            <Text style={styles.plusTitle}>Plately+</Text>
-            <Text style={styles.plusSub}>Fasting, goal phases, Smart Coach, meal planner & more</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
-        </Pressable>
-
-        <SectionTitle>Plately+ extras</SectionTitle>
-        <Card style={styles.card}>
-          {PLUS_EXTRAS.map((extra, i) => (
-            <View key={extra.route}>
-              {i > 0 && <View style={styles.divider} />}
-              <Pressable style={styles.linkRow} onPress={() => navigation.navigate(extra.route)}>
-                <Ionicons name={extra.icon} size={20} color={plusActive ? accent : palette.textMuted} />
-                <View style={styles.extraBody}>
-                  <Text style={styles.linkText}>{extra.label}</Text>
-                  <Text style={styles.extraSub}>{extra.sub}</Text>
-                </View>
-                {!plusActive && <Ionicons name="lock-closed" size={15} color={palette.textFaint} />}
-                <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
-              </Pressable>
-            </View>
-          ))}
         </Card>
 
         <SectionTitle>Personalize</SectionTitle>
         <Card style={styles.card}>
           <Pressable style={styles.linkRow} onPress={() => navigation.navigate('Achievements')}>
-            <Ionicons name="trophy-outline" size={20} color={palette.text} />
+            <Ionicons name="trophy-outline" size={20} color={p.text} />
             <Text style={styles.linkText}>Achievements</Text>
-            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+            <Ionicons name="chevron-forward" size={18} color={p.textFaint} />
           </Pressable>
           <View style={styles.divider} />
           <Pressable style={styles.linkRow} onPress={() => navigation.navigate('Appearance')}>
-            <Ionicons name="color-palette-outline" size={20} color={palette.text} />
+            <Ionicons name="color-palette-outline" size={20} color={p.text} />
             <Text style={styles.linkText}>Appearance</Text>
-            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+            <Ionicons name="chevron-forward" size={18} color={p.textFaint} />
           </Pressable>
           <View style={styles.divider} />
           <Pressable style={styles.linkRow} onPress={() => navigation.navigate('Weight')}>
-            <Ionicons name="scale-outline" size={20} color={palette.text} />
+            <Ionicons name="scale-outline" size={20} color={p.text} />
             <Text style={styles.linkText}>Weight tracking</Text>
-            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+            <Ionicons name="chevron-forward" size={18} color={p.textFaint} />
           </Pressable>
         </Card>
 
@@ -220,12 +170,12 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
           onPress={() => navigation.navigate('GoalCalculator')}
           style={({ pressed }) => [styles.calcRow, pressed && { opacity: 0.7 }]}
         >
-          <Ionicons name="calculator-outline" size={20} color={palette.green} />
+          <Ionicons name="calculator-outline" size={20} color={accent} />
           <View style={styles.calcBody}>
             <Text style={styles.calcTitle}>Calculate my goals</Text>
             <Text style={styles.calcSub}>Personalize from your body metrics</Text>
           </View>
-          <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+          <Ionicons name="chevron-forward" size={18} color={p.textFaint} />
         </Pressable>
         <Card style={styles.card}>
           {GOAL_FIELDS.map((field, i) => (
@@ -241,6 +191,7 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
                     defaultValue={String(goals[field.key])}
                     onChangeText={(t) => updateGoal(field.key, t)}
                     maxLength={6}
+                    placeholderTextColor={p.textFaint}
                   />
                   <Text style={styles.goalUnit}>{field.unit}</Text>
                 </View>
@@ -256,7 +207,7 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
               <Pressable
                 key={u}
                 onPress={() => setWaterUnit(u)}
-                style={[styles.toggle, waterUnit === u && styles.toggleActive]}
+                style={[styles.toggle, waterUnit === u && { backgroundColor: accent }]}
               >
                 <Text style={[styles.toggleText, waterUnit === u && styles.toggleTextActive]}>
                   {u === 'ml' ? 'Milliliters (mL)' : 'Fluid ounces (oz)'}
@@ -273,7 +224,7 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
               <Pressable
                 key={u}
                 onPress={() => setWeightUnit(u)}
-                style={[styles.toggle, weightUnit === u && styles.toggleActive]}
+                style={[styles.toggle, weightUnit === u && { backgroundColor: accent }]}
               >
                 <Text style={[styles.toggleText, weightUnit === u && styles.toggleTextActive]}>
                   {u === 'kg' ? 'Kilograms (kg)' : 'Pounds (lb)'}
@@ -289,7 +240,7 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
             <Ionicons
               name={isModelReady() ? 'checkmark-circle' : 'cloud-download-outline'}
               size={22}
-              color={isModelReady() ? palette.green : palette.textMuted}
+              color={isModelReady() ? accent : p.textMuted}
             />
             <View style={styles.infoBody}>
               <Text style={styles.infoTitle}>Food recognition</Text>
@@ -308,7 +259,7 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
         <SectionTitle>Reminders</SectionTitle>
         <Card style={styles.card}>
           <View style={styles.linkRow}>
-            <Ionicons name="notifications-outline" size={20} color={palette.text} />
+            <Ionicons name="notifications-outline" size={20} color={p.text} />
             <View style={styles.extraBody}>
               <Text style={styles.linkText}>Daily reminders</Text>
               <Text style={styles.extraSub}>Gentle nudges to log meals &amp; water</Text>
@@ -355,35 +306,35 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
         <SectionTitle>Your data</SectionTitle>
         <Card style={styles.card}>
           <Pressable style={styles.linkRow} onPress={() => navigation.navigate('RecipeBuilder')}>
-            <Ionicons name="create-outline" size={20} color={palette.text} />
+            <Ionicons name="create-outline" size={20} color={p.text} />
             <Text style={styles.linkText}>Create a recipe</Text>
-            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+            <Ionicons name="chevron-forward" size={18} color={p.textFaint} />
           </Pressable>
           <View style={styles.divider} />
           <Pressable style={styles.linkRow} onPress={() => navigation.navigate('MyFoods')}>
-            <Ionicons name="restaurant-outline" size={20} color={palette.text} />
+            <Ionicons name="restaurant-outline" size={20} color={p.text} />
             <Text style={styles.linkText}>My custom foods</Text>
-            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+            <Ionicons name="chevron-forward" size={18} color={p.textFaint} />
           </Pressable>
           <View style={styles.divider} />
           <Pressable style={styles.linkRow} onPress={() => void onExport()}>
-            <Ionicons name="download-outline" size={20} color={palette.text} />
+            <Ionicons name="download-outline" size={20} color={p.text} />
             <Text style={styles.linkText}>Export diary (CSV)</Text>
-            <Ionicons name="share-outline" size={18} color={palette.textFaint} />
+            <Ionicons name="share-outline" size={18} color={p.textFaint} />
           </Pressable>
         </Card>
 
         <SectionTitle>Privacy &amp; data</SectionTitle>
         <Card style={styles.card}>
           <Pressable style={styles.linkRow} onPress={() => navigation.navigate('PrivacyPolicy')}>
-            <Ionicons name="shield-checkmark-outline" size={20} color={palette.text} />
+            <Ionicons name="shield-checkmark-outline" size={20} color={p.text} />
             <Text style={styles.linkText}>Privacy Policy</Text>
-            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+            <Ionicons name="chevron-forward" size={18} color={p.textFaint} />
           </Pressable>
           <View style={styles.divider} />
           <Pressable style={styles.linkRow} onPress={eraseAll}>
-            <Ionicons name="trash-outline" size={20} color={palette.red} />
-            <Text style={[styles.linkText, { color: palette.red }]}>Erase all data</Text>
+            <Ionicons name="trash-outline" size={20} color={p.red} />
+            <Text style={[styles.linkText, { color: p.red }]}>Erase all data</Text>
           </Pressable>
         </Card>
 
@@ -400,79 +351,76 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxl },
-  title: { color: palette.text, fontSize: font.size.xxl, fontFamily: font.family.uiBold },
-  freeCard: { gap: spacing.xs, marginTop: spacing.lg, borderColor: palette.greenDark, borderWidth: 1 },
-  freeHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  freeTitle: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.uiBold },
-  freeSub: { color: palette.textMuted, fontSize: font.size.sm, marginBottom: spacing.xs, lineHeight: 18 },
-  perkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 3 },
-  perkText: { color: palette.text, fontSize: font.size.md },
-  freePrice: { color: palette.green, fontSize: font.size.sm, fontFamily: font.family.uiSemibold, marginTop: spacing.sm },
-  plusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: palette.surface,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    marginTop: spacing.sm,
-    borderWidth: 1,
-  },
-  plusBadge: { width: 36, height: 36, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
-  plusBody: { flex: 1, gap: 2 },
-  plusTitle: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiBold },
-  plusSub: { color: palette.textMuted, fontSize: font.size.sm, lineHeight: 17 },
-  card: { paddingVertical: spacing.xs },
-  calcRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: palette.surface,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-  },
-  calcBody: { flex: 1, gap: 2 },
-  calcTitle: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  calcSub: { color: palette.textMuted, fontSize: font.size.sm },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.border },
-  goalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md },
-  goalLabel: { color: palette.text, fontSize: font.size.md },
-  goalInputWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  goalInput: {
-    color: palette.text,
-    fontSize: font.size.lg,
-    fontFamily: font.family.uiSemibold,
-    textAlign: 'right',
-    minWidth: 70,
-    backgroundColor: palette.surfaceAlt,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  goalUnit: { color: palette.textMuted, fontSize: font.size.sm, width: 36 },
-  toggleRow: { flexDirection: 'row', gap: spacing.sm, paddingVertical: spacing.sm },
-  toggle: { flex: 1, paddingVertical: spacing.md, borderRadius: radius.md, backgroundColor: palette.surfaceAlt, alignItems: 'center' },
-  toggleActive: { backgroundColor: palette.green },
-  toggleText: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiSemibold },
-  toggleTextActive: { color: palette.black },
-  infoRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
-  infoBody: { flex: 1 },
-  infoTitle: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  infoMeta: { color: palette.textMuted, fontSize: font.size.sm },
-  note: { color: palette.textFaint, fontSize: font.size.sm, lineHeight: 18, marginVertical: spacing.sm },
-  linkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
-  linkText: { flex: 1, color: palette.text, fontSize: font.size.md },
-  extraBody: { flex: 1 },
-  extraSub: { color: palette.textMuted, fontSize: font.size.sm, marginTop: 1 },
-  switch: { width: 44, height: 26, borderRadius: radius.pill, backgroundColor: palette.border, padding: 3, justifyContent: 'center' },
-  knob: { width: 20, height: 20, borderRadius: radius.pill, backgroundColor: palette.white },
-  knobOn: { alignSelf: 'flex-end' },
-  disclaimer: { color: palette.textFaint, fontSize: font.size.xs, lineHeight: 16, marginTop: spacing.xl },
-  version: { color: palette.textFaint, fontSize: font.size.xs, textAlign: 'center', marginTop: spacing.lg },
-});
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: p.bg },
+    content: { padding: spacing.lg, paddingBottom: spacing.xxl },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
+    title: { color: p.text, fontSize: font.size.xxl, fontFamily: font.family.uiBold },
+    plusBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: radius.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#B8860B',
+      shadowColor: '#FFD700',
+      shadowOpacity: 0.5,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 4,
+    },
+    plusIconWrap: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center' },
+    plusStarIcon: { position: 'absolute' },
+    plusSparkle: { position: 'absolute', top: 0, right: -2 },
+    card: { paddingVertical: spacing.xs },
+    calcRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: p.surface,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      marginBottom: spacing.sm,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+    },
+    calcBody: { flex: 1, gap: 2 },
+    calcTitle: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    calcSub: { color: p.textMuted, fontSize: font.size.sm },
+    divider: { height: StyleSheet.hairlineWidth, backgroundColor: p.border },
+    goalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md },
+    goalLabel: { color: p.text, fontSize: font.size.md },
+    goalInputWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+    goalInput: {
+      color: p.text,
+      fontSize: font.size.lg,
+      fontFamily: font.family.uiSemibold,
+      textAlign: 'right',
+      minWidth: 70,
+      backgroundColor: p.surfaceAlt,
+      borderRadius: radius.sm,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+    },
+    goalUnit: { color: p.textMuted, fontSize: font.size.sm, width: 36 },
+    toggleRow: { flexDirection: 'row', gap: spacing.sm, paddingVertical: spacing.sm },
+    toggle: { flex: 1, paddingVertical: spacing.md, borderRadius: radius.md, backgroundColor: p.surfaceAlt, alignItems: 'center' },
+    toggleText: { color: p.textMuted, fontSize: font.size.sm, fontFamily: font.family.uiSemibold },
+    toggleTextActive: { color: p.black },
+    infoRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
+    infoBody: { flex: 1 },
+    infoTitle: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    infoMeta: { color: p.textMuted, fontSize: font.size.sm },
+    note: { color: p.textFaint, fontSize: font.size.sm, lineHeight: 18, marginVertical: spacing.sm },
+    linkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
+    linkText: { flex: 1, color: p.text, fontSize: font.size.md },
+    extraBody: { flex: 1 },
+    extraSub: { color: p.textMuted, fontSize: font.size.sm, marginTop: 1 },
+    switch: { width: 44, height: 26, borderRadius: radius.pill, backgroundColor: p.border, padding: 3, justifyContent: 'center' },
+    knob: { width: 20, height: 20, borderRadius: radius.pill, backgroundColor: p.white },
+    knobOn: { alignSelf: 'flex-end' },
+    disclaimer: { color: p.textFaint, fontSize: font.size.xs, lineHeight: 16, marginTop: spacing.xl },
+    version: { color: p.textFaint, fontSize: font.size.xs, textAlign: 'center', marginTop: spacing.lg },
+  });
+}

@@ -6,11 +6,13 @@
 // spinner state, and a light haptic on press. Designed for full-width usage
 // inside screen footers; pass `style` to override sizing.
 
+import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
-import { palette, radius, spacing, font } from '../theme';
+import { radius, spacing, font } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 
 interface ButtonProps {
   label: string;
@@ -33,6 +35,8 @@ export function Button({
   icon,
   style,
 }: ButtonProps) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
   const isDisabled = disabled || loading;
   const scale = useSharedValue(1);
 
@@ -68,7 +72,7 @@ export function Button({
         style={[styles.base, styles[variant]]}
       >
         {loading ? (
-          <ActivityIndicator color={variant === 'primary' ? palette.white : palette.text} />
+          <ActivityIndicator color={variant === 'primary' ? p.white : p.text} />
         ) : (
           <View style={styles.content}>
             {icon}
@@ -82,24 +86,26 @@ export function Button({
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    minHeight: 52,
-    borderRadius: radius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  content: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  primary: { backgroundColor: palette.accent },
-  secondary: { backgroundColor: palette.surfaceAlt },
-  ghost: { backgroundColor: 'transparent' },
-  danger: { backgroundColor: 'transparent', borderWidth: 1, borderColor: palette.red },
-  disabled: { opacity: 0.4 },
-  label: {
-    fontSize: font.size.lg,
-    fontFamily: font.family.uiSemibold,
-    color: palette.text,
-  },
-  labelPrimary: { color: palette.white },
-});
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    base: {
+      minHeight: 52,
+      borderRadius: radius.lg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: spacing.xl,
+    },
+    content: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    primary: { backgroundColor: p.accent },
+    secondary: { backgroundColor: p.surfaceAlt },
+    ghost: { backgroundColor: 'transparent' },
+    danger: { backgroundColor: 'transparent', borderWidth: 1, borderColor: p.red },
+    disabled: { opacity: 0.4 },
+    label: {
+      fontSize: font.size.lg,
+      fontFamily: font.family.uiSemibold,
+      color: p.text,
+    },
+    labelPrimary: { color: p.white },
+  });
+}

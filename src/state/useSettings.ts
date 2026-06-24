@@ -72,6 +72,7 @@ interface SettingsState {
   accent: string; // hex; tints nav + active controls
   appIcon: string; // selected alternate app icon key ('default' = stock)
   plusActive: boolean; // Plately+ subscription unlocked
+  darkMode: boolean; // dark color scheme
   onboardingComplete: boolean;
   profile: UserProfile;
   account: AccountInfo | null;
@@ -83,6 +84,7 @@ interface SettingsState {
   setAccent: (hex: string) => void;
   setAppIcon: (key: string) => void;
   setPlusActive: (active: boolean) => void;
+  setDarkMode: (dark: boolean) => void;
   updateProfile: (patch: Partial<UserProfile>) => void;
   setAccount: (account: AccountInfo | null) => void;
   setReminders: (patch: Partial<ReminderPrefs>) => void;
@@ -106,6 +108,7 @@ export const useSettings = create<SettingsState>()(
       accent: DEFAULT_ACCENT,
       appIcon: 'default',
       plusActive: false,
+      darkMode: false,
       onboardingComplete: false,
       profile: {},
       account: null,
@@ -117,6 +120,7 @@ export const useSettings = create<SettingsState>()(
       setAccent: (accent) => set({ accent }),
       setAppIcon: (appIcon) => set({ appIcon }),
       setPlusActive: (plusActive) => set({ plusActive }),
+      setDarkMode: (darkMode) => set({ darkMode }),
       updateProfile: (patch) => set((s) => ({ profile: { ...s.profile, ...patch } })),
       setAccount: (account) => set({ account }),
       setReminders: (patch) => set((s) => ({ reminders: { ...s.reminders, ...patch } })),
@@ -129,9 +133,9 @@ export const useSettings = create<SettingsState>()(
       storage: createJSONStorage(() => AsyncStorage),
       // `partialize` whitelists what gets persisted; transient fields stay in memory.
       partialize: ({
-        goals, waterUnit, weightUnit, accent, appIcon, plusActive, onboardingComplete, profile, account, reminders,
+        goals, waterUnit, weightUnit, accent, appIcon, plusActive, darkMode, onboardingComplete, profile, account, reminders,
       }) => ({
-        goals, waterUnit, weightUnit, accent, appIcon, plusActive, onboardingComplete, profile, account, reminders,
+        goals, waterUnit, weightUnit, accent, appIcon, plusActive, darkMode, onboardingComplete, profile, account, reminders,
       }),
       // Fires once AsyncStorage has finished filling the store. Signals to App.tsx
       // that it's safe to render the real UI.

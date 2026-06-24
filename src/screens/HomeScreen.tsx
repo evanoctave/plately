@@ -10,7 +10,8 @@ import { WaterTracker } from '../components/WaterTracker';
 import { EntryRow } from '../components/EntryRow';
 import { QuickAdd } from '../components/QuickAdd';
 import { Card, SectionTitle } from '../components/Card';
-import { palette, spacing, font, radius, shadow, macroColors } from '../theme';
+import { spacing, font, radius, shadow, macroColors } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { ZERO_NUTRITION } from '../data/nutrients';
 import { useSettings } from '../state/useSettings';
 import { logEntry, removeEntry, useDayLog, useDiaryRevision } from '../state/useDiary';
@@ -25,7 +26,9 @@ import type { TabScreenProps } from '../navigation/types';
 const SPRING = { mass: 0.4, damping: 14, stiffness: 260 };
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-function CalendarStrip({ today }: { today: Date }) {
+function CalendarStrip({ today, p }: { today: Date; p: ReturnType<typeof useTheme> }) {
+  const calStyles = useMemo(() => makeCalStyles(p), [p]);
+
   const week = useMemo(() => {
     const sunday = new Date(today);
     sunday.setDate(today.getDate() - today.getDay());
@@ -55,22 +58,24 @@ function CalendarStrip({ today }: { today: Date }) {
   );
 }
 
-const calStyles = StyleSheet.create({
-  strip: { flexDirection: 'row', justifyContent: 'space-between' },
-  day: { alignItems: 'center', gap: 6, flex: 1 },
-  dow: { color: palette.textFaint, fontSize: font.size.xs, fontFamily: font.family.uiMedium, letterSpacing: 0.4 },
-  dowToday: { color: palette.text },
-  numWrap: {
-    width: 36, height: 36, borderRadius: radius.pill,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'transparent',
-  },
-  numWrapToday: {
-    backgroundColor: palette.text,
-  },
-  num: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  numToday: { color: palette.white },
-});
+function makeCalStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    strip: { flexDirection: 'row', justifyContent: 'space-between' },
+    day: { alignItems: 'center', gap: 6, flex: 1 },
+    dow: { color: p.textFaint, fontSize: font.size.xs, fontFamily: font.family.uiMedium, letterSpacing: 0.4 },
+    dowToday: { color: p.text },
+    numWrap: {
+      width: 36, height: 36, borderRadius: radius.pill,
+      alignItems: 'center', justifyContent: 'center',
+      borderWidth: StyleSheet.hairlineWidth, borderColor: 'transparent',
+    },
+    numWrapToday: {
+      backgroundColor: p.text,
+    },
+    num: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    numToday: { color: p.white },
+  });
+}
 
 interface MacroCardProps {
   label: string;
@@ -79,9 +84,11 @@ interface MacroCardProps {
   color: string;
   icon: keyof typeof Ionicons.glyphMap;
   progress: number;
+  p: ReturnType<typeof useTheme>;
 }
 
-function MacroCard({ label, remaining, unit = 'g', color, icon, progress }: MacroCardProps) {
+function MacroCard({ label, remaining, unit = 'g', color, icon, progress, p }: MacroCardProps) {
+  const macroStyles = useMemo(() => makeMacroStyles(p), [p]);
   return (
     <View style={macroStyles.card}>
       <Text style={macroStyles.value}>
@@ -96,29 +103,181 @@ function MacroCard({ label, remaining, unit = 'g', color, icon, progress }: Macr
   );
 }
 
-const macroStyles = StyleSheet.create({
-  card: {
-    flex: 1,
-    backgroundColor: palette.surface,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-    minHeight: 96,
-    ...shadow.card,
-  },
-  value: {
-    color: palette.text,
-    fontSize: font.size.xl,
-    fontFamily: font.family.uiBold,
-    letterSpacing: -0.6,
-  },
-  unit: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  label: { color: palette.textMuted, fontSize: font.size.xs, fontFamily: font.family.uiMedium, marginTop: 1 },
-  ringWrap: { position: 'absolute', right: spacing.md, bottom: spacing.md },
-});
+function makeMacroStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    card: {
+      flex: 1,
+      backgroundColor: p.surface,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+      minHeight: 96,
+      ...shadow.card,
+    },
+    value: {
+      color: p.text,
+      fontSize: font.size.xl,
+      fontFamily: font.family.uiBold,
+      letterSpacing: -0.6,
+    },
+    unit: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    label: { color: p.textMuted, fontSize: font.size.xs, fontFamily: font.family.uiMedium, marginTop: 1 },
+    ringWrap: { position: 'absolute', right: spacing.md, bottom: spacing.md },
+  });
+}
+
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: p.bg },
+    content: {
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.xxl + 16,
+      gap: spacing.md,
+    },
+
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.xs,
+    },
+    brand: {
+      color: p.text,
+      fontSize: font.size.xl,
+      fontFamily: font.family.uiBold,
+      letterSpacing: -0.5,
+    },
+    streakChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 6,
+      borderRadius: radius.pill,
+      backgroundColor: p.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+    },
+    streakNum: { color: p.text, fontSize: font.size.sm, fontFamily: font.family.monoSemibold },
+
+    // Big calorie card
+    calorieCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: p.surface,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      gap: spacing.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+      ...shadow.card,
+    },
+    calNumber: {
+      color: p.text,
+      fontSize: 44,
+      fontFamily: font.family.uiBold,
+      letterSpacing: -1.2,
+      lineHeight: 48,
+    },
+    calLabel: {
+      color: p.textMuted,
+      fontSize: font.size.md,
+      fontFamily: font.family.uiMedium,
+      marginTop: 2,
+    },
+    calMeta: {
+      color: p.textFaint,
+      fontSize: font.size.xs,
+      fontFamily: font.family.mono,
+      marginTop: 4,
+    },
+
+    // Macro row
+    macroRow: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+    },
+
+    // Actions row
+    actions: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      alignItems: 'center',
+      marginTop: spacing.xs,
+    },
+    snapWrap: { flex: 1 },
+    snap: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      minHeight: 48,
+      borderRadius: radius.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    snapText: {
+      color: p.white,
+      fontSize: font.size.md,
+      fontFamily: font.family.uiBold,
+    },
+    iconBtn: {
+      width: 48,
+      height: 48,
+      borderRadius: radius.pill,
+      backgroundColor: p.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+    },
+    iconBtnPressed: { opacity: 0.6 },
+
+    coachCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: p.surface,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+      ...shadow.card,
+    },
+    coachIcon: { width: 36, height: 36, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+    coachBody: { flex: 1 },
+    coachTitle: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    coachSub: { color: p.textMuted, fontSize: font.size.sm, marginTop: 1 },
+
+    empty: {
+      alignItems: 'center',
+      paddingVertical: spacing.xl,
+      gap: spacing.xs,
+    },
+    emptyEmoji: { fontSize: 32, marginBottom: spacing.xs },
+    emptyText: {
+      color: p.text,
+      fontSize: font.size.md,
+      fontFamily: font.family.uiSemibold,
+    },
+    emptyHint: {
+      color: p.textFaint,
+      fontSize: font.size.sm,
+    },
+
+    entryList: { padding: 0, overflow: 'hidden' },
+    divider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: p.border,
+      marginHorizontal: spacing.lg,
+    },
+  });
+}
 
 export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
+
   const today = dayKey();
   const goals = useSettings((s) => s.goals);
   const accent = useSettings((s) => s.accent);
@@ -193,13 +352,13 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
             accessibilityRole="button"
             accessibilityLabel="View achievements"
           >
-            <Ionicons name="flame" size={14} color={palette.amber} />
+            <Ionicons name="flame" size={14} color={p.amber} />
             <Text style={styles.streakNum}>{streak}</Text>
           </Pressable>
         </View>
 
         {/* Week strip */}
-        <CalendarStrip today={new Date()} />
+        <CalendarStrip today={new Date()} p={p} />
 
         {/* Big calorie card */}
         <View style={styles.calorieCard}>
@@ -214,9 +373,9 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
             progress={calProgress}
             size={84}
             strokeWidth={8}
-            color={over ? palette.amber : accent}
+            color={over ? p.amber : accent}
             icon="flame"
-            iconColor={palette.text}
+            iconColor={p.text}
           />
         </View>
 
@@ -228,6 +387,7 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
             color={macroColors.protein}
             icon="fitness"
             progress={goals.protein > 0 ? totals.protein / goals.protein : 0}
+            p={p}
           />
           <MacroCard
             label="Carbs"
@@ -235,6 +395,7 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
             color={macroColors.carbs}
             icon="leaf"
             progress={goals.carbs > 0 ? totals.carbs / goals.carbs : 0}
+            p={p}
           />
           <MacroCard
             label="Fat"
@@ -242,6 +403,7 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
             color={macroColors.fat}
             icon="water"
             progress={goals.fat > 0 ? totals.fat / goals.fat : 0}
+            p={p}
           />
         </View>
 
@@ -256,7 +418,7 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
               accessibilityRole="button"
               accessibilityLabel="Snap a photo of your meal"
             >
-              <Ionicons name="camera" size={20} color={palette.white} />
+              <Ionicons name="camera" size={20} color={p.white} />
               <Text style={styles.snapText}>Snap a meal</Text>
             </Pressable>
           </Animated.View>
@@ -267,7 +429,7 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
             accessibilityRole="button"
             accessibilityLabel="Search for a food to add"
           >
-            <Ionicons name="search" size={20} color={palette.text} />
+            <Ionicons name="search" size={20} color={p.text} />
           </Pressable>
           <Pressable
             style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
@@ -275,7 +437,7 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
             accessibilityRole="button"
             accessibilityLabel="Scan a barcode"
           >
-            <Ionicons name="barcode-outline" size={20} color={palette.text} />
+            <Ionicons name="barcode-outline" size={20} color={p.text} />
           </Pressable>
         </View>
 
@@ -312,7 +474,7 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
               <Text style={styles.coachTitle}>Smart Coach</Text>
               <Text style={styles.coachSub}>See today's guidance from your log</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+            <Ionicons name="chevron-forward" size={18} color={p.textFaint} />
           </Pressable>
         )}
 
@@ -362,148 +524,3 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: palette.bg },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxl + 16,
-    gap: spacing.md,
-  },
-
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.xs,
-  },
-  brand: {
-    color: palette.text,
-    fontSize: font.size.xl,
-    fontFamily: font.family.uiBold,
-    letterSpacing: -0.5,
-  },
-  streakChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: palette.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-  },
-  streakNum: { color: palette.text, fontSize: font.size.sm, fontFamily: font.family.monoSemibold },
-
-  // Big calorie card
-  calorieCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: palette.surface,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    gap: spacing.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-    ...shadow.card,
-  },
-  calNumber: {
-    color: palette.text,
-    fontSize: 44,
-    fontFamily: font.family.uiBold,
-    letterSpacing: -1.2,
-    lineHeight: 48,
-  },
-  calLabel: {
-    color: palette.textMuted,
-    fontSize: font.size.md,
-    fontFamily: font.family.uiMedium,
-    marginTop: 2,
-  },
-  calMeta: {
-    color: palette.textFaint,
-    fontSize: font.size.xs,
-    fontFamily: font.family.mono,
-    marginTop: 4,
-  },
-
-  // Macro row
-  macroRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-
-  // Actions row
-  actions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    alignItems: 'center',
-    marginTop: spacing.xs,
-  },
-  snapWrap: { flex: 1 },
-  snap: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    minHeight: 48,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  snapText: {
-    color: palette.white,
-    fontSize: font.size.md,
-    fontFamily: font.family.uiBold,
-  },
-  iconBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.pill,
-    backgroundColor: palette.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-  },
-  iconBtnPressed: { opacity: 0.6 },
-
-  coachCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: palette.surface,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-    ...shadow.card,
-  },
-  coachIcon: { width: 36, height: 36, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
-  coachBody: { flex: 1 },
-  coachTitle: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  coachSub: { color: palette.textMuted, fontSize: font.size.sm, marginTop: 1 },
-
-  empty: {
-    alignItems: 'center',
-    paddingVertical: spacing.xl,
-    gap: spacing.xs,
-  },
-  emptyEmoji: { fontSize: 32, marginBottom: spacing.xs },
-  emptyText: {
-    color: palette.text,
-    fontSize: font.size.md,
-    fontFamily: font.family.uiSemibold,
-  },
-  emptyHint: {
-    color: palette.textFaint,
-    fontSize: font.size.sm,
-  },
-
-  entryList: { padding: 0, overflow: 'hidden' },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: palette.border,
-    marginHorizontal: spacing.lg,
-  },
-});

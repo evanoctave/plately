@@ -1,9 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, FlatList, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 
-import { palette, spacing, font, radius } from '../theme';
+import { spacing, font, radius } from '../theme';
+import type { Palette } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { searchCatalog, refreshCustomFoods } from '../data/catalog';
 import { isCustomId } from '../db/customFoods';
 import type { FoodItem } from '../data/foods';
@@ -11,6 +13,8 @@ import { fmtInt } from '../utils/format';
 import type { RootStackScreenProps } from '../navigation/types';
 
 export function SearchScreen({ navigation }: RootStackScreenProps<'Search'>) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
   const [query, setQuery] = useState('');
   const [version, setVersion] = useState(0);
 
@@ -50,18 +54,18 @@ export function SearchScreen({ navigation }: RootStackScreenProps<'Search'>) {
           {item.category} · {fmtInt(item.per100g.calories)} kcal / 100 g
         </Text>
       </View>
-      <Ionicons name="add-circle" size={24} color={palette.green} />
+      <Ionicons name="add-circle" size={24} color={p.green} />
     </Pressable>
   );
 
   return (
     <View style={styles.root}>
       <View style={styles.searchBar}>
-        <Ionicons name="search" size={20} color={palette.textFaint} />
+        <Ionicons name="search" size={20} color={p.textFaint} />
         <TextInput
           style={styles.input}
           placeholder="Search foods…"
-          placeholderTextColor={palette.textFaint}
+          placeholderTextColor={p.textFaint}
           value={query}
           onChangeText={setQuery}
           autoFocus
@@ -70,7 +74,7 @@ export function SearchScreen({ navigation }: RootStackScreenProps<'Search'>) {
         />
         {query.length > 0 && (
           <Pressable onPress={() => setQuery('')} accessibilityLabel="Clear search">
-            <Ionicons name="close-circle" size={20} color={palette.textFaint} />
+            <Ionicons name="close-circle" size={20} color={p.textFaint} />
           </Pressable>
         )}
       </View>
@@ -89,26 +93,26 @@ export function SearchScreen({ navigation }: RootStackScreenProps<'Search'>) {
               style={({ pressed }) => [styles.createRow, pressed && styles.pressed]}
             >
               <View style={styles.createIcon}>
-                <Ionicons name="barcode-outline" size={22} color={palette.teal} />
+                <Ionicons name="barcode-outline" size={22} color={p.teal} />
               </View>
               <View style={styles.rowBody}>
                 <Text style={styles.name}>Scan a barcode</Text>
                 <Text style={styles.meta}>Free lookup via Open Food Facts</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+              <Ionicons name="chevron-forward" size={18} color={p.textFaint} />
             </Pressable>
             <Pressable
               onPress={() => navigation.navigate('AddCustomFood')}
               style={({ pressed }) => [styles.createRow, pressed && styles.pressed]}
             >
               <View style={styles.createIcon}>
-                <Ionicons name="add" size={22} color={palette.green} />
+                <Ionicons name="add" size={22} color={p.green} />
               </View>
               <View style={styles.rowBody}>
                 <Text style={styles.name}>Create a custom food</Text>
                 <Text style={styles.meta}>Add your own — free, no account</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+              <Ionicons name="chevron-forward" size={18} color={p.textFaint} />
             </Pressable>
           </View>
         }
@@ -123,55 +127,57 @@ export function SearchScreen({ navigation }: RootStackScreenProps<'Search'>) {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.bg },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    margin: spacing.lg,
-    paddingHorizontal: spacing.md,
-    backgroundColor: palette.surface,
-    borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-  },
-  input: { flex: 1, color: palette.text, fontSize: font.size.lg, paddingVertical: spacing.md },
-  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md },
-  createRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.md,
-    marginBottom: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: palette.border,
-  },
-  createIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.md,
-    backgroundColor: palette.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-  },
-  pressed: { opacity: 0.6 },
-  rowBody: { flex: 1, gap: 2 },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  name: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  badge: {
-    backgroundColor: palette.surfaceAlt,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 1,
-  },
-  badgeText: { color: palette.textMuted, fontSize: font.size.xs, fontFamily: font.family.uiSemibold },
-  meta: { color: palette.textMuted, fontSize: font.size.sm },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.border },
-  empty: { padding: spacing.xl, alignItems: 'center', gap: spacing.xs },
-  emptyText: { color: palette.textMuted, fontSize: font.size.md },
-  emptySub: { color: palette.textFaint, fontSize: font.size.sm, textAlign: 'center' },
-});
+function makeStyles(p: Palette) {
+  return StyleSheet.create({
+    root: { flex: 1, backgroundColor: p.bg },
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      margin: spacing.lg,
+      paddingHorizontal: spacing.md,
+      backgroundColor: p.surface,
+      borderRadius: radius.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+    },
+    input: { flex: 1, color: p.text, fontSize: font.size.lg, paddingVertical: spacing.md },
+    list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+    row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md },
+    createRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      paddingVertical: spacing.md,
+      marginBottom: spacing.sm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: p.border,
+    },
+    createIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: radius.md,
+      backgroundColor: p.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+    },
+    pressed: { opacity: 0.6 },
+    rowBody: { flex: 1, gap: 2 },
+    nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    name: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    badge: {
+      backgroundColor: p.surfaceAlt,
+      borderRadius: radius.sm,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 1,
+    },
+    badgeText: { color: p.textMuted, fontSize: font.size.xs, fontFamily: font.family.uiSemibold },
+    meta: { color: p.textMuted, fontSize: font.size.sm },
+    divider: { height: StyleSheet.hairlineWidth, backgroundColor: p.border },
+    empty: { padding: spacing.xl, alignItems: 'center', gap: spacing.xs },
+    emptyText: { color: p.textMuted, fontSize: font.size.md },
+    emptySub: { color: p.textFaint, fontSize: font.size.sm, textAlign: 'center' },
+  });
+}

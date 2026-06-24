@@ -7,23 +7,81 @@
 // (no account, no cloud sync). On success we complete onboarding and reset into
 // the tab navigator; the auth listener mirrors the session into settings.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { palette, spacing, font, radius, shadow } from '../theme';
+import { spacing, font, radius, shadow } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { useSettings } from '../state/useSettings';
 import { isSupabaseConfigured } from '../config/env';
 import { signInWithApple, signInWithEmail, signUpWithEmail, isAppleAuthAvailable } from '../auth/actions';
 import { validateCredentials } from '../auth/validation';
 import type { RootStackScreenProps } from '../navigation/types';
 
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: p.bg },
+    header: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
+    body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xxl },
+    title: { color: p.text, fontSize: 28, fontFamily: font.family.uiBold, letterSpacing: -0.6 },
+    sub: { color: p.textMuted, fontSize: font.size.md, marginTop: spacing.xs, lineHeight: 22 },
+    label: { color: p.text, fontSize: font.size.sm, fontFamily: font.family.uiSemibold },
+    errorBox: {
+      flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+      backgroundColor: '#FEECEC', borderRadius: radius.md,
+      paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginTop: spacing.lg,
+    },
+    errorText: { flex: 1, color: p.red, fontSize: font.size.sm, lineHeight: 18 },
+    input: {
+      backgroundColor: p.surface, borderRadius: radius.lg,
+      paddingHorizontal: spacing.md, paddingVertical: spacing.md,
+      fontSize: font.size.md, color: p.text,
+      borderWidth: 1, borderColor: p.border,
+    },
+    appleBtn: {
+      backgroundColor: p.text, borderRadius: radius.pill,
+      paddingVertical: spacing.md + 2, gap: spacing.sm,
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    },
+    appleText: { color: p.white, fontSize: font.size.md, fontFamily: font.family.uiBold },
+    outlineBtn: {
+      backgroundColor: p.surface, borderRadius: radius.pill,
+      paddingVertical: spacing.md + 2, gap: spacing.sm,
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+      borderWidth: 1, borderColor: p.border, ...shadow.card,
+    },
+    outlineText: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
+    primary: {
+      backgroundColor: p.text, borderRadius: radius.pill,
+      paddingVertical: spacing.md + 2, alignItems: 'center', justifyContent: 'center', minHeight: 50,
+    },
+    primaryText: { color: p.white, fontSize: font.size.md, fontFamily: font.family.uiBold },
+    disabled: { opacity: 0.5 },
+    guestRow: { alignItems: 'center', paddingVertical: spacing.md },
+    guestText: { color: p.textMuted, fontSize: font.size.sm, fontFamily: font.family.ui, textDecorationLine: 'underline' },
+    linkCenter: { color: p.textMuted, fontSize: font.size.sm, textAlign: 'center', textDecorationLine: 'underline', marginTop: spacing.sm },
+
+    footer: { paddingHorizontal: spacing.xl, paddingBottom: spacing.lg },
+    tosRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    checkbox: {
+      width: 18, height: 18, borderRadius: 4,
+      borderWidth: 1.5, borderColor: p.border,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    checkboxOn: { backgroundColor: p.text, borderColor: p.text },
+    tosText: { flex: 1, color: p.textMuted, fontSize: font.size.xs, lineHeight: 16 },
+  });
+}
+
 export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) {
+  const p = useTheme();
   const mode = route.params?.mode ?? 'signup';
   const setAccount = useSettings((s) => s.setAccount);
   const completeOnboarding = useSettings((s) => s.completeOnboarding);
   const configured = isSupabaseConfigured();
+  const styles = useMemo(() => makeStyles(p), [p]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -102,7 +160,7 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.header}>
           <Pressable onPress={() => navigation.goBack()} hitSlop={12} accessibilityLabel="Back">
-            <Ionicons name="arrow-back" size={22} color={palette.text} />
+            <Ionicons name="arrow-back" size={22} color={p.text} />
           </Pressable>
         </View>
 
@@ -114,7 +172,7 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
 
           {error && (
             <View style={styles.errorBox} accessibilityLiveRegion="polite">
-              <Ionicons name="alert-circle" size={16} color={palette.red} />
+              <Ionicons name="alert-circle" size={16} color={p.red} />
               <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
@@ -129,7 +187,7 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
                 autoComplete="email"
                 keyboardType="email-address"
                 placeholder="you@example.com"
-                placeholderTextColor={palette.textFaint}
+                placeholderTextColor={p.textFaint}
                 style={styles.input}
                 editable={!busy}
                 maxLength={254}
@@ -143,14 +201,14 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
                 secureTextEntry
                 autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
                 placeholder={mode === 'signin' ? 'Your password' : 'At least 8 characters'}
-                placeholderTextColor={palette.textFaint}
+                placeholderTextColor={p.textFaint}
                 style={styles.input}
                 editable={!busy}
                 maxLength={128}
                 accessibilityLabel="Password"
               />
               <Pressable onPress={() => void emailSubmit()} style={[styles.primary, busy && styles.disabled]} disabled={busy} accessibilityRole="button">
-                {busy ? <ActivityIndicator color={palette.white} /> : (
+                {busy ? <ActivityIndicator color={p.white} /> : (
                   <Text style={styles.primaryText}>{mode === 'signin' ? 'Sign in' : 'Continue'}</Text>
                 )}
               </Pressable>
@@ -162,13 +220,13 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
             <View style={{ gap: spacing.sm, marginTop: spacing.lg }}>
               {appleAvailable && (
                 <Pressable onPress={() => void apple()} style={[styles.appleBtn, busy && styles.disabled]} disabled={busy} accessibilityRole="button" accessibilityLabel="Sign in with Apple">
-                  <Ionicons name="logo-apple" size={20} color={palette.white} />
+                  <Ionicons name="logo-apple" size={20} color={p.white} />
                   <Text style={styles.appleText}>{mode === 'signin' ? 'Sign in' : 'Continue'} with Apple</Text>
                 </Pressable>
               )}
 
               <Pressable onPress={() => { setShowEmailForm(true); setError(null); }} style={[styles.outlineBtn, busy && styles.disabled]} disabled={busy} accessibilityRole="button" accessibilityLabel="Continue with email">
-                <Ionicons name="mail" size={18} color={palette.text} />
+                <Ionicons name="mail" size={18} color={p.text} />
                 <Text style={styles.outlineText}>{mode === 'signin' ? 'Sign in' : 'Continue'} with email</Text>
               </Pressable>
 
@@ -182,7 +240,7 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
         <View style={styles.footer}>
           <Pressable onPress={() => setAgreedTos(!agreedTos)} style={styles.tosRow} accessibilityRole="checkbox" accessibilityState={{ checked: agreedTos }}>
             <View style={[styles.checkbox, agreedTos && styles.checkboxOn]}>
-              {agreedTos && <Ionicons name="checkmark" size={14} color={palette.white} />}
+              {agreedTos && <Ionicons name="checkmark" size={14} color={p.white} />}
             </View>
             <Text style={styles.tosText}>
               I agree to Plately's Terms and Privacy Policy.
@@ -194,55 +252,3 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: palette.bg },
-  header: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
-  body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xxl },
-  title: { color: palette.text, fontSize: 28, fontFamily: font.family.uiBold, letterSpacing: -0.6 },
-  sub: { color: palette.textMuted, fontSize: font.size.md, marginTop: spacing.xs, lineHeight: 22 },
-  label: { color: palette.text, fontSize: font.size.sm, fontFamily: font.family.uiSemibold },
-  errorBox: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    backgroundColor: '#FEECEC', borderRadius: radius.md,
-    paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginTop: spacing.lg,
-  },
-  errorText: { flex: 1, color: palette.red, fontSize: font.size.sm, lineHeight: 18 },
-  input: {
-    backgroundColor: palette.surface, borderRadius: radius.lg,
-    paddingHorizontal: spacing.md, paddingVertical: spacing.md,
-    fontSize: font.size.md, color: palette.text,
-    borderWidth: 1, borderColor: palette.border,
-  },
-  appleBtn: {
-    backgroundColor: palette.text, borderRadius: radius.pill,
-    paddingVertical: spacing.md + 2, gap: spacing.sm,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-  },
-  appleText: { color: palette.white, fontSize: font.size.md, fontFamily: font.family.uiBold },
-  outlineBtn: {
-    backgroundColor: palette.surface, borderRadius: radius.pill,
-    paddingVertical: spacing.md + 2, gap: spacing.sm,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: palette.border, ...shadow.card,
-  },
-  outlineText: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-  primary: {
-    backgroundColor: palette.text, borderRadius: radius.pill,
-    paddingVertical: spacing.md + 2, alignItems: 'center', justifyContent: 'center', minHeight: 50,
-  },
-  primaryText: { color: palette.white, fontSize: font.size.md, fontFamily: font.family.uiBold },
-  disabled: { opacity: 0.5 },
-  guestRow: { alignItems: 'center', paddingVertical: spacing.md },
-  guestText: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.ui, textDecorationLine: 'underline' },
-  linkCenter: { color: palette.textMuted, fontSize: font.size.sm, textAlign: 'center', textDecorationLine: 'underline', marginTop: spacing.sm },
-
-  footer: { paddingHorizontal: spacing.xl, paddingBottom: spacing.lg },
-  tosRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  checkbox: {
-    width: 18, height: 18, borderRadius: 4,
-    borderWidth: 1.5, borderColor: palette.border,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  checkboxOn: { backgroundColor: palette.text, borderColor: palette.text },
-  tosText: { flex: 1, color: palette.textMuted, fontSize: font.size.xs, lineHeight: 16 },
-});

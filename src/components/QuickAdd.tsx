@@ -7,11 +7,13 @@
 //   - Long-press → onOpen (jump to ConfirmFood for fine-tuning grams)
 // Favorites show a star icon; recents show a clock.
 
+import { useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
-import { palette, spacing, font, radius } from '../theme';
+import { spacing, font, radius } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { fmtInt } from '../utils/format';
 import type { QuickAddItem } from '../state/useQuickAdd';
 
@@ -25,6 +27,9 @@ interface QuickAddProps {
 
 /** Horizontal strip of favorite/recent foods for one-tap logging. */
 export function QuickAdd({ items, onQuickLog, onOpen }: QuickAddProps) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
+
   if (items.length === 0) return null;
 
   return (
@@ -51,9 +56,9 @@ export function QuickAdd({ items, onQuickLog, onOpen }: QuickAddProps) {
               <Ionicons
                 name={item.favorite ? 'star' : 'time-outline'}
                 size={12}
-                color={item.favorite ? palette.amber : palette.textFaint}
+                color={item.favorite ? p.amber : p.textFaint}
               />
-              <Ionicons name="add-circle" size={16} color={palette.green} />
+              <Ionicons name="add-circle" size={16} color={p.green} />
             </View>
             <Text style={styles.chipName} numberOfLines={1}>
               {item.food.name}
@@ -68,19 +73,21 @@ export function QuickAdd({ items, onQuickLog, onOpen }: QuickAddProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  row: { gap: spacing.sm, paddingVertical: spacing.xs },
-  chip: {
-    width: 130,
-    backgroundColor: palette.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: 2,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: palette.border,
-  },
-  pressed: { opacity: 0.7 },
-  chipHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  chipName: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold, marginTop: 2 },
-  chipMeta: { color: palette.textMuted, fontSize: font.size.xs },
-});
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    row: { gap: spacing.sm, paddingVertical: spacing.xs },
+    chip: {
+      width: 130,
+      backgroundColor: p.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: 2,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: p.border,
+    },
+    pressed: { opacity: 0.7 },
+    chipHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    chipName: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold, marginTop: 2 },
+    chipMeta: { color: p.textMuted, fontSize: font.size.xs },
+  });
+}

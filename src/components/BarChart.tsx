@@ -6,10 +6,12 @@
 // individually `highlight`ed (used to mark today). Accepts an optional `goal`
 // dashed line and respects the configured accent color.
 
+import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Rect, Line } from 'react-native-svg';
 
-import { palette, font, spacing } from '../theme';
+import { font, spacing } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { clamp01 } from '../utils/nutrition';
 
 export interface BarDatum {
@@ -29,7 +31,11 @@ interface BarChartProps {
 /**
  * SVG bar chart for ~14 bars of daily totals with an optional goal line.
  */
-export function BarChart({ data, goal, height = 160, color = palette.accent, unit }: BarChartProps) {
+export function BarChart({ data, goal, height = 160, color, unit }: BarChartProps) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
+  const resolvedColor = color ?? p.accent;
+
   const max = Math.max(goal ?? 0, ...data.map((d) => d.value), 1);
   const barAreaHeight = height - 24; // leave room for labels
   const barWidthPct = 100 / Math.max(data.length, 1);
@@ -44,7 +50,7 @@ export function BarChart({ data, goal, height = 160, color = palette.accent, uni
               x2="100%"
               y1={barAreaHeight - clamp01(goal / max) * barAreaHeight}
               y2={barAreaHeight - clamp01(goal / max) * barAreaHeight}
-              stroke={palette.textFaint}
+              stroke={p.textFaint}
               strokeWidth={1}
               strokeDasharray="4 4"
             />
@@ -61,7 +67,7 @@ export function BarChart({ data, goal, height = 160, color = palette.accent, uni
                 width={w}
                 height={Math.max(h, d.value > 0 ? 2 : 0)}
                 rx={3}
-                fill={d.highlight ? palette.accent : d.value > 0 ? color : palette.surfaceAlt}
+                fill={d.highlight ? p.accent : d.value > 0 ? resolvedColor : p.surfaceAlt}
                 opacity={d.highlight ? 1 : 0.85}
               />
             );
@@ -85,9 +91,11 @@ export function BarChart({ data, goal, height = 160, color = palette.accent, uni
   );
 }
 
-const styles = StyleSheet.create({
-  labels: { flexDirection: 'row', marginTop: spacing.xs },
-  label: { flex: 1, textAlign: 'center', color: palette.textFaint, fontSize: font.size.xs },
-  labelHighlight: { color: palette.accent, fontFamily: font.family.uiBold },
-  goalNote: { color: palette.textFaint, fontSize: font.size.xs, marginTop: spacing.sm, textAlign: 'center' },
-});
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    labels: { flexDirection: 'row', marginTop: spacing.xs },
+    label: { flex: 1, textAlign: 'center', color: p.textFaint, fontSize: font.size.xs },
+    labelHighlight: { color: p.accent, fontFamily: font.family.uiBold },
+    goalNote: { color: p.textFaint, fontSize: font.size.xs, marginTop: spacing.sm, textAlign: 'center' },
+  });
+}

@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TextInput, KeyboardAvoidingView, Pl
 
 import { Button } from '../components/Button';
 import { Card, SectionTitle } from '../components/Card';
-import { palette, spacing, font, radius } from '../theme';
+import { spacing, font, radius } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { ZERO_NUTRITION, type Nutrition } from '../data/nutrients';
 import { addCustomFood } from '../db/customFoods';
 import { refreshCustomFoods } from '../data/catalog';
@@ -39,7 +40,36 @@ function num(s: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    flex: { flex: 1, backgroundColor: p.bg },
+    content: { padding: spacing.lg, paddingBottom: spacing.xxl },
+    intro: { color: p.textMuted, fontSize: font.size.sm, lineHeight: 18 },
+    card: { paddingVertical: spacing.xs },
+    field: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, gap: spacing.md },
+    fieldLabel: { color: p.text, fontSize: font.size.md, flex: 1 },
+    fieldInputWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+    fieldInput: {
+      color: p.text,
+      fontSize: font.size.lg,
+      fontFamily: font.family.uiSemibold,
+      textAlign: 'right',
+      minWidth: 110,
+      backgroundColor: p.surfaceAlt,
+      borderRadius: radius.sm,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+    },
+    fieldUnit: { color: p.textMuted, fontSize: font.size.sm, width: 36 },
+    divider: { height: StyleSheet.hairlineWidth, backgroundColor: p.border },
+    preview: { color: p.textFaint, fontSize: font.size.sm, textAlign: 'center', marginTop: spacing.lg },
+    save: { marginTop: spacing.lg },
+  });
+}
+
 export function AddCustomFoodScreen({ navigation }: RootStackScreenProps<'AddCustomFood'>) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [saving, setSaving] = useState(false);
 
@@ -102,8 +132,8 @@ export function AddCustomFoodScreen({ navigation }: RootStackScreenProps<'AddCus
 
         <SectionTitle>Basics</SectionTitle>
         <Card style={styles.card}>
-          <Field label="Name" value={form.name} onChange={set('name')} placeholder="e.g. Grandma's lasagna" autoFocus />
-          <Divider />
+          <Field label="Name" value={form.name} onChange={set('name')} placeholder="e.g. Grandma's lasagna" autoFocus styles={styles} placeholderColor={p.textFaint} />
+          <Divider styles={styles} />
           <Field
             label="Serving size"
             value={form.servingGrams}
@@ -111,24 +141,26 @@ export function AddCustomFoodScreen({ navigation }: RootStackScreenProps<'AddCus
             placeholder="grams"
             unit="g"
             keyboardType="numeric"
+            styles={styles}
+            placeholderColor={p.textFaint}
           />
         </Card>
 
         <SectionTitle>Per serving</SectionTitle>
         <Card style={styles.card}>
-          <Field label="Calories" value={form.calories} onChange={set('calories')} unit="kcal" keyboardType="numeric" />
-          <Divider />
-          <Field label="Protein" value={form.protein} onChange={set('protein')} unit="g" keyboardType="numeric" />
-          <Divider />
-          <Field label="Carbs" value={form.carbs} onChange={set('carbs')} unit="g" keyboardType="numeric" />
-          <Divider />
-          <Field label="Fat" value={form.fat} onChange={set('fat')} unit="g" keyboardType="numeric" />
-          <Divider />
-          <Field label="Fiber" value={form.fiber} onChange={set('fiber')} unit="g" keyboardType="numeric" />
-          <Divider />
-          <Field label="Sugar" value={form.sugar} onChange={set('sugar')} unit="g" keyboardType="numeric" />
-          <Divider />
-          <Field label="Water" value={form.water} onChange={set('water')} unit="mL" keyboardType="numeric" />
+          <Field label="Calories" value={form.calories} onChange={set('calories')} unit="kcal" keyboardType="numeric" styles={styles} placeholderColor={p.textFaint} />
+          <Divider styles={styles} />
+          <Field label="Protein" value={form.protein} onChange={set('protein')} unit="g" keyboardType="numeric" styles={styles} placeholderColor={p.textFaint} />
+          <Divider styles={styles} />
+          <Field label="Carbs" value={form.carbs} onChange={set('carbs')} unit="g" keyboardType="numeric" styles={styles} placeholderColor={p.textFaint} />
+          <Divider styles={styles} />
+          <Field label="Fat" value={form.fat} onChange={set('fat')} unit="g" keyboardType="numeric" styles={styles} placeholderColor={p.textFaint} />
+          <Divider styles={styles} />
+          <Field label="Fiber" value={form.fiber} onChange={set('fiber')} unit="g" keyboardType="numeric" styles={styles} placeholderColor={p.textFaint} />
+          <Divider styles={styles} />
+          <Field label="Sugar" value={form.sugar} onChange={set('sugar')} unit="g" keyboardType="numeric" styles={styles} placeholderColor={p.textFaint} />
+          <Divider styles={styles} />
+          <Field label="Water" value={form.water} onChange={set('water')} unit="mL" keyboardType="numeric" styles={styles} placeholderColor={p.textFaint} />
         </Card>
 
         {per100Preview && (
@@ -152,9 +184,11 @@ interface FieldProps {
   unit?: string;
   keyboardType?: 'default' | 'numeric';
   autoFocus?: boolean;
+  styles: ReturnType<typeof makeStyles>;
+  placeholderColor: string;
 }
 
-function Field({ label, value, onChange, placeholder, unit, keyboardType = 'default', autoFocus }: FieldProps) {
+function Field({ label, value, onChange, placeholder, unit, keyboardType = 'default', autoFocus, styles, placeholderColor }: FieldProps) {
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -164,7 +198,7 @@ function Field({ label, value, onChange, placeholder, unit, keyboardType = 'defa
           value={value}
           onChangeText={onChange}
           placeholder={placeholder ?? '0'}
-          placeholderTextColor={palette.textFaint}
+          placeholderTextColor={placeholderColor}
           keyboardType={keyboardType}
           autoFocus={autoFocus}
           autoCorrect={false}
@@ -175,31 +209,11 @@ function Field({ label, value, onChange, placeholder, unit, keyboardType = 'defa
   );
 }
 
-function Divider() {
+interface DividerProps {
+  styles: ReturnType<typeof makeStyles>;
+}
+
+function Divider({ styles }: DividerProps) {
   return <View style={styles.divider} />;
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxl },
-  intro: { color: palette.textMuted, fontSize: font.size.sm, lineHeight: 18 },
-  card: { paddingVertical: spacing.xs },
-  field: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, gap: spacing.md },
-  fieldLabel: { color: palette.text, fontSize: font.size.md, flex: 1 },
-  fieldInputWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  fieldInput: {
-    color: palette.text,
-    fontSize: font.size.lg,
-    fontFamily: font.family.uiSemibold,
-    textAlign: 'right',
-    minWidth: 110,
-    backgroundColor: palette.surfaceAlt,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  fieldUnit: { color: palette.textMuted, fontSize: font.size.sm, width: 36 },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.border },
-  preview: { color: palette.textFaint, fontSize: font.size.sm, textAlign: 'center', marginTop: spacing.lg },
-  save: { marginTop: spacing.lg },
-});

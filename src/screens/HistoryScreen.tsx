@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
-import { palette, spacing, font } from '../theme';
+import { spacing, font } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { getEntriesForDay, getLoggedDays } from '../db/database';
 import { sumNutrition } from '../utils/nutrition';
 import { prettyDay } from '../utils/date';
@@ -20,7 +21,29 @@ interface DaySummary {
   count: number;
 }
 
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: p.bg },
+    title: { color: p.text, fontSize: font.size.xxl, fontFamily: font.family.uiBold, padding: spacing.lg },
+    list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+    row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
+    pressed: { opacity: 0.6 },
+    rowBody: { flex: 1, gap: 2 },
+    day: { color: p.text, fontSize: font.size.lg, fontFamily: font.family.uiSemibold },
+    meta: { color: p.textMuted, fontSize: font.size.sm },
+    rowRight: { alignItems: 'flex-end', gap: 2 },
+    cal: { color: p.text, fontSize: font.size.md, fontFamily: font.family.monoSemibold },
+    pct: { color: p.textFaint, fontSize: font.size.xs },
+    divider: { height: StyleSheet.hairlineWidth, backgroundColor: p.border },
+    empty: { alignItems: 'center', gap: spacing.md, paddingTop: spacing.xxl * 2 },
+    emptyText: { color: p.textMuted, fontSize: font.size.md, textAlign: 'center', paddingHorizontal: spacing.xl },
+  });
+}
+
 export function HistoryScreen({ navigation }: TabScreenProps<'History'>) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
+
   const goals = useSettings((s) => s.goals);
   const revision = useDiaryRevision((s) => s.revision);
   const [days, setDays] = useState<DaySummary[]>([]);
@@ -69,7 +92,7 @@ export function HistoryScreen({ navigation }: TabScreenProps<'History'>) {
           <Text style={styles.cal}>{fmtInt(item.calories)} kcal</Text>
           <Text style={styles.pct}>{pct}% of goal</Text>
         </View>
-        <Ionicons name="chevron-forward" size={18} color={palette.textFaint} />
+        <Ionicons name="chevron-forward" size={18} color={p.textFaint} />
       </Pressable>
     );
   };
@@ -83,10 +106,10 @@ export function HistoryScreen({ navigation }: TabScreenProps<'History'>) {
         renderItem={renderItem}
         contentContainerStyle={styles.list}
         ItemSeparatorComponent={() => <View style={styles.divider} />}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={palette.green} />}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={p.green} />}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Ionicons name="calendar-outline" size={36} color={palette.textFaint} />
+            <Ionicons name="calendar-outline" size={36} color={p.textFaint} />
             <Text style={styles.emptyText}>No history yet. Logged days will appear here.</Text>
           </View>
         }
@@ -94,20 +117,3 @@ export function HistoryScreen({ navigation }: TabScreenProps<'History'>) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: palette.bg },
-  title: { color: palette.text, fontSize: font.size.xxl, fontFamily: font.family.uiBold, padding: spacing.lg },
-  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
-  pressed: { opacity: 0.6 },
-  rowBody: { flex: 1, gap: 2 },
-  day: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.uiSemibold },
-  meta: { color: palette.textMuted, fontSize: font.size.sm },
-  rowRight: { alignItems: 'flex-end', gap: 2 },
-  cal: { color: palette.text, fontSize: font.size.md, fontFamily: font.family.monoSemibold },
-  pct: { color: palette.textFaint, fontSize: font.size.xs },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.border },
-  empty: { alignItems: 'center', gap: spacing.md, paddingTop: spacing.xxl * 2 },
-  emptyText: { color: palette.textMuted, fontSize: font.size.md, textAlign: 'center', paddingHorizontal: spacing.xl },
-});

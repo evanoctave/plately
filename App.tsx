@@ -41,6 +41,7 @@ import { loadModel } from './src/ml/recognizer';
 import { refreshCustomFoods } from './src/data/catalog';
 import { bootstrapServices } from './src/bootstrap';
 import { palette, font } from './src/theme';
+import { ThemeProvider } from './src/theme/ThemeContext';
 
 // Set the default font on the `Text` component so any unstyled <Text> still
 // renders in our UI typeface. RN exposes this through a private `defaultProps`
@@ -53,6 +54,7 @@ export default function App() {
   // `hydrated` flips true once Zustand finishes reading the persisted settings.
   // Until then, we show a loader so the UI doesn't flicker with default values.
   const hydrated = useSettings((s) => s.hydrated);
+  const darkMode = useSettings((s) => s.darkMode);
   const [fontsLoaded] = useFonts({
     SpaceGrotesk_400Regular,
     SpaceGrotesk_500Medium,
@@ -82,15 +84,16 @@ export default function App() {
     // very top of the tree. SafeAreaProvider gives every screen the inset hooks.
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
-        {/* Light theme → dark status bar text. */}
-        <StatusBar style="dark" />
-        {hydrated && fontsLoaded ? (
-          <RootNavigator />
-        ) : (
-          <View style={styles.loading}>
-            <ActivityIndicator color={palette.accent} size="large" />
-          </View>
-        )}
+        <StatusBar style={darkMode ? 'light' : 'dark'} />
+        <ThemeProvider>
+          {hydrated && fontsLoaded ? (
+            <RootNavigator />
+          ) : (
+            <View style={styles.loading}>
+              <ActivityIndicator color={palette.accent} size="large" />
+            </View>
+          )}
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

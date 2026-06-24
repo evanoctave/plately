@@ -33,7 +33,8 @@ import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator, type BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
-import { palette, font, spacing, radius } from '../theme';
+import { font, spacing, radius } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { useSettings } from '../state/useSettings';
 import type { RootStackParamList, TabParamList } from './types';
 
@@ -97,6 +98,7 @@ const PILL_W = 64;
  * animated whenever the focused index changes.
  */
 function AnimatedTabBar({ state, navigation }: BottomTabBarProps) {
+  const p = useTheme();
   const accent = useSettings((s) => s.accent);
   const { width: screenWidth } = useWindowDimensions();
   const tabW = screenWidth / state.routes.length;
@@ -112,8 +114,7 @@ function AnimatedTabBar({ state, navigation }: BottomTabBarProps) {
   }));
 
   return (
-    <View style={tabStyles.bar}>
-      {/* Sliding background pill */}
+    <View style={[tabStyles.bar, { backgroundColor: p.surface, borderTopColor: p.border }]}>
       <Animated.View style={[tabStyles.pill, pillStyle, { backgroundColor: accent + '22' }]} />
 
       {state.routes.map((route, index) => {
@@ -144,12 +145,12 @@ function AnimatedTabBar({ state, navigation }: BottomTabBarProps) {
             <Ionicons
               name={iconName}
               size={22}
-              color={isFocused ? accent : palette.textFaint}
+              color={isFocused ? accent : p.textFaint}
             />
             <Text
               style={[
                 tabStyles.label,
-                { color: isFocused ? accent : palette.textFaint },
+                { color: isFocused ? accent : p.textFaint },
               ]}
             >
               {label}
@@ -164,9 +165,9 @@ function AnimatedTabBar({ state, navigation }: BottomTabBarProps) {
 const tabStyles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
-    backgroundColor: palette.surface,
+    backgroundColor: '#FFFFFF',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: palette.border,
+    borderTopColor: '#E6E5DD',
     paddingBottom: 24, // home indicator space
     paddingTop: spacing.sm,
     position: 'relative',
@@ -218,18 +219,16 @@ function Tabs() {
 export function RootNavigator() {
   const onboardingComplete = useSettings((s) => s.onboardingComplete);
   const accent = useSettings((s) => s.accent);
+  const p = useTheme();
 
-  // React Navigation has its own theming system. We feed it our palette so
-  // that the header background, default text color, and back arrow tint all
-  // match the rest of the UI without per-screen `screenOptions` overrides.
   const navTheme = {
     ...DefaultTheme,
     colors: {
       ...DefaultTheme.colors,
-      background: palette.bg,
-      card: palette.surface,
-      text: palette.text,
-      border: palette.border,
+      background: p.bg,
+      card: p.surface,
+      text: p.text,
+      border: p.border,
       primary: accent,
     },
   };
@@ -238,10 +237,10 @@ export function RootNavigator() {
     <NavigationContainer theme={navTheme}>
       <Stack.Navigator
         screenOptions={{
-          headerStyle: { backgroundColor: palette.bg },
-          headerTintColor: palette.text,
+          headerStyle: { backgroundColor: p.bg },
+          headerTintColor: p.text,
           headerShadowVisible: false,
-          contentStyle: { backgroundColor: palette.bg },
+          contentStyle: { backgroundColor: p.bg },
           animation: 'slide_from_right',
         }}
       >

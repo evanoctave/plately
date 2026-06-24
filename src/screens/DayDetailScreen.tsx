@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
 import { BigRing } from '../components/Ring';
@@ -5,7 +6,9 @@ import { MacroBars } from '../components/MacroBars';
 import { MicrosGrid } from '../components/MicrosGrid';
 import { EntryRow } from '../components/EntryRow';
 import { Card, SectionTitle } from '../components/Card';
-import { palette, spacing, font } from '../theme';
+import { spacing, font } from '../theme';
+import type { Palette } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { useSettings } from '../state/useSettings';
 import { useDayLog } from '../state/useDiary';
 import { prettyDay } from '../utils/date';
@@ -13,6 +16,8 @@ import { fmtInt } from '../utils/format';
 import type { RootStackScreenProps } from '../navigation/types';
 
 export function DayDetailScreen({ route }: RootStackScreenProps<'DayDetail'>) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
   const { day } = route.params;
   const goals = useSettings((s) => s.goals);
   const { entries, totals } = useDayLog(day);
@@ -59,12 +64,14 @@ export function DayDetailScreen({ route }: RootStackScreenProps<'DayDetail'>) {
   );
 }
 
-const styles = StyleSheet.create({
-  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
-  title: { color: palette.text, fontSize: font.size.xxl, fontFamily: font.family.uiBold },
-  ringCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
-  side: { flex: 1, gap: spacing.md },
-  water: { color: palette.water, fontSize: font.size.sm, fontFamily: font.family.mono },
-  empty: { color: palette.textMuted, fontSize: font.size.md, textAlign: 'center', paddingVertical: spacing.lg },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: palette.border },
-});
+function makeStyles(p: Palette) {
+  return StyleSheet.create({
+    content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
+    title: { color: p.text, fontSize: font.size.xxl, fontFamily: font.family.uiBold },
+    ringCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+    side: { flex: 1, gap: spacing.md },
+    water: { color: p.water, fontSize: font.size.sm, fontFamily: font.family.mono },
+    empty: { color: p.textMuted, fontSize: font.size.md, textAlign: 'center', paddingVertical: spacing.lg },
+    divider: { height: StyleSheet.hairlineWidth, backgroundColor: p.border },
+  });
+}

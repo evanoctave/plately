@@ -6,11 +6,13 @@
 // or oz equivalents). Quick-add fires a light haptic and calls `onAdd(ml)`.
 // Goal-met state turns the bar / chips accent-green.
 
+import { useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
-import { palette, radius, spacing, font } from '../theme';
+import { radius, spacing, font } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import { clamp01 } from '../utils/nutrition';
 import { mlToDisplay, useSettings } from '../state/useSettings';
 
@@ -24,6 +26,8 @@ interface WaterTrackerProps {
 const QUICK_ADDS_ML = [250, 500];
 
 export function WaterTracker({ consumedMl, goalMl, onAdd }: WaterTrackerProps) {
+  const p = useTheme();
+  const styles = useMemo(() => makeStyles(p), [p]);
   const unit = useSettings((s) => s.waterUnit);
   const pct = clamp01(goalMl > 0 ? consumedMl / goalMl : 0);
 
@@ -36,7 +40,7 @@ export function WaterTracker({ consumedMl, goalMl, onAdd }: WaterTrackerProps) {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Ionicons name="water" size={18} color={palette.water} />
+          <Ionicons name="water" size={18} color={p.water} />
           <Text style={styles.title}>Water</Text>
         </View>
         <Text style={styles.amount}>
@@ -57,7 +61,7 @@ export function WaterTracker({ consumedMl, goalMl, onAdd }: WaterTrackerProps) {
             accessibilityLabel={`Add ${mlToDisplay(ml, unit)} ${unit} of water`}
             style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}
           >
-            <Ionicons name="add" size={16} color={palette.water} />
+            <Ionicons name="add" size={16} color={p.water} />
             <Text style={styles.chipText}>
               {mlToDisplay(ml, unit)} {unit}
             </Text>
@@ -68,24 +72,26 @@ export function WaterTracker({ consumedMl, goalMl, onAdd }: WaterTrackerProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { gap: spacing.md },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  title: { color: palette.text, fontSize: font.size.lg, fontFamily: font.family.uiSemibold },
-  amount: { color: palette.textMuted, fontSize: font.size.sm, fontFamily: font.family.mono },
-  track: { height: 12, borderRadius: radius.pill, backgroundColor: palette.surfaceAlt, overflow: 'hidden' },
-  fill: { height: '100%', borderRadius: radius.pill, backgroundColor: palette.water },
-  buttons: { flexDirection: 'row', gap: spacing.sm },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.pill,
-    backgroundColor: palette.surfaceAlt,
-  },
-  chipPressed: { opacity: 0.7 },
-  chipText: { color: palette.water, fontSize: font.size.sm, fontFamily: font.family.monoSemibold },
-});
+function makeStyles(p: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    container: { gap: spacing.md },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+    title: { color: p.text, fontSize: font.size.lg, fontFamily: font.family.uiSemibold },
+    amount: { color: p.textMuted, fontSize: font.size.sm, fontFamily: font.family.mono },
+    track: { height: 12, borderRadius: radius.pill, backgroundColor: p.surfaceAlt, overflow: 'hidden' },
+    fill: { height: '100%', borderRadius: radius.pill, backgroundColor: p.water },
+    buttons: { flexDirection: 'row', gap: spacing.sm },
+    chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.pill,
+      backgroundColor: p.surfaceAlt,
+    },
+    chipPressed: { opacity: 0.7 },
+    chipText: { color: p.water, fontSize: font.size.sm, fontFamily: font.family.monoSemibold },
+  });
+}
