@@ -16,7 +16,7 @@ import { spacing, font, radius, shadow } from '../theme';
 import { useTheme } from '../theme/ThemeContext';
 import { useSettings } from '../state/useSettings';
 import { isSupabaseConfigured } from '../config/env';
-import { signInWithApple, signInWithEmail, signUpWithEmail, isAppleAuthAvailable } from '../auth/actions';
+import { signInWithApple, signInWithGoogle, signInWithEmail, signUpWithEmail, isAppleAuthAvailable } from '../auth/actions';
 import { validateCredentials } from '../auth/validation';
 import type { RootStackScreenProps } from '../navigation/types';
 
@@ -130,6 +130,19 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
     enterApp();
   };
 
+  const google = async () => {
+    if (!guard()) return;
+    setBusy(true);
+    setError(null);
+    const { error: err } = await signInWithGoogle();
+    setBusy(false);
+    if (err) {
+      setError(err);
+      return;
+    }
+    enterApp();
+  };
+
   const emailSubmit = async () => {
     if (!guard()) return;
     const invalid = validateCredentials(email, password, mode === 'signin' ? 'signin' : 'signup');
@@ -177,8 +190,17 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
             </View>
           )}
 
+          <Pressable onPress={() => setAgreedTos(!agreedTos)} style={[styles.tosRow, { marginTop: spacing.lg }]} accessibilityRole="checkbox" accessibilityState={{ checked: agreedTos }}>
+            <View style={[styles.checkbox, agreedTos && styles.checkboxOn]}>
+              {agreedTos && <Ionicons name="checkmark" size={14} color={p.white} />}
+            </View>
+            <Text style={styles.tosText}>
+              I agree to Plately's Terms and Privacy Policy.
+            </Text>
+          </Pressable>
+
           {showEmailForm ? (
-            <View style={{ gap: spacing.md, marginTop: spacing.lg }}>
+            <View style={{ gap: spacing.md, marginTop: spacing.md }}>
               <Text style={styles.label}>Email</Text>
               <TextInput
                 value={email}
@@ -217,13 +239,18 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
               </Pressable>
             </View>
           ) : (
-            <View style={{ gap: spacing.sm, marginTop: spacing.lg }}>
+            <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
               {appleAvailable && (
                 <Pressable onPress={() => void apple()} style={[styles.appleBtn, busy && styles.disabled]} disabled={busy} accessibilityRole="button" accessibilityLabel="Sign in with Apple">
                   <Ionicons name="logo-apple" size={20} color={p.white} />
                   <Text style={styles.appleText}>{mode === 'signin' ? 'Sign in' : 'Continue'} with Apple</Text>
                 </Pressable>
               )}
+
+              <Pressable onPress={() => void google()} style={[styles.outlineBtn, busy && styles.disabled]} disabled={busy} accessibilityRole="button" accessibilityLabel="Sign in with Google">
+                <Ionicons name="logo-google" size={18} color={p.text} />
+                <Text style={styles.outlineText}>{mode === 'signin' ? 'Sign in' : 'Continue'} with Google</Text>
+              </Pressable>
 
               <Pressable onPress={() => { setShowEmailForm(true); setError(null); }} style={[styles.outlineBtn, busy && styles.disabled]} disabled={busy} accessibilityRole="button" accessibilityLabel="Continue with email">
                 <Ionicons name="mail" size={18} color={p.text} />
@@ -237,16 +264,7 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
           )}
         </View>
 
-        <View style={styles.footer}>
-          <Pressable onPress={() => setAgreedTos(!agreedTos)} style={styles.tosRow} accessibilityRole="checkbox" accessibilityState={{ checked: agreedTos }}>
-            <View style={[styles.checkbox, agreedTos && styles.checkboxOn]}>
-              {agreedTos && <Ionicons name="checkmark" size={14} color={p.white} />}
-            </View>
-            <Text style={styles.tosText}>
-              I agree to Plately's Terms and Privacy Policy.
-            </Text>
-          </Pressable>
-        </View>
+        <View style={styles.footer} />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
