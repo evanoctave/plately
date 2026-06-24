@@ -98,7 +98,7 @@ export async function signInWithGoogle(): Promise<AuthResult> {
     const params = Object.fromEntries(new URLSearchParams(fragment));
     const accessToken = params['access_token'];
     const refreshToken = params['refresh_token'];
-    if (!accessToken || !refreshToken) return { error: 'Google sign-in did not return tokens.' };
+    if (!accessToken || !refreshToken) return { error: `No tokens. type=${result.type} url=${url}` };
 
     const { error: sessionError } = await supabase.auth.setSession({
       access_token: accessToken,
