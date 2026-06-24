@@ -85,11 +85,19 @@ export async function signInWithGoogle(): Promise<AuthResult> {
     if (result.type !== 'success') return { error: null }; // user cancelled
 
     const url = result.url;
-    const fragment = url.includes('#') ? url.split('#')[1] : url.split('?')[1] ?? '';
+    const query = Object.fromEntries(new URLSearchParams(url.includes('?') ? (url.split('?')[1] ?? '').split('#')[0] : ''));
+
+    // PKCE flow (supabase-js default): redirect carries an authorization code.
+    if (query['code']) {
+      const { error: codeError } = await supabase.auth.exchangeCodeForSession(query['code']);
+      return { error: codeError ? codeError.message : null };
+    }
+
+    // Implicit-flow fallback: tokens come back in the URL fragment.
+    const fragment = url.includes('#') ? url.split('#')[1] : '';
     const params = Object.fromEntries(new URLSearchParams(fragment));
     const accessToken = params['access_token'];
     const refreshToken = params['refresh_token'];
-
     if (!accessToken || !refreshToken) return { error: 'Google sign-in did not return tokens.' };
 
     const { error: sessionError } = await supabase.auth.setSession({
