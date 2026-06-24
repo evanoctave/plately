@@ -7,8 +7,12 @@
 // just perform the calls.
 
 import * as AppleAuthentication from 'expo-apple-authentication';
+import * as WebBrowser from 'expo-web-browser';
+import { makeRedirectUri } from 'expo-auth-session';
 
 import { requireSupabase } from './client';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export interface AuthResult {
   error: string | null;
@@ -64,6 +68,37 @@ export async function signInWithApple(): Promise<AuthResult> {
       return { error: null };
     }
     return { error: message(err, 'Apple sign-in failed.') };
+  }
+}
+
+export async function signInWithGoogle(): Promise<AuthResult> {
+  try {
+    const redirectTo = makeRedirectUri({ scheme: 'plately', path: 'auth-callback' });
+    const supabase = requireSupabase();
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo, skipBrowserRedirect: true },
+    });
+    if (error || !data.url) return { error: error?.message ?? 'Google sign-in failed.' };
+
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+    if (result.type !== 'success') return { error: null }; // user cancelled
+
+    const url = result.url;
+    const fragment = url.includes('#') ? url.split('#')[1] : url.split('?')[1] ?? '';
+    const params = Object.fromEntries(new URLSearchParams(fragment));
+    const accessToken = params['access_token'];
+    const refreshToken = params['refresh_token'];
+
+    if (!accessToken || !refreshToken) return { error: 'Google sign-in did not return tokens.' };
+
+    const { error: sessionError } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+    return { error: sessionError ? sessionError.message : null };
+  } catch (err) {
+    return { error: message(err, 'Google sign-in failed.') };
   }
 }
 

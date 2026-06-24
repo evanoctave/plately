@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { PurchasesPackage } from 'react-native-purchases';
@@ -132,6 +132,11 @@ export function PlatelyPlusScreen({ navigation }: RootStackScreenProps<'PlatelyP
       <ScrollView contentContainerStyle={styles.content}>
         {/* Hero */}
         <View style={[styles.hero, { borderColor: accent }]}>
+          <Image
+            source={require('../../assets/icon_plus.png')}
+            style={styles.heroLogo}
+            resizeMode="contain"
+          />
           <View style={[styles.heroBadge, { backgroundColor: '#B8860B' }]}>
             <Ionicons name="star" size={13} color="#000" />
             <Text style={styles.heroBadgeText}>PLATELY+</Text>
@@ -256,6 +261,12 @@ function makeStyles(p: ReturnType<typeof useTheme>) {
       padding: spacing.lg,
       gap: spacing.sm,
       marginBottom: spacing.sm,
+      alignItems: 'center',
+    },
+    heroLogo: {
+      width: 90,
+      height: 90,
+      marginBottom: spacing.xs,
     },
     heroBadge: {
       flexDirection: 'row',
@@ -267,8 +278,8 @@ function makeStyles(p: ReturnType<typeof useTheme>) {
       borderRadius: radius.pill,
     },
     heroBadgeText: { color: '#000', fontSize: font.size.xs, fontFamily: font.family.uiBold, letterSpacing: 1 },
-    heroTitle: { color: p.text, fontSize: font.size.xl, fontFamily: font.family.uiBold },
-    heroSub: { color: p.textMuted, fontSize: font.size.sm, lineHeight: 19 },
+    heroTitle: { color: p.text, fontSize: font.size.xl, fontFamily: font.family.uiBold, textAlign: 'center' },
+    heroSub: { color: p.textMuted, fontSize: font.size.sm, lineHeight: 19, textAlign: 'center' },
     featureCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     iconWrap: { width: 44, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
     featureBody: { flex: 1, gap: 2 },
