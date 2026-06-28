@@ -65,6 +65,7 @@ export type RootStackParamList = {
   BarcodeScan: undefined;
   GoalCalculator: undefined;
   PrivacyPolicy: undefined;
+  Terms: undefined;
   Achievements: undefined;
   RecipeBuilder: undefined;
   Appearance: undefined;

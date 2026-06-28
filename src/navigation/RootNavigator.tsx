@@ -57,6 +57,7 @@ import { OnboardingFlowScreen } from '../screens/OnboardingFlowScreen';
 import { AuthScreen } from '../screens/AuthScreen';
 import { GoalResultsScreen } from '../screens/GoalResultsScreen';
 import { PrivacyPolicyScreen } from '../screens/PrivacyPolicyScreen';
+import { TermsScreen } from '../screens/TermsScreen';
 import { AchievementsScreen } from '../screens/AchievementsScreen';
 import { RecipeBuilderScreen } from '../screens/RecipeBuilderScreen';
 import { AppearanceScreen } from '../screens/AppearanceScreen';
@@ -294,6 +295,11 @@ export function RootNavigator() {
           name="PrivacyPolicy"
           component={PrivacyPolicyScreen}
           options={{ title: 'Privacy Policy' }}
+        />
+        <Stack.Screen
+          name="Terms"
+          component={TermsScreen}
+          options={{ title: 'Terms of Service' }}
         />
         <Stack.Screen
           name="Achievements"

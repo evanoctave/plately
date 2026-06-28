@@ -72,6 +72,7 @@ function makeStyles(p: ReturnType<typeof useTheme>) {
     },
     checkboxOn: { backgroundColor: p.text, borderColor: p.text },
     tosText: { flex: 1, color: p.textMuted, fontSize: font.size.xs, lineHeight: 16 },
+    tosLink: { color: p.text, fontFamily: font.family.uiSemibold, textDecorationLine: 'underline' },
   });
 }
 
@@ -190,14 +191,19 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
             </View>
           )}
 
-          <Pressable onPress={() => setAgreedTos(!agreedTos)} style={[styles.tosRow, { marginTop: spacing.lg }]} accessibilityRole="checkbox" accessibilityState={{ checked: agreedTos }}>
-            <View style={[styles.checkbox, agreedTos && styles.checkboxOn]}>
-              {agreedTos && <Ionicons name="checkmark" size={14} color={p.white} />}
-            </View>
+          <View style={[styles.tosRow, { marginTop: spacing.lg }]}>
+            <Pressable onPress={() => setAgreedTos(!agreedTos)} hitSlop={8} accessibilityRole="checkbox" accessibilityState={{ checked: agreedTos }}>
+              <View style={[styles.checkbox, agreedTos && styles.checkboxOn]}>
+                {agreedTos && <Ionicons name="checkmark" size={14} color={p.white} />}
+              </View>
+            </Pressable>
             <Text style={styles.tosText}>
-              I agree to Plately's Terms and Privacy Policy.
+              I agree to Plately's{' '}
+              <Text style={styles.tosLink} onPress={() => navigation.navigate('Terms')}>Terms of Service</Text>
+              {' '}and{' '}
+              <Text style={styles.tosLink} onPress={() => navigation.navigate('PrivacyPolicy')}>Privacy Policy</Text>.
             </Text>
-          </Pressable>
+          </View>
 
           {showEmailForm ? (
             <View style={{ gap: spacing.md, marginTop: spacing.md }}>
