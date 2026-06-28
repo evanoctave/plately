@@ -67,6 +67,11 @@
       ],
       "expo-asset"
     ],
-    "extra": {}
+    "extra": {
+      "eas": {
+        "projectId": "5ab9d06c-9a2a-4227-8adb-73b6e33ead49"
+      }
+    },
+    "owner": "producedbyevo"
   }
 }
