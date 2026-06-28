@@ -110,6 +110,27 @@ export async function signInWithGoogle(): Promise<AuthResult> {
   }
 }
 
+/**
+ * Permanently delete the signed-in user's account and all cloud data via the
+ * `delete-account` Edge Function (service-role). `functions.invoke` attaches the
+ * current session's JWT, which the function verifies before deleting. On success
+ * we sign out locally so the dead session is cleared.
+ */
+export async function deleteAccount(): Promise<AuthResult> {
+  try {
+    const supabase = requireSupabase();
+    const { data, error } = await supabase.functions.invoke<{ error?: string }>('delete-account', {
+      method: 'POST',
+    });
+    if (error) return { error: error.message };
+    if (data?.error) return { error: data.error };
+    await supabase.auth.signOut();
+    return { error: null };
+  } catch (err) {
+    return { error: message(err, 'Could not delete your account.') };
+  }
+}
+
 export async function signOut(): Promise<AuthResult> {
   try {
     const { error } = await requireSupabase().auth.signOut();

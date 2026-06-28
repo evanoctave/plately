@@ -15,7 +15,7 @@ import { clearAllEntries } from '../db/database';
 import { exportDiaryCsv } from '../utils/export';
 import { isModelReady, getModelStatus, loadModel } from '../ml/recognizer';
 import { useAuth } from '../auth/useAuth';
-import { signOut } from '../auth/actions';
+import { signOut, deleteAccount } from '../auth/actions';
 import { applyReminderSchedule } from '../notifications/notifications';
 import type { Goals } from '../data/nutrients';
 import type { TabScreenProps } from '../navigation/types';
@@ -36,6 +36,7 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
   const { account, signedIn } = useAuth();
   const bump = useDiaryRevision((s) => s.bump);
   const [modelStatus, setModelStatus] = useState(getModelStatus());
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const styles = useMemo(() => makeStyles(p), [p]);
 
@@ -50,6 +51,32 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign out', style: 'destructive', onPress: () => void signOut() },
     ]);
+  };
+
+  const onDeleteAccount = () => {
+    Alert.alert(
+      'Delete account?',
+      'This permanently deletes your account and all data backed up to the cloud — your diary, weights, custom foods and plans. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete account',
+          style: 'destructive',
+          onPress: async () => {
+            setDeletingAccount(true);
+            const { error } = await deleteAccount();
+            setDeletingAccount(false);
+            if (error) {
+              Alert.alert('Could not delete account', error);
+              return;
+            }
+            await clearAllEntries();
+            bump();
+            Alert.alert('Account deleted', 'Your account and cloud data have been removed.');
+          },
+        },
+      ],
+    );
   };
 
   const updateGoal = (key: keyof Goals, text: string) => {
@@ -130,6 +157,17 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
               <Pressable style={styles.linkRow} onPress={onSignOut}>
                 <Ionicons name="log-out-outline" size={20} color={p.red} />
                 <Text style={[styles.linkText, { color: p.red }]}>Sign out</Text>
+              </Pressable>
+              <View style={styles.divider} />
+              <Pressable
+                style={styles.linkRow}
+                onPress={onDeleteAccount}
+                disabled={deletingAccount}
+              >
+                <Ionicons name="trash-outline" size={20} color={p.red} />
+                <Text style={[styles.linkText, { color: p.red }]}>
+                  {deletingAccount ? 'Deleting account…' : 'Delete account'}
+                </Text>
               </Pressable>
             </>
           ) : (

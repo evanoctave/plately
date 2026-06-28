@@ -17,7 +17,6 @@ interface PlusFeature {
   icon: string;
   title: string;
   description: string;
-  comingSoon?: boolean;
 }
 
 const FEATURES: PlusFeature[] = [
@@ -45,12 +44,6 @@ const FEATURES: PlusFeature[] = [
     icon: 'cloud-upload',
     title: 'Cloud sync & backup',
     description: 'Your diary syncs across your devices. Switch phones and everything comes with you.',
-  },
-  {
-    icon: 'sparkles',
-    title: 'Smarter recognition',
-    description: 'Cloud-assisted photo analysis: multiple foods per plate and portion estimates.',
-    comingSoon: true,
   },
 ];
 
@@ -158,11 +151,7 @@ export function PlatelyPlusScreen({ navigation }: RootStackScreenProps<'PlatelyP
             <View style={styles.featureBody}>
               <View style={styles.featureTitleRow}>
                 <Text style={styles.featureTitle}>{f.title}</Text>
-                {f.comingSoon ? (
-                  <Text style={styles.soonTag}>SOON</Text>
-                ) : (
-                  <Ionicons name="checkmark-circle" size={15} color={accent} />
-                )}
+                <Ionicons name="checkmark-circle" size={15} color={accent} />
               </View>
               <Text style={styles.featureDesc}>{f.description}</Text>
             </View>
@@ -218,6 +207,15 @@ export function PlatelyPlusScreen({ navigation }: RootStackScreenProps<'PlatelyP
                 Subscription auto-renews until cancelled. The free core of Plately — photo
                 recognition, custom foods, insights, export — is never paywalled.
               </Text>
+              <View style={styles.legalRow}>
+                <Pressable onPress={() => navigation.navigate('Terms')} hitSlop={8}>
+                  <Text style={styles.legalLink}>Terms of Use (EULA)</Text>
+                </Pressable>
+                <Text style={styles.legalDot}>·</Text>
+                <Pressable onPress={() => navigation.navigate('PrivacyPolicy')} hitSlop={8}>
+                  <Text style={styles.legalLink}>Privacy Policy</Text>
+                </Pressable>
+              </View>
             </>
           ) : (
             <>
@@ -285,18 +283,6 @@ function makeStyles(p: ReturnType<typeof useTheme>) {
     featureBody: { flex: 1, gap: 2 },
     featureTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
     featureTitle: { color: p.text, fontSize: font.size.md, fontFamily: font.family.uiSemibold },
-    soonTag: {
-      color: p.textFaint,
-      fontSize: 9,
-      fontFamily: font.family.uiBold,
-      letterSpacing: 1,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: p.border,
-      borderRadius: radius.sm,
-      paddingHorizontal: 5,
-      paddingVertical: 2,
-      overflow: 'hidden',
-    },
     featureDesc: { color: p.textMuted, fontSize: font.size.sm, lineHeight: 18 },
     errorBox: {
       flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
@@ -314,6 +300,9 @@ function makeStyles(p: ReturnType<typeof useTheme>) {
     activeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
     activeText: { fontSize: font.size.md, fontFamily: font.family.uiSemibold },
     fineprint: { color: p.textFaint, fontSize: font.size.xs, lineHeight: 16, textAlign: 'center', marginTop: spacing.sm },
+    legalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, marginTop: spacing.sm },
+    legalLink: { color: p.textMuted, fontSize: font.size.xs, textDecorationLine: 'underline' },
+    legalDot: { color: p.textFaint, fontSize: font.size.xs },
     extrasCard: { paddingVertical: spacing.xs },
     divider: { height: StyleSheet.hairlineWidth, backgroundColor: p.border },
     linkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
