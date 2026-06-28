@@ -57,7 +57,7 @@ export async function initLocal(): Promise<SQLite.SQLiteDatabase> {
 
 /** Names of columns already on a table. */
 async function existingColumns(db: SQLite.SQLiteDatabase, table: string): Promise<Set<string>> {
-  const rows = await db.getAllAsync<{ name: string }>(`PRAGMA table_info(${table})`);
+  const rows = await db.getAllAsync<{ name: string }>(`PRAGMA table_info("${table}")`);
   return new Set(rows.map((r) => r.name));
 }
 
@@ -67,48 +67,48 @@ async function ensureTableSync(db: SQLite.SQLiteDatabase, t: SyncTable): Promise
   const freshlyTracked = !cols.has('dirty');
 
   if (!cols.has('updated_at')) {
-    await db.execAsync(`ALTER TABLE ${t.name} ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0`);
+    await db.execAsync(`ALTER TABLE "${t.name}" ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0`);
   }
   if (!cols.has('dirty')) {
-    await db.execAsync(`ALTER TABLE ${t.name} ADD COLUMN dirty INTEGER NOT NULL DEFAULT 0`);
+    await db.execAsync(`ALTER TABLE "${t.name}" ADD COLUMN dirty INTEGER NOT NULL DEFAULT 0`);
   }
 
   // First time we attach sync to a table that may already hold (guest) data:
   // mark every existing row dirty so it uploads on the first sync. Triggers
   // aren't installed yet, so this bulk update won't recurse.
   if (freshlyTracked) {
-    await db.execAsync(`UPDATE ${t.name} SET dirty = 1, updated_at = ${NOW_MS} WHERE updated_at = 0`);
+    await db.execAsync(`UPDATE "${t.name}" SET dirty = 1, updated_at = ${NOW_MS} WHERE updated_at = 0`);
   }
 
   // INSERT: stamp the new row. The stamping UPDATE changes updated_at, so the
   // AFTER UPDATE trigger's guard (NEW.updated_at = OLD.updated_at) fails and it
   // does not re-fire.
   await db.execAsync(`
-    CREATE TRIGGER IF NOT EXISTS _sync_${t.name}_ai AFTER INSERT ON ${t.name}
+    CREATE TRIGGER IF NOT EXISTS _sync_${t.name}_ai AFTER INSERT ON "${t.name}"
     WHEN (SELECT applying FROM _sync_ctl WHERE id = 0) = 0
     BEGIN
-      UPDATE ${t.name} SET updated_at = ${NOW_MS}, dirty = 1 WHERE ${t.pk} = NEW.${t.pk};
+      UPDATE "${t.name}" SET updated_at = ${NOW_MS}, dirty = 1 WHERE "${t.pk}" = NEW."${t.pk}";
     END;
   `);
 
   // UPDATE: only a genuine user edit leaves updated_at untouched. Our own
   // bookkeeping writes bump updated_at, so the guard skips them (no recursion).
   await db.execAsync(`
-    CREATE TRIGGER IF NOT EXISTS _sync_${t.name}_au AFTER UPDATE ON ${t.name}
+    CREATE TRIGGER IF NOT EXISTS _sync_${t.name}_au AFTER UPDATE ON "${t.name}"
     WHEN (SELECT applying FROM _sync_ctl WHERE id = 0) = 0
       AND NEW.updated_at = OLD.updated_at
     BEGIN
-      UPDATE ${t.name} SET updated_at = ${NOW_MS}, dirty = 1 WHERE ${t.pk} = NEW.${t.pk};
+      UPDATE "${t.name}" SET updated_at = ${NOW_MS}, dirty = 1 WHERE "${t.pk}" = NEW."${t.pk}";
     END;
   `);
 
   // DELETE: record a tombstone so the deletion propagates to other devices.
   await db.execAsync(`
-    CREATE TRIGGER IF NOT EXISTS _sync_${t.name}_ad AFTER DELETE ON ${t.name}
+    CREATE TRIGGER IF NOT EXISTS _sync_${t.name}_ad AFTER DELETE ON "${t.name}"
     WHEN (SELECT applying FROM _sync_ctl WHERE id = 0) = 0
     BEGIN
       INSERT OR REPLACE INTO _sync_tombstones (table_name, pk, deleted_at)
-      VALUES ('${t.name}', OLD.${t.pk}, ${NOW_MS});
+      VALUES ('${t.name}', OLD."${t.pk}", ${NOW_MS});
     END;
   `);
 }
@@ -133,7 +133,7 @@ export interface DirtyRow {
 export async function readDirty(db: SQLite.SQLiteDatabase, t: SyncTable): Promise<DirtyRow[]> {
   const select = [...dataColumns(t), 'updated_at'].join(', ');
   const rows = await db.getAllAsync<Record<string, unknown>>(
-    `SELECT ${select} FROM ${t.name} WHERE dirty = 1`,
+    `SELECT ${select} FROM "${t.name}" WHERE dirty = 1`,
   );
   return rows.map((r) => {
     const { updated_at, ...values } = r;
@@ -161,7 +161,7 @@ export async function clearDirty(
 ): Promise<void> {
   await withApplying(db, async () => {
     await db.runAsync(
-      `UPDATE ${t.name} SET dirty = 0 WHERE ${t.pk} = ? AND updated_at = ?`,
+      `UPDATE "${t.name}" SET dirty = 0 WHERE "${t.pk}" = ? AND updated_at = ?`,
       [pk as SQLite.SQLiteBindValue, updatedAt],
     );
   });
@@ -190,20 +190,20 @@ export async function applyRemote(
   const cols = dataColumns(t);
   const placeholders = [...cols, 'updated_at', 'dirty'].map(() => '?').join(', ');
   const insertSql =
-    `INSERT OR REPLACE INTO ${t.name} (${[...cols, 'updated_at', 'dirty'].join(', ')}) ` +
+    `INSERT OR REPLACE INTO "${t.name}" (${[...cols, 'updated_at', 'dirty'].join(', ')}) ` +
     `VALUES (${placeholders})`;
 
   await withApplying(db, async () => {
     for (const row of rows) {
       const pkVal = row[t.pk];
       const local = await db.getFirstAsync<{ updated_at: number }>(
-        `SELECT updated_at FROM ${t.name} WHERE ${t.pk} = ?`,
+        `SELECT updated_at FROM "${t.name}" WHERE "${t.pk}" = ?`,
         [pkVal as SQLite.SQLiteBindValue],
       );
       if (!shouldApplyRemote(local ? local.updated_at : null, row.updated_at)) continue;
 
       if (row.deleted) {
-        await db.runAsync(`DELETE FROM ${t.name} WHERE ${t.pk} = ?`, [pkVal as SQLite.SQLiteBindValue]);
+        await db.runAsync(`DELETE FROM "${t.name}" WHERE "${t.pk}" = ?`, [pkVal as SQLite.SQLiteBindValue]);
       } else {
         const values = cols.map((c) => row[c] as SQLite.SQLiteBindValue);
         await db.runAsync(insertSql, [...values, row.updated_at, 0]);

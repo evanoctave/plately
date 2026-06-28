@@ -15,12 +15,15 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const cors = {
-  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 Deno.serve(async (req) => {
+  // Native app never sets Origin; a browser always does on cross-origin calls.
+  // Reject any browser-originated request rather than echoing a wildcard origin.
+  if (req.headers.get('Origin')) return json({ error: 'Forbidden' }, 403);
+
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405);

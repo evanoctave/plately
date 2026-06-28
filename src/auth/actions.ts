@@ -85,6 +85,8 @@ export async function signInWithGoogle(): Promise<AuthResult> {
     if (result.type !== 'success') return { error: null }; // user cancelled
 
     const url = result.url;
+    // Only trust tokens from a callback that matches our registered redirect.
+    if (!url.startsWith(redirectTo)) return { error: 'OAuth callback URL mismatch.' };
     const query = Object.fromEntries(new URLSearchParams(url.includes('?') ? (url.split('?')[1] ?? '').split('#')[0] : ''));
 
     // PKCE flow (supabase-js default): redirect carries an authorization code.
