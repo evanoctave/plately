@@ -24,10 +24,10 @@ type SexChoice = Sex | 'other';
 const WORKOUT_BUCKETS = [
   { label: '0–2', subtitle: 'Workouts now and then', value: 0 as const, activity: 'light' as ActivityLevel },
   { label: '3–5', subtitle: 'A few workouts per week', value: 1 as const, activity: 'moderate' as ActivityLevel },
-  { label: '6+', subtitle: 'Dedicated athlete', value: 2 as const, activity: 'active' as ActivityLevel },
+  { label: '6+', subtitle: 'Dedicated athlete', value: 2 as const, activity: 'intense' as ActivityLevel },
 ];
 
-const DIETS = ['Balanced', 'Whole-food focus', 'Mediterranean', 'Flexitarian', 'Pescatarian', 'Vegetarian', 'Vegan', 'Low-carb', 'Keto', 'Paleo'];
+const DIETS = ['Balanced', 'Whole-food focus', 'Mediterranean', 'Pescatarian', 'Vegetarian', 'Vegan', 'Low-carb', 'Keto', 'Paleo'];
 
 const OBSTACLES = [
   { id: 'consistency', label: 'Lack of consistency', icon: 'stats-chart' as const },
