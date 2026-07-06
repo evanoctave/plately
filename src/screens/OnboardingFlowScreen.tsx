@@ -657,6 +657,7 @@ function RulerSlider({
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({ x: (value - min) * TICK_W, animated: false });
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount only, scroll position is user-driven after
   }, []);
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -703,7 +704,7 @@ function RulerSlider({
 function SpeedSlider({ value, onChange, direction, styles, textColor, textMuted }: { value: number; onChange: (n: number) => void; direction: GoalDirection; styles: Styles; textColor: string; textMuted: string }) {
   const lbsLabels = direction === 'lose' ? ['-0.5', '-1.0', '-1.7'] : direction === 'gain' ? ['0.5', '1.0', '1.7'] : ['0.0', '0.0', '0.0'];
   const speed = ['Slow', 'Recommended', 'Fast'];
-  const icons: Array<keyof typeof Ionicons.glyphMap> = ['walk', 'speedometer', 'flash'];
+  const icons: (keyof typeof Ionicons.glyphMap)[] = ['walk', 'speedometer', 'flash'];
   return (
     <View style={{ gap: spacing.lg }}>
       <View style={{ alignItems: 'center', gap: 4 }}>
