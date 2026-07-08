@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts,.tsx",
     "test": "jest",
-    "fetch-model": "node scripts/fetch-model.mjs"
+    "fetch-model": "node scripts/fetch-model.mjs",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",

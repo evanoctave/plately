@@ -98,6 +98,9 @@ npx expo start         # run in a dev client
 > The camera + on-device model require a **development build** (not Expo Go):
 > `npx eas-cli@latest build --profile development`, or `npx expo run:ios` / `run:android`.
 
+Git hooks activate automatically on `npm install` (`core.hooksPath .githooks`):
+the pre-commit hook runs typecheck, lint, and a staged-diff secret scan.
+
 ### Accounts, sync & EvoEat+ (optional)
 
 These integrations are **off until you provide keys** — without them the app
