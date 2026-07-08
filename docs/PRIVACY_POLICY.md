@@ -1,8 +1,8 @@
-# Plately Privacy Policy
+# EvoEat Privacy Policy
 
 _Last updated: 2026-06-20_
 
-Plately is designed to be private by default. This policy explains, in plain
+EvoEat is designed to be private by default. This policy explains, in plain
 language, what the app does and does not do with your information.
 
 ## The short version
@@ -21,7 +21,7 @@ language, what the app does and does not do with your information.
   1. A **one-time download** of the open-source recognition model.
   2. **Barcode lookups you initiate**, which send only the scanned barcode
      number to Open Food Facts (a free, open product database).
-  3. If you subscribe to **Plately+**, the purchase is processed by Apple and
+  3. If you subscribe to **EvoEat+**, the purchase is processed by Apple and
      our subscription provider (RevenueCat); we never see your card details.
 
 ## What data the app handles
@@ -37,7 +37,7 @@ language, what the app does and does not do with your information.
 
 ## Camera & photo library
 
-Plately requests camera access so you can photograph meals, and (optionally)
+EvoEat requests camera access so you can photograph meals, and (optionally)
 photo-library access so you can analyze an existing photo. These images are
 processed on your device to estimate nutrition and are stored locally only if
 you save the corresponding diary entry. They are never uploaded.
@@ -55,14 +55,14 @@ text data syncs. Sign out at any time, or use the app entirely account-free.
 
 ## Subscriptions
 
-**Plately+** is an optional subscription that unlocks extra features. Purchases
+**EvoEat+** is an optional subscription that unlocks extra features. Purchases
 are handled by Apple's In-App Purchase and our subscription provider
 (RevenueCat); we never receive your payment details. The free core of the app
 never requires a subscription.
 
 ## No tracking, no analytics, no ads
 
-Plately contains no third-party analytics SDKs, no advertising SDKs, and no
+EvoEat contains no third-party analytics SDKs, no advertising SDKs, and no
 tracking technologies. We do not use the Advertising Identifier (IDFA) and do
 not engage in App Tracking Transparency–covered tracking.
 
@@ -76,13 +76,13 @@ address below; we will remove your account and its data from our backend.
 
 ## Children's privacy
 
-Plately is not directed to children under 13 and we do not knowingly collect
+EvoEat is not directed to children under 13 and we do not knowingly collect
 personal information (such as an account email) from them. The core app can be
 used with no account at all.
 
 ## Medical disclaimer
 
-Plately provides **approximate** nutrition estimates for general wellness and
+EvoEat provides **approximate** nutrition estimates for general wellness and
 informational purposes only. It is **not a medical device** and does not
 provide medical, dietary, or nutritional advice, diagnosis, or treatment.
 Always consult a qualified healthcare professional regarding your diet and

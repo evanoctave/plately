@@ -1,4 +1,6 @@
-# 📸 Plately
+# 📸 EvoEat
+
+*(formerly Plately)*
 
 Photo-first nutrition tracking that costs **$0 to run** — including the AI.
 
@@ -9,7 +11,7 @@ device** and your **photos never leave your phone**.
 
 The whole core app is **free and works fully offline with no account**. Two
 things are optional and opt-in: a **free account** (to back up and sync your
-diary across devices) and **Plately+** (a subscription that unlocks the extras —
+diary across devices) and **EvoEat+** (a subscription that unlocks the extras —
 Fasting, Goal Phases, Coach, Meal Planner — and cloud sync). Skip both and
 nothing changes.
 
@@ -19,7 +21,7 @@ Built with **Expo / React Native** and structured to pass App Store review.
 
 ## Why it's free (including the AI)
 
-| Concern | How Plately stays $0 |
+| Concern | How EvoEat stays $0 |
 |---------|------------------------|
 | Image recognition | Runs **on-device** with a TensorFlow Lite model (no inference servers, no per-call cost). |
 | Barcode lookups | **Open Food Facts** — free, open, key-less product API. |
@@ -52,7 +54,7 @@ developer fee — that's Apple's, not the app's, and end users pay nothing.
   diary across devices. Off by default; the app is fully usable without it.
 - 🔔 **Local reminders** — opt-in meal / water / streak nudges, scheduled
   on-device (no push server).
-- ✨ **Plately+** — optional subscription unlocking Fasting, Goal Phases, Coach,
+- ✨ **EvoEat+** — optional subscription unlocking Fasting, Goal Phases, Coach,
   Meal Planner, and cloud sync. The core tracker stays free.
 - 🔒 **Private** — account is optional, no analytics, no tracking. "Erase all
   data" any time.
@@ -60,9 +62,9 @@ developer fee — that's Apple's, not the app's, and end users pay nothing.
 ## How it's different from the paid trackers
 
 Mainstream trackers (MyFitnessPal, Lose It!, etc.) gate core features behind
-subscriptions. Plately gives them all away — free, offline, account-free:
+subscriptions. EvoEat gives them all away — free, offline, account-free:
 
-| Feature | Typical paid app | Plately |
+| Feature | Typical paid app | EvoEat |
 |---------|------------------|-----------|
 | Photo food recognition | Premium | **Free** (on-device) |
 | Barcode scanning | Often premium | **Free** (Open Food Facts) |
@@ -81,7 +83,7 @@ subscriptions. Plately gives them all away — free, offline, account-free:
 - `expo-sqlite` (local diary) + `zustand` (+ AsyncStorage for settings)
 - `@react-navigation` (stack + tabs), `react-native-svg` (rings/bars)
 - `@supabase/supabase-js` + `expo-apple-authentication` (optional auth & sync)
-- `react-native-purchases` / RevenueCat (Plately+ subscription)
+- `react-native-purchases` / RevenueCat (EvoEat+ subscription)
 - `expo-notifications` (local reminders, no push server)
 
 ## Getting started
@@ -96,7 +98,7 @@ npx expo start         # run in a dev client
 > The camera + on-device model require a **development build** (not Expo Go):
 > `npx eas-cli@latest build --profile development`, or `npx expo run:ios` / `run:android`.
 
-### Accounts, sync & Plately+ (optional)
+### Accounts, sync & EvoEat+ (optional)
 
 These integrations are **off until you provide keys** — without them the app
 runs in local / guest mode and degrades gracefully. Copy `.env.example` to
@@ -105,7 +107,7 @@ runs in local / guest mode and degrades gracefully. Copy `.env.example` to
 ```bash
 cp .env.example .env
 # SUPABASE_URL / SUPABASE_ANON_KEY   → auth + cloud sync
-# REVENUECAT_IOS_KEY                 → Plately+ subscription
+# REVENUECAT_IOS_KEY                 → EvoEat+ subscription
 ```
 
 `app.config.js` reads `.env` and exposes the keys via `expo-constants`;
@@ -137,7 +139,7 @@ src/
   state/       zustand stores (settings, diary)
   config/      env / secret loading (Supabase + RevenueCat keys)
   auth/        Supabase client, validation, sign-in/up actions, session hook
-  iap/         RevenueCat configuration + Plately+ entitlement
+  iap/         RevenueCat configuration + EvoEat+ entitlement
   sync/        cloud sync engine (LWW), table registry, local/remote adapters
   notifications/ local reminder schedule + scheduling
   components/  reusable UI (Ring, MacroBars, MicrosGrid, …)
@@ -160,7 +162,7 @@ before shipping.
 
 ## Disclaimer
 
-Plately gives **approximate** estimates for general wellness only. It is not a
+EvoEat gives **approximate** estimates for general wellness only. It is not a
 medical device and does not provide medical, dietary, or nutritional advice.
 Consult a qualified professional for health decisions.
 
