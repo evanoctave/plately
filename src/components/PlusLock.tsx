@@ -1,8 +1,8 @@
 // =============================================================================
-// PlusLock — Paywall for Plately+ features
+// PlusLock — Paywall for EvoEat+ features
 // =============================================================================
 // Drop-in screen-level fallback rendered by any Plus-only screen when the
-// user hasn't unlocked Plately+. Shows the feature icon, a short pitch, and
+// user hasn't unlocked EvoEat+. Shows the feature icon, a short pitch, and
 // a CTA that routes to the PlatelyPlusScreen for purchase / unlock. Usage:
 //
 //   if (!plusActive) return <PlusLock icon="hourglass" title="Fasting" ... />;
@@ -23,11 +23,11 @@ interface PlusLockProps {
   description: string;
   /** Bullet highlights of what the feature does. */
   highlights: string[];
-  /** Open the Plately+ screen. */
+  /** Open the EvoEat+ screen. */
   onSeePlus: () => void;
 }
 
-/** Full-screen paywall shown when a Plately+ feature is opened without entitlement. */
+/** Full-screen paywall shown when a EvoEat+ feature is opened without entitlement. */
 export function PlusLock({ icon, title, description, highlights, onSeePlus }: PlusLockProps) {
   const p = useTheme();
   const styles = useMemo(() => makeStyles(p), [p]);
@@ -60,7 +60,7 @@ export function PlusLock({ icon, title, description, highlights, onSeePlus }: Pl
           <Text style={[styles.badgeText, { color: accent }]}>PLATELY+</Text>
         </View>
 
-        <Button label="See Plately+" onPress={onSeePlus} style={styles.cta} />
+        <Button label="See EvoEat+" onPress={onSeePlus} style={styles.cta} />
       </View>
     </SafeAreaView>
   );

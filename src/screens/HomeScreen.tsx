@@ -345,7 +345,7 @@ export function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
 
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.brand}>Plately</Text>
+          <Text style={styles.brand}>EvoEat</Text>
           <Pressable
             style={({ pressed }) => [styles.streakChip, pressed && { opacity: 0.7 }]}
             onPress={() => navigation.navigate('Achievements')}

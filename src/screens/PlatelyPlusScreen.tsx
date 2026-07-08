@@ -95,7 +95,7 @@ export function PlatelyPlusScreen({ navigation }: RootStackScreenProps<'PlatelyP
       setError(result.error);
       return;
     }
-    if (result.active) Alert.alert('Welcome to Plately+', 'All extras are unlocked. Thank you for supporting Plately.');
+    if (result.active) Alert.alert('Welcome to EvoEat+', 'All extras are unlocked. Thank you for supporting EvoEat.');
   };
 
   const restore = async () => {
@@ -107,11 +107,11 @@ export function PlatelyPlusScreen({ navigation }: RootStackScreenProps<'PlatelyP
       setError(result.error);
       return;
     }
-    Alert.alert(result.active ? 'Restored' : 'Nothing to restore', result.active ? 'Your Plately+ subscription is active.' : 'No previous purchase was found for this Apple ID.');
+    Alert.alert(result.active ? 'Restored' : 'Nothing to restore', result.active ? 'Your EvoEat+ subscription is active.' : 'No previous purchase was found for this Apple ID.');
   };
 
   const devUnlock = () => {
-    Alert.alert('Dev unlock', 'Unlock Plately+ locally for testing (no charge). Development builds only.', [
+    Alert.alert('Dev unlock', 'Unlock EvoEat+ locally for testing (no charge). Development builds only.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Unlock', onPress: () => setPlusActive(true) },
     ]);
@@ -137,7 +137,7 @@ export function PlatelyPlusScreen({ navigation }: RootStackScreenProps<'PlatelyP
           </View>
           <Text style={styles.heroTitle}>Power features, when you want them</Text>
           <Text style={styles.heroSub}>
-            Everything you use today stays free. Plately+ adds optional extras and cloud sync,
+            Everything you use today stays free. EvoEat+ adds optional extras and cloud sync,
             with a small subscription to keep the lights on.
           </Text>
         </View>
@@ -171,7 +171,7 @@ export function PlatelyPlusScreen({ navigation }: RootStackScreenProps<'PlatelyP
             <>
               <View style={styles.activeRow}>
                 <Ionicons name="checkmark-circle" size={20} color={accent} />
-                <Text style={[styles.activeText, { color: accent }]}>Plately+ active</Text>
+                <Text style={[styles.activeText, { color: accent }]}>EvoEat+ active</Text>
               </View>
               <Text style={styles.fineprint}>
                 Manage or cancel anytime from the App Store → your Apple ID → Subscriptions.
@@ -204,7 +204,7 @@ export function PlatelyPlusScreen({ navigation }: RootStackScreenProps<'PlatelyP
                 <Text style={styles.restore}>Restore purchases</Text>
               </Pressable>
               <Text style={styles.fineprint}>
-                Subscription auto-renews until cancelled. The free core of Plately — photo
+                Subscription auto-renews until cancelled. The free core of EvoEat — photo
                 recognition, custom foods, insights, export — is never paywalled.
               </Text>
               <View style={styles.legalRow}>

@@ -1,5 +1,5 @@
 // =============================================================================
-// usePlus — Plately+ subscription entitlement
+// usePlus — EvoEat+ subscription entitlement
 // =============================================================================
 // Thin wrapper over the settings store's `plusActive` flag. UI code reads the
 // entitlement through here, never the raw flag.
@@ -12,7 +12,7 @@
 import { useSettings } from './useSettings';
 
 /**
- * Plately+ entitlement. The free core of the app never reads this — only the
+ * EvoEat+ entitlement. The free core of the app never reads this — only the
  * optional "extras" (Fasting, Goal Phases, Coach, Meal Planner) gate on it.
  */
 export interface PlusEntitlement {

@@ -319,7 +319,7 @@ export function RootNavigator() {
         <Stack.Screen
           name="PlatelyPlus"
           component={PlatelyPlusScreen}
-          options={{ title: 'Plately+' }}
+          options={{ title: 'EvoEat+' }}
         />
         <Stack.Screen name="Weight" component={WeightScreen} options={{ title: 'Weight' }} />
         <Stack.Screen name="Fasting" component={FastingScreen} options={{ title: 'Fasting' }} />

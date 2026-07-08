@@ -77,7 +77,7 @@ export function OnboardingScreen({ navigation }: RootStackScreenProps<'Onboardin
           <View style={styles.logo}>
             <Ionicons name="restaurant" size={36} color={p.white} />
           </View>
-          <Text style={styles.brand}>Plately</Text>
+          <Text style={styles.brand}>EvoEat</Text>
           <Text style={styles.tagline}>
             Photo-first nutrition tracking.{'\n'}On-device. Private. Free.
           </Text>

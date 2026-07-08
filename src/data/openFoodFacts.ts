@@ -127,7 +127,7 @@ export async function lookupBarcode(barcode: string): Promise<BarcodeLookup> {
   try {
     const res = await fetch(`${ENDPOINT}/${encodeURIComponent(code)}.json?fields=${FIELDS}`, {
       signal: controller.signal,
-      headers: { 'User-Agent': 'Plately/1.0 (open-source nutrition app)' },
+      headers: { 'User-Agent': 'EvoEat/1.0 (open-source nutrition app)' },
     });
     if (!res.ok) return { status: 'error' };
     const data = (await res.json()) as OffResponse;

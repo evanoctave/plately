@@ -18,7 +18,7 @@ export function PrivacyPolicyScreen(_props: RootStackScreenProps<'PrivacyPolicy'
     <ScrollView contentContainerStyle={styles.content}>
       <Text style={styles.updated}>Last updated: {LAST_UPDATED}</Text>
       <Text style={styles.lead}>
-        Plately is private by default. This explains, in plain language, what the app does and does
+        EvoEat is private by default. This explains, in plain language, what the app does and does
         not do with your information.
       </Text>
 
@@ -35,7 +35,7 @@ export function PrivacyPolicyScreen(_props: RootStackScreenProps<'PrivacyPolicy'
 
       <Section title="Camera & photo library" styles={styles}>
         <Body styles={styles}>
-          Plately requests camera access so you can photograph meals, and optionally photo-library
+          EvoEat requests camera access so you can photograph meals, and optionally photo-library
           access so you can analyze an existing photo. Images are processed on your device and stored
           locally only if you save the diary entry. They are never uploaded.
         </Body>
@@ -43,7 +43,7 @@ export function PrivacyPolicyScreen(_props: RootStackScreenProps<'PrivacyPolicy'
 
       <Section title="No tracking, no analytics, no ads" styles={styles}>
         <Body styles={styles}>
-          Plately contains no third-party analytics SDKs, no advertising SDKs, and no tracking
+          EvoEat contains no third-party analytics SDKs, no advertising SDKs, and no tracking
           technologies. It does not use the Advertising Identifier (IDFA) and performs no App
           Tracking Transparency–covered tracking.
         </Body>
@@ -59,14 +59,14 @@ export function PrivacyPolicyScreen(_props: RootStackScreenProps<'PrivacyPolicy'
 
       <Section title="Children's privacy" styles={styles}>
         <Body styles={styles}>
-          Plately does not knowingly collect personal information from anyone, including children
+          EvoEat does not knowingly collect personal information from anyone, including children
           under 13.
         </Body>
       </Section>
 
       <Section title="Medical disclaimer" styles={styles}>
         <Body styles={styles}>
-          Plately provides approximate nutrition estimates for general wellness and informational
+          EvoEat provides approximate nutrition estimates for general wellness and informational
           purposes only. It is not a medical device and does not provide medical, dietary, or
           nutritional advice, diagnosis, or treatment. Always consult a qualified healthcare
           professional regarding your diet and health.

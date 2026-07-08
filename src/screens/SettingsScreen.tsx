@@ -133,7 +133,7 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
           <Pressable
             onPress={() => navigation.navigate('PlatelyPlus')}
             style={({ pressed }) => [styles.plusBtn, pressed && { opacity: 0.7 }]}
-            accessibilityLabel="Plately+"
+            accessibilityLabel="EvoEat+"
           >
             <View style={styles.plusIconWrap}>
               <Ionicons name="star" size={13} color="#000" style={styles.plusStarIcon} />
@@ -377,7 +377,7 @@ export function SettingsScreen({ navigation }: TabScreenProps<'Settings'>) {
         </Card>
 
         <Text style={styles.disclaimer}>
-          Plately provides approximate estimates for general wellness and is not a medical device.
+          EvoEat provides approximate estimates for general wellness and is not a medical device.
           It does not provide medical, dietary, or nutritional advice. Consult a qualified
           professional for health decisions.
         </Text>

@@ -410,9 +410,9 @@ export function OnboardingFlowScreen({ navigation }: RootStackScreenProps<'Onboa
           )}
 
           {stepId === 'notifications' && (
-            <Question title="Stay on track with Plately notifications" subtitle="We'll remind you to log meals and check in on your streak." styles={styles}>
+            <Question title="Stay on track with EvoEat notifications" subtitle="We'll remind you to log meals and check in on your streak." styles={styles}>
               <View style={styles.notifPreview}>
-                <Text style={styles.notifTitle}>Plately would like to send you Notifications</Text>
+                <Text style={styles.notifTitle}>EvoEat would like to send you Notifications</Text>
                 <View style={styles.notifBtnRow}>
                   <View style={styles.notifBtn}><Text style={styles.notifBtnText}>Don't Allow</Text></View>
                   <View style={[styles.notifBtn, styles.notifBtnPrimary]}><Text style={[styles.notifBtnText, { color: p.white }]}>Allow</Text></View>

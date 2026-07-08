@@ -198,7 +198,7 @@ export function AuthScreen({ navigation, route }: RootStackScreenProps<'Auth'>) 
               </View>
             </Pressable>
             <Text style={styles.tosText}>
-              I agree to Plately's{' '}
+              I agree to EvoEat's{' '}
               <Text style={styles.tosLink} onPress={() => navigation.navigate('Terms')}>Terms of Service</Text>
               {' '}and{' '}
               <Text style={styles.tosLink} onPress={() => navigation.navigate('PrivacyPolicy')}>Privacy Policy</Text>.

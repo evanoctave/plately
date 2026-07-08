@@ -1,5 +1,5 @@
 // =============================================================================
-// iap/purchases — RevenueCat integration for Plately+
+// iap/purchases — RevenueCat integration for EvoEat+
 // =============================================================================
 // Wraps react-native-purchases. The `plus` entitlement is the single source of
 // truth for the subscription; whenever CustomerInfo changes we mirror its

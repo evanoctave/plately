@@ -9,7 +9,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { useSettings, DEFAULT_ACCENT } from '../state/useSettings';
 
 const ACCENTS: { hex: string; name: string }[] = [
-  { hex: DEFAULT_ACCENT, name: 'Plately Green' },
+  { hex: DEFAULT_ACCENT, name: 'EvoEat Green' },
   { hex: '#0A84FF', name: 'Ocean Blue' },
   { hex: '#30B0C7', name: 'Teal' },
   { hex: '#FF9F0A', name: 'Amber' },

@@ -18,13 +18,13 @@ export function TermsScreen(_props: RootStackScreenProps<'Terms'>) {
     <ScrollView contentContainerStyle={styles.content}>
       <Text style={styles.updated}>Last updated: {LAST_UPDATED}</Text>
       <Text style={styles.lead}>
-        These Terms of Service govern your use of Plately. By creating an account or using the app,
+        These Terms of Service govern your use of EvoEat. By creating an account or using the app,
         you agree to them.
       </Text>
 
-      <Section title="Using Plately" styles={styles}>
+      <Section title="Using EvoEat" styles={styles}>
         <Body styles={styles}>
-          Plately is a personal nutrition and food-logging tool. You may use it for your own
+          EvoEat is a personal nutrition and food-logging tool. You may use it for your own
           personal, non-commercial purposes. You are responsible for the accuracy of the information
           you log and for keeping your account credentials secure.
         </Body>
@@ -32,15 +32,15 @@ export function TermsScreen(_props: RootStackScreenProps<'Terms'>) {
 
       <Section title="Accounts" styles={styles}>
         <Body styles={styles}>
-          You can use Plately without an account in guest mode, or sign in with email, Apple, or
+          You can use EvoEat without an account in guest mode, or sign in with email, Apple, or
           Google to sync across devices. You must be at least 13 years old to create an account. You
           are responsible for activity that happens under your account.
         </Body>
       </Section>
 
-      <Section title="Plately+ subscriptions" styles={styles}>
+      <Section title="EvoEat+ subscriptions" styles={styles}>
         <Body styles={styles}>
-          Plately+ is an optional auto-renewing subscription that unlocks extra features. Payment is
+          EvoEat+ is an optional auto-renewing subscription that unlocks extra features. Payment is
           charged to your Apple ID at confirmation of purchase. Subscriptions renew automatically
           unless cancelled at least 24 hours before the end of the current period. Manage or cancel
           anytime in your device Settings → Apple ID → Subscriptions. Prices are shown in the app
@@ -50,13 +50,13 @@ export function TermsScreen(_props: RootStackScreenProps<'Terms'>) {
 
       <Section title="Acceptable use" styles={styles}>
         <Bullet styles={styles}>Do not misuse, disrupt, or attempt to reverse-engineer the app.</Bullet>
-        <Bullet styles={styles}>Do not use Plately for any unlawful purpose.</Bullet>
+        <Bullet styles={styles}>Do not use EvoEat for any unlawful purpose.</Bullet>
         <Bullet styles={styles}>Do not attempt to access other users' data.</Bullet>
       </Section>
 
       <Section title="Medical disclaimer" styles={styles}>
         <Body styles={styles}>
-          Plately provides approximate nutrition estimates for general wellness and informational
+          EvoEat provides approximate nutrition estimates for general wellness and informational
           purposes only. It is not a medical device and does not provide medical, dietary, or
           nutritional advice, diagnosis, or treatment. Always consult a qualified healthcare
           professional regarding your diet and health.
@@ -65,14 +65,14 @@ export function TermsScreen(_props: RootStackScreenProps<'Terms'>) {
 
       <Section title="No warranty" styles={styles}>
         <Body styles={styles}>
-          Plately is provided "as is" without warranties of any kind. Nutrition values are estimates
+          EvoEat is provided "as is" without warranties of any kind. Nutrition values are estimates
           and may be inaccurate. We do not guarantee the app will be uninterrupted or error-free.
         </Body>
       </Section>
 
       <Section title="Limitation of liability" styles={styles}>
         <Body styles={styles}>
-          To the fullest extent permitted by law, Plately and its developer are not liable for any
+          To the fullest extent permitted by law, EvoEat and its developer are not liable for any
           indirect, incidental, or consequential damages arising from your use of the app.
         </Body>
       </Section>

@@ -71,7 +71,7 @@ interface SettingsState {
   weightUnit: 'kg' | 'lb'; // display/entry unit
   accent: string; // hex; tints nav + active controls
   appIcon: string; // selected alternate app icon key ('default' = stock)
-  plusActive: boolean; // Plately+ subscription unlocked
+  plusActive: boolean; // EvoEat+ subscription unlocked
   darkMode: boolean; // dark color scheme
   onboardingComplete: boolean;
   profile: UserProfile;

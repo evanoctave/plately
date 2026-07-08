@@ -40,7 +40,7 @@ export async function exportDiaryCsv(): Promise<ExportResult> {
 
   await Sharing.shareAsync(uri, {
     mimeType: 'text/csv',
-    dialogTitle: 'Export Plately diary',
+    dialogTitle: 'Export EvoEat diary',
     UTI: 'public.comma-separated-values-text',
   });
   return { status: 'shared', count: entries.length };
