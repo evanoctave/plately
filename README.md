@@ -94,7 +94,7 @@ npx expo start         # run in a dev client
 ```
 
 > The camera + on-device model require a **development build** (not Expo Go):
-> `eas build --profile development`, or `npx expo run:ios` / `run:android`.
+> `npx eas-cli@latest build --profile development`, or `npx expo run:ios` / `run:android`.
 
 ### Accounts, sync & Plately+ (optional)
 
