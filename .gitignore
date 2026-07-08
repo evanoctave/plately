@@ -47,3 +47,6 @@ supabase/.branches/
 
 # Claude session state
 .claude/memory/
+
+# Extracted store assets (uploaded to App Store Connect, not shipped)
+Plately app store assets/
