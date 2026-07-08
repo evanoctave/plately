@@ -10,6 +10,7 @@ module.exports = ({ config }) => {
     ...(config.plugins ?? []),
     'expo-notifications',
     'expo-apple-authentication',
+    'expo-secure-store',
   ];
 
   return {
