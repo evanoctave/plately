@@ -41,3 +41,9 @@ coverage/
 # Supabase CLI local state
 supabase/.temp/
 supabase/.branches/
+
+# Store assets (uploaded to App Store Connect, not shipped in the bundle)
+*.zip
+
+# Claude session state
+.claude/memory/
