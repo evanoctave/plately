@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Plately",
+    "name": "EvoEat",
     "slug": "plately",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -25,9 +25,9 @@
         "usesNonExemptEncryption": false
       },
       "infoPlist": {
-        "NSCameraUsageDescription": "Plately uses the camera so you can photograph your meals and estimate their nutrition on your device.",
-        "NSPhotoLibraryUsageDescription": "Plately lets you pick a meal photo from your library to estimate its nutrition.",
-        "NSPhotoLibraryAddUsageDescription": "Plately can save a meal photo you capture to your photo library.",
+        "NSCameraUsageDescription": "EvoEat uses the camera so you can photograph your meals and estimate their nutrition on your device.",
+        "NSPhotoLibraryUsageDescription": "EvoEat lets you pick a meal photo from your library to estimate its nutrition.",
+        "NSPhotoLibraryAddUsageDescription": "EvoEat can save a meal photo you capture to your photo library.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -50,13 +50,13 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Plately uses the camera so you can photograph your meals and estimate their nutrition on your device."
+          "cameraPermission": "EvoEat uses the camera so you can photograph your meals and estimate their nutrition on your device."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Plately lets you pick a meal photo from your library to estimate its nutrition."
+          "photosPermission": "EvoEat lets you pick a meal photo from your library to estimate its nutrition."
         }
       ],
       [
