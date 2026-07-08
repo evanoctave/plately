@@ -85,28 +85,17 @@ export async function signInWithGoogle(): Promise<AuthResult> {
     if (result.type !== 'success') return { error: null }; // user cancelled
 
     const url = result.url;
-    // Only trust tokens from a callback that matches our registered redirect.
+    // Only trust a callback that matches our registered redirect.
     if (!url.startsWith(redirectTo)) return { error: 'OAuth callback URL mismatch.' };
-    const query = Object.fromEntries(new URLSearchParams(url.includes('?') ? (url.split('?')[1] ?? '').split('#')[0] : ''));
 
-    // PKCE flow (supabase-js default): redirect carries an authorization code.
-    if (query['code']) {
-      const { error: codeError } = await supabase.auth.exchangeCodeForSession(query['code']);
-      return { error: codeError ? codeError.message : null };
-    }
+    // PKCE flow only: the redirect must carry an authorization code. Tokens in
+    // the URL fragment (implicit flow) are never accepted.
+    const queryString = url.split('?')[1]?.split('#')[0] ?? '';
+    const code = new URLSearchParams(queryString).get('code');
+    if (!code) return { error: 'Google sign-in did not return an authorization code.' };
 
-    // Implicit-flow fallback: tokens come back in the URL fragment.
-    const fragment = url.includes('#') ? url.split('#')[1] : '';
-    const params = Object.fromEntries(new URLSearchParams(fragment));
-    const accessToken = params['access_token'];
-    const refreshToken = params['refresh_token'];
-    if (!accessToken || !refreshToken) return { error: 'Google sign-in did not return tokens.' };
-
-    const { error: sessionError } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
-    return { error: sessionError ? sessionError.message : null };
+    const { error: codeError } = await supabase.auth.exchangeCodeForSession(code);
+    return { error: codeError ? codeError.message : null };
   } catch (err) {
     return { error: message(err, 'Google sign-in failed.') };
   }

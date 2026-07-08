@@ -18,6 +18,7 @@ function build(): SupabaseClient | null {
       storage: AsyncStorage,
       autoRefreshToken: true,
       persistSession: true,
+      flowType: 'pkce',
       // RN has no URL bar; OAuth redirects aren't parsed from the launch URL.
       detectSessionInUrl: false,
     },
